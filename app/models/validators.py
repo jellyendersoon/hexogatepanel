@@ -312,3 +312,20 @@ class StringArrayValidator:
         if len(compiled_string) > max:
             raise ValueError(f"String can't be bigger that {max} charachter")
         return array
+
+
+class DisplayNameValidator:
+    """Names shown in the dashboard and in notifications (nodes, groups, hosts, cores)."""
+
+    MAX_LENGTH = 128
+    _FORBIDDEN = re.compile(r"[<>\x00-\x1f\x7f]")
+
+    @classmethod
+    def validate(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        if len(value) > cls.MAX_LENGTH:
+            raise ValueError(f"Name can be at most {cls.MAX_LENGTH} characters.")
+        if cls._FORBIDDEN.search(value):
+            raise ValueError("Name cannot contain '<', '>' or control characters.")
+        return value

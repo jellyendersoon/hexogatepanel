@@ -476,3 +476,15 @@ def disable_cache(monkeypatch: pytest.MonkeyPatch):
         return wrapper
 
     monkeypatch.setattr("app.settings.cached", dummy_cached)
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_throttles():
+    """Credential-guessing limits are per process; keep tests independent."""
+    from app.utils.login_throttle import login_throttle, setup_throttle
+
+    login_throttle.clear()
+    setup_throttle.clear()
+    yield
+    login_throttle.clear()
+    setup_throttle.clear()

@@ -112,7 +112,7 @@ async def admin_login(username: str, password: str, client_ip: str, success: boo
     message = {**messages.ADMIN_LOGIN, "footer": dict(messages.ADMIN_LOGIN["footer"])}
     message["description"] = message["description"].format(
         username=username,
-        password="🔒" if success else password,
+        password="🔒",
         client_ip=client_ip,
     )
     message["footer"]["text"] = message["footer"]["text"].format(status="Successful" if success else "Failed")

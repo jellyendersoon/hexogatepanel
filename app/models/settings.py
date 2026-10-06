@@ -38,6 +38,11 @@ class RunMethod(StrEnum):
     LONGPOLLING = "long-polling"
 
 
+# Value returned in place of stored secrets by GET /api/settings. Sending it
+# back unchanged on PUT keeps the stored secret.
+SECRET_MASK = "********"
+
+
 class Telegram(BaseModel):
     enable: bool = Field(default=False)
     token: str | None = Field(default=None)
@@ -70,6 +75,8 @@ class Telegram(BaseModel):
     @field_validator("token")
     @classmethod
     def token_validation(cls, v):
+        if v == SECRET_MASK:
+            return v
         if not v:
             return v
         if not re.match(TELEGRAM_TOKEN_PATTERN, v):

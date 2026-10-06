@@ -1,4 +1,5 @@
 import asyncio
+import hmac
 import time
 
 from aiogram.types import Update
@@ -123,7 +124,7 @@ async def webhook_handler(request: Request, X_Telegram_Bot_Api_Secret_Token: str
     if not settings.enable:
         raise HTTPException(status_code=404, detail="not found")
 
-    if X_Telegram_Bot_Api_Secret_Token != settings.webhook_secret:
+    if not hmac.compare_digest(X_Telegram_Bot_Api_Secret_Token or "", settings.webhook_secret or ""):
         raise HTTPException(status_code=403, detail="Forbidden: Invalid secret key")
 
     bot = get_bot()

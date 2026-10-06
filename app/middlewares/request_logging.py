@@ -4,6 +4,20 @@ from time import perf_counter
 from h11 import LocalProtocolError
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
+_SENSITIVE_QUERY_PARAMS = {"key", "token", "secret", "password", "access_token"}
+
+
+def _redact_query(query: str) -> str:
+    """Hide values of credential-like query parameters in access logs."""
+    parts = []
+    for part in query.split("&"):
+        name, sep, _value = part.partition("=")
+        if sep and name.lower() in _SENSITIVE_QUERY_PARAMS:
+            parts.append(f"{name}=[redacted]")
+        else:
+            parts.append(part)
+    return "&".join(parts)
+
 
 class RequestProcessTimeLoggingMiddleware:
     def __init__(self, app: ASGIApp, access_logger: logging.Logger):
@@ -46,7 +60,7 @@ class RequestProcessTimeLoggingMiddleware:
             path = scope.get("path", "")
             query_bytes = scope.get("query_string", b"")
             if query_bytes:
-                path = f"{path}?{query_bytes.decode(errors='replace')}"
+                path = f"{path}?{_redact_query(query_bytes.decode(errors='replace'))}"
             http_version = scope.get("http_version", "1.1")
             client = scope.get("client")
             client_addr = client[0] if client else "-"

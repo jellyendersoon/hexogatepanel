@@ -1,7 +1,7 @@
 from functools import wraps
 
 from app.models.admin import AdminDetails
-from app.models.admin_role import PermissionScope, RoleLimits
+from app.models.admin_role import PermissionScope, RoleLimits, RolePermissions
 
 
 class PermissionDenied(Exception):
@@ -178,3 +178,44 @@ def check_permission(resource: str, action: str):
         return wrapper
 
     return decorator
+
+
+def check_permissions_not_exceed_admin(admin: AdminDetails, requested: RolePermissions) -> None:
+    """Raise ValueError if any permission in ``requested`` exceeds what ``admin`` has.
+
+    Owners are exempt. Used wherever a non-owner admin hands out permissions
+    (API keys, role assignment, password resets of other admins) so nobody
+    can grant more than they hold.
+    """
+    if admin.is_owner:
+        return
+
+    admin_perms = admin.role.permissions if admin.role else RolePermissions()
+
+    for resource_name, resource_perms in requested.model_dump(exclude_none=True).items():
+        if resource_perms is None:
+            continue
+        admin_resource = admin_perms.get(resource_name)
+        if admin_resource is None:
+            raise ValueError(f"You don't have access to resource '{resource_name}'")
+
+        for action, value in resource_perms.items():
+            if value is None:
+                continue
+            admin_action = admin_resource.get(action) if admin_resource else None
+            if admin_action is None:
+                raise ValueError(f"You don't have the '{action}' permission on '{resource_name}'")
+            # True means unrestricted — cannot grant if admin only has scoped access
+            if value is True and admin_action is not True:
+                raise ValueError(
+                    f"Cannot grant '{resource_name}.{action}=True': "
+                    f"your own access is scoped (scope={admin_action.get('scope', 0) if isinstance(admin_action, dict) else admin_action})"
+                )
+            # If both sides have a scope dict, requested scope must not exceed admin scope
+            if isinstance(value, dict) and isinstance(admin_action, dict):
+                requested_scope = value.get("scope", 0)
+                admin_scope = admin_action.get("scope", 0)
+                if requested_scope > admin_scope:
+                    raise ValueError(
+                        f"Cannot grant '{resource_name}.{action}' with scope={requested_scope}: your scope is {admin_scope}"
+                    )

@@ -12,7 +12,9 @@ def setup_middleware(app: FastAPI):
     app.add_middleware(
         CORSMiddleware,
         allow_origins=cors_settings.allowed_origins,
-        allow_credentials=True,
+        # Browsers refuse "*" together with credentials, and Starlette would
+        # reflect the Origin instead; only allow credentials for explicit origins.
+        allow_credentials="*" not in cors_settings.allowed_origins,
         allow_methods=["*"],
         allow_headers=["*"],
     )

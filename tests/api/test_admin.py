@@ -913,7 +913,7 @@ async def test_validate_mini_app_admin_duplicate_telegram_id_conflict(access_tok
         monkeypatch.setattr("app.routers.authentication.telegram_settings", fake_telegram_settings)
         monkeypatch.setattr(
             "app.routers.authentication.safe_parse_webapp_init_data",
-            lambda token, init_data: SimpleNamespace(user=SimpleNamespace(id=telegram_id)),
+            lambda token, init_data: SimpleNamespace(user=SimpleNamespace(id=telegram_id), auth_date=datetime.now(UTC)),
         )
 
         with pytest.raises(HTTPException) as exc_info:

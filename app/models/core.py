@@ -4,11 +4,17 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from app.db.models import CoreType
 
-from .validators import AwareDatetime, ListValidator, StringArrayValidator
+from .validators import AwareDatetime, DisplayNameValidator, ListValidator, StringArrayValidator
 
 
 class CoreBase(BaseModel):
     name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_display(cls, value):
+        return DisplayNameValidator.validate(value)
+
     config: dict
     type: CoreType | None = Field(default=None)
     exclude_inbound_tags: set[str]

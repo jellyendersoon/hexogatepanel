@@ -1,5 +1,6 @@
 import asyncio
 import os
+import re
 from concurrent.futures import ThreadPoolExecutor
 from enum import Enum
 from typing import Literal
@@ -195,6 +196,17 @@ class AdminCreate(AdminModify):
     username: str
     password: str
     role_id: int
+
+    @field_validator("username")
+    @classmethod
+    def validate_username(cls, value: str) -> str:
+        # Same character set as user accounts; admin names may be longer and may
+        # contain adjacent separators (test and automation accounts rely on it).
+        if not (3 <= len(value) <= 128):
+            raise ValueError("Username only can be 3 to 128 characters.")
+        if not re.match(r"^[a-zA-Z0-9-_@.]+$", value):
+            raise ValueError("Username can only contain alphanumeric characters, -, _, @, and .")
+        return value
 
 
 class AdminInDB(AdminDetails):

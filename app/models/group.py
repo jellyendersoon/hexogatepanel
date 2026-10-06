@@ -2,11 +2,17 @@ from enum import Enum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from .validators import ListValidator
+from .validators import DisplayNameValidator, ListValidator
 
 
 class Group(BaseModel):
     name: str = Field(min_length=3, max_length=64)
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_display(cls, value):
+        return DisplayNameValidator.validate(value)
+
     inbound_tags: list[str] | None = []
     is_disabled: bool = False
 

@@ -6,7 +6,7 @@ from pydantic import AliasChoices, BaseModel, ConfigDict, Field, field_validator
 
 from app.db.models import ProxyHostALPN, ProxyHostFingerprint, ProxyHostSecurity, UserStatus
 
-from .validators import ListValidator, StringArrayValidator
+from .validators import DisplayNameValidator, ListValidator, StringArrayValidator
 
 
 class XHttpModes(str, Enum):
@@ -598,6 +598,12 @@ class SubscriptionTemplates(BaseModel):
 class BaseHost(BaseModel):
     id: int | None = Field(default=None)
     remark: str
+
+    @field_validator("remark")
+    @classmethod
+    def validate_remark_display(cls, value):
+        return DisplayNameValidator.validate(value)
+
     address: set[str] = Field(default_factory=set)
     inbound_tag: str | None = Field(default=None)
     port: int | None = Field(default=None)

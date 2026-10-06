@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field, computed_field, field_validat
 from app.db.models import DataLimitResetStrategy, NodeConnectionType, NodeStatus
 from app.models.stats import Period
 
-from .validators import ListValidator, OptionalAwareDatetime, ProxyValidator
+from .validators import DisplayNameValidator, ListValidator, OptionalAwareDatetime, ProxyValidator
 
 # Basic PEM format validation
 CERT_PATTERN = r"-----BEGIN CERTIFICATE-----(.*?)-----END CERTIFICATE-----"
@@ -38,6 +38,12 @@ class NodeSettings(BaseModel):
 
 class Node(BaseModel):
     name: str
+
+    @field_validator("name")
+    @classmethod
+    def validate_name_display(cls, value):
+        return DisplayNameValidator.validate(value)
+
     address: str
     port: int = 62050
     api_port: int = 62051

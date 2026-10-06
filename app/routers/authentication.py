@@ -1,4 +1,4 @@
-from datetime import UTC
+from datetime import UTC, datetime, timedelta
 from uuid import UUID
 
 from aiogram.utils.web_app import WebAppInitData, safe_parse_webapp_init_data
@@ -24,6 +24,10 @@ from app.operation.permissions import PermissionDenied, enforce_permission, is_s
 from app.settings import telegram_settings
 from app.utils.jwt import get_admin_payload
 from config import auth_settings, runtime_settings
+
+MINI_APP_INIT_DATA_MAX_AGE = timedelta(minutes=5)
+# bcrypt hash of an unguessable throwaway password; only used to equalise timing
+_UNKNOWN_ADMIN_DUMMY_HASH = "$2b$12$s0izgE.cM1R190u62xqHSuEaBbX/tvRbvARKxd8uq57S03EYID5KG"
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/admin/token", auto_error=False)
 
@@ -142,8 +146,10 @@ async def get_admin(db: AsyncSession, token: str) -> AdminDetails | None:
             return None
         return build_admin_details(db_admin)
 
-    # Env admin fallback — no DB record, but username is a known env admin
-    if payload["username"] in auth_settings.sudoers:
+    # Env admin fallback — no DB record, but username is a known env admin.
+    # Only honoured in debug, matching validate_admin, so a leaked secret cannot
+    # mint a non-revocable owner token in production.
+    if runtime_settings.debug and payload["username"] in auth_settings.sudoers:
         return AdminDetails(username=payload["username"], role=_ENV_ADMIN_ROLE)
 
     return None
@@ -179,8 +185,10 @@ async def get_admin_with_metrics(db: AsyncSession, token: str) -> AdminDetails |
             return None
         return build_admin_details(db_admin, total_users=total_users, reseted_usage=reseted_usage)
 
-    # Env admin fallback — no DB record, but username is a known env admin
-    if payload["username"] in auth_settings.sudoers:
+    # Env admin fallback — no DB record, but username is a known env admin.
+    # Only honoured in debug, matching validate_admin, so a leaked secret cannot
+    # mint a non-revocable owner token in production.
+    if runtime_settings.debug and payload["username"] in auth_settings.sudoers:
         return AdminDetails(username=payload["username"], role=_ENV_ADMIN_ROLE)
 
     return None
@@ -325,6 +333,10 @@ async def require_owner(admin: AdminDetails = Depends(get_current)):
 async def validate_admin(db: AsyncSession, username: str, password: str) -> AdminValidationResult | None:
     """Validate admin credentials against the database, with env admin fallback."""
     db_admin = await get_admin_by_username(db, username, load_users=False, load_usage_logs=False)
+    if db_admin is None:
+        # Spend the same bcrypt work as a real check so response time does not reveal
+        # whether the username exists.
+        await verify_password(password, _UNKNOWN_ADMIN_DUMMY_HASH)
     if db_admin and await verify_password(password, db_admin.hashed_password):
         return AdminValidationResult(
             id=db_admin.id,
@@ -357,6 +369,16 @@ async def validate_mini_app_admin(db: AsyncSession, token: str) -> AdminValidati
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="invalid token",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    # The HMAC check proves Telegram signed the data, not when. Reject stale
+    # init data so a captured value cannot be replayed indefinitely.
+    auth_date = data.auth_date if data.auth_date.tzinfo else data.auth_date.replace(tzinfo=UTC)
+    if datetime.now(UTC) - auth_date > MINI_APP_INIT_DATA_MAX_AGE:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="expired token",
             headers={"WWW-Authenticate": "Bearer"},
         )
 

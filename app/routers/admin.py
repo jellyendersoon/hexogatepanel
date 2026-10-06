@@ -26,6 +26,7 @@ from app.operation import OperatorType
 from app.operation.admin import AdminOperation
 from app.utils import responses
 from app.utils.jwt import create_admin_token
+from app.utils.login_throttle import login_throttle
 from app.utils.request import get_client_ip
 
 from .authentication import (
@@ -47,17 +48,22 @@ async def admin_token(
 ):
     """Authenticate an admin and issue a token."""
     client_ip = get_client_ip(request)
+    throttle_keys = (f"ip:{client_ip}", f"user:{form_data.username.lower()}")
+    login_throttle.check(*throttle_keys)
     db_admin = await validate_admin(db, form_data.username, form_data.password)
     if not db_admin:
-        asyncio.create_task(notification.admin_login(form_data.username, form_data.password, client_ip, False))
+        login_throttle.record_failure(*throttle_keys)
+        asyncio.create_task(notification.admin_login(form_data.username, "", client_ip, False))
         raise HTTPException(
             status_code=401, detail="Incorrect username or password", headers={"WWW-Authenticate": "Bearer"}
         )
     if db_admin.status == AdminStatus.disabled:
-        asyncio.create_task(notification.admin_login(form_data.username, form_data.password, client_ip, False))
+        login_throttle.record_failure(*throttle_keys)
+        asyncio.create_task(notification.admin_login(form_data.username, "", client_ip, False))
         raise HTTPException(
             status_code=403, detail="your account has been disabled", headers={"WWW-Authenticate": "Bearer"}
         )
+    login_throttle.reset(*throttle_keys)
     asyncio.create_task(notification.admin_login(db_admin.username, "", client_ip, True))
     return Token(access_token=await create_admin_token(db_admin.id, form_data.username))
 

@@ -14,7 +14,7 @@ router = APIRouter(tags=["Settings"], prefix="/api/settings", responses={401: re
 
 @router.get("", response_model=SettingsSchema)
 async def get_settings(db: AsyncSession = Depends(get_db), _=Depends(require_permission("settings", "read"))):
-    return await settings_operator.get_settings(db)
+    return await settings_operator.get_settings_masked(db)
 
 
 @router.get("/general", response_model=General)

@@ -19,6 +19,7 @@ from app.db.crud.admin import (
     reset_admin_usage,
     update_admin,
 )
+from app.db.crud.admin_role import get_role
 from app.db.crud.bulk import activate_all_disabled_users, disable_all_active_users
 from app.db.crud.user import get_users, remove_users
 from app.db.models import Admin, AdminStatus
@@ -36,12 +37,13 @@ from app.models.admin import (
     BulkAdminSelection,
     RemoveAdminsResponse,
 )
+from app.models.admin_role import RolePermissions
 from app.models.stats import Period, UserUsageStatsList
 from app.models.user import UserListQuery
 from app.node.sync import remove_user as sync_remove_user, sync_users
 from app.operation import BaseOperation
 from app.operation.admin_sync import admin_users_sync_blocked, sync_admin_users_for_block_transition
-from app.operation.permissions import PermissionDenied, enforce_permission
+from app.operation.permissions import PermissionDenied, check_permissions_not_exceed_admin, enforce_permission
 from app.operation.user import UserOperation
 from app.utils.logger import get_logger
 
@@ -57,12 +59,28 @@ class AdminOperation(BaseOperation):
         if not current_admin.is_owner and self._is_owner_admin(db_admin):
             await self.raise_error(message="Owner account is not accessible.", code=403)
 
+    async def _ensure_role_within_admin_permissions(
+        self, db: AsyncSession, role_id: int, current_admin: AdminDetails
+    ) -> None:
+        """Non-owners may only hand out roles whose permissions they hold themselves."""
+        if current_admin.is_owner:
+            return
+        role = await get_role(db, role_id)
+        if role is None:
+            await self.raise_error(message="Role not found", code=404)
+        try:
+            check_permissions_not_exceed_admin(current_admin, RolePermissions(**(role.permissions or {})))
+        except ValueError as exc:
+            await self.raise_error(message=f"Role grants permissions you do not have: {exc}", code=403)
+
     async def create_admin(self, db: AsyncSession, new_admin: AdminCreate, admin: AdminDetails) -> AdminDetails:
         """Create a new admin."""
         if new_admin.role_id == 1:
             await self.raise_error(
                 message="Owner role cannot be assigned via this endpoint. Use the setup flow.", code=403
             )
+
+        await self._ensure_role_within_admin_permissions(db, new_admin.role_id, admin)
 
         if new_admin.telegram_id is not None:
             existing_admins = await find_admins_by_telegram_id(db, new_admin.telegram_id, limit=1)
@@ -127,6 +145,14 @@ class AdminOperation(BaseOperation):
             and modified_admin.status == AdminStatus.disabled
         ):
             await self.raise_error(message="You're not allowed to disable your own account.", code=403)
+
+        if not current_admin.is_owner and not is_self:
+            # A non-owner may not promote another admin above their own permissions,
+            # nor take over an admin who already holds more than they do.
+            if modified_admin.role_id is not None and modified_admin.role_id != db_admin.role_id:
+                await self._ensure_role_within_admin_permissions(db, modified_admin.role_id, current_admin)
+            if modified_admin.password is not None:
+                await self._ensure_role_within_admin_permissions(db, db_admin.role_id, current_admin)
 
         if modified_admin.telegram_id:
             existing_admins = await find_admins_by_telegram_id(

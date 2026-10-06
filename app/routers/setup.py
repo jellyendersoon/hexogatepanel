@@ -16,15 +16,19 @@ from app.db.crud.temp_key import TempKeyConsumeError, consume_temp_key
 from app.models.admin import AdminCreate, AdminDetails
 from app.models.setup import OwnerCreateRequest, OwnerResetRequest, OwnerUpgradeRequest
 from app.utils import responses
+from app.utils.login_throttle import setup_throttle
 from app.utils.request import get_client_ip
 
 router = APIRouter(tags=["Setup"], prefix="/api/setup")
 
 
 async def _consume_key_or_raise(db: AsyncSession, key_str: str, action: str, request: Request) -> None:
+    throttle_key = f"setup:{get_client_ip(request)}"
+    setup_throttle.check(throttle_key)
     try:
         await consume_temp_key(db, key_str, action=action, ip=get_client_ip(request))
     except TempKeyConsumeError as exc:
+        setup_throttle.record_failure(throttle_key)
         status_code = status.HTTP_400_BAD_REQUEST if exc.detail == "invalid key" else status.HTTP_410_GONE
         raise HTTPException(status_code=status_code, detail=exc.detail) from exc
 

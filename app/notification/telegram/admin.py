@@ -80,7 +80,7 @@ async def admin_login(username: str, password: str, client_ip: str, success: boo
     data = messages.ADMIN_LOGIN.format(
         status="Successful" if success else "Failed",
         username=username,
-        password="🔒" if success else password,
+        password="🔒",
         client_ip=client_ip,
     )
     settings: NotificationSettings = await notification_settings()
