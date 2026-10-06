@@ -1,0 +1,28 @@
+# Subscription-only renderer: the same image as the panel, started with
+# sub_renderer.py instead of the dashboard. It serves only /sub/* on a private
+# Unix socket; the reverse proxy routes subscription requests to that socket
+# first and falls back to the main panel socket.
+#
+#   docker compose -f docker-compose.sub-renderer.yml up -d
+#
+# It shares the panel's .env (database URL and subscription settings) and reads
+# the group presentation policy from the data directory. See
+# docs/fleet-subscription-rendering.md.
+services:
+  sub-renderer:
+    image: ghcr.io/jellyendersoon/hexogatepanel:latest
+    container_name: hexogate-sub-renderer
+    network_mode: host
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      GROUP_PRESENTATION_POLICY_PATH: /var/lib/hexogate/group-presentation-policy.json
+      # Production routes /sub/* to this socket name; keep it.
+      SUB_RENDERER_SOCKET: /var/lib/pasarguard/sub-renderer-canary.socket
+      SQLALCHEMY_POOL_SIZE: "10"
+      SQLALCHEMY_MAX_OVERFLOW: "20"
+    entrypoint: ["python"]
+    command: ["/code/sub_renderer.py"]
+    volumes:
+      - /var/lib/hexogate:/var/lib/hexogate
+      - /var/lib/pasarguard:/var/lib/pasarguard

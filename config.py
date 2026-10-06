@@ -1,7 +1,7 @@
 from functools import cached_property
 from typing import Any
 
-from pydantic import Field, field_validator, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from role import Role
@@ -130,11 +130,13 @@ class SubscriptionEnvSettings(EnvSettings):
     fallback_path: str = Field(default="sub", validation_alias="SUBSCRIPTION_PATH")
     clients_limit: int = Field(default=10, validation_alias="USER_SUBSCRIPTION_CLIENTS_LIMIT")
     external_config: str = Field(default="", validation_alias="EXTERNAL_CONFIG")
-    # Optional JSON policy that orders/filters subscription hosts per user group.
-    # See app/subscription/presentation_policy.py for the schema.
+    # Optional JSON group presentation policy (host visibility, scopes, remark
+    # overrides per user group). Runtime data, never part of the source tree;
+    # see docs/fleet-subscription-rendering.md. Both env names are accepted: the
+    # fork's and the production (PASARGUARD_*) one that the live renderer uses.
     group_presentation_policy_path: str = Field(
         default="/var/lib/hexogate/group-presentation-policy.json",
-        validation_alias="GROUP_PRESENTATION_POLICY_PATH",
+        validation_alias=AliasChoices("GROUP_PRESENTATION_POLICY_PATH", "PASARGUARD_GROUP_PRESENTATION_POLICY_PATH"),
     )
 
     @cached_property

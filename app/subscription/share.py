@@ -16,7 +16,7 @@ from app.models.user import UsersResponseWithInbounds
 from app.settings import subscription_settings
 from app.subscription.client_templates import subscription_client_templates, subscription_xray_templates
 from app.subscription.config_cache import get_sub_config, make_sub_config_key, put_sub_config
-from app.subscription.presentation_policy import load_presentation_policy, order_hosts_for_user
+from app.subscription.presentation_policy import apply_group_presentation_policy, order_hosts_for_user
 from app.utils.system import readable_size
 
 from . import (
@@ -276,46 +276,48 @@ async def filter_hosts(hosts: list[SubscriptionInboundData], user_status: UserSt
     return [host for host in hosts if not host.status or user_status in host.status]
 
 
-# Digest slots: the endpoint slot is shared by sni, host header and address so
-# that, for lists of equal length, sni[i] is paired with address[i]/host[i].
-_PICK_SLOT_ENDPOINT = 0
-_PICK_SLOT_PORT = 1
-_PICK_SLOT_SHORT_ID = 2
+def _hexogate_stable_pick(values, user_id, key):
+    """Deterministic per-user, per-row choice among a host row's values.
+
+    A user keeps the same address across refreshes; different rows of one user
+    spread over the addresses, so a block on one IP only takes out part of a
+    user's rows. Falls back to random when no user id is available (stock
+    behaviour). The digest is sha256("<user_id>|<key>") over the sorted values;
+    this is the production algorithm and must not change, or every customer
+    would be moved to a different address.
+    """
+    if not isinstance(values, list | tuple):
+        return values  # a scalar address/port is used as is
+    vals = sorted(values)
+    if not vals:
+        return ""
+    if len(vals) == 1:
+        return vals[0]
+    if user_id is None:
+        return random.choice(vals)
+    digest = hashlib.sha256(f"{user_id}|{key}".encode()).hexdigest()
+    return vals[int(digest, 16) % len(vals)]
 
 
-class _StablePicker:
-    """Deterministic list indexing derived from sha256("{user_id}|{inbound_tag}|{remark}")."""
+def _stable_pick_key(inbound: SubscriptionInboundData) -> str:
+    """Production digest key for a host row.
 
-    __slots__ = ("digest",)
-
-    def __init__(self, digest: bytes):
-        self.digest = digest
-
-    def index(self, length: int, slot: int = 0) -> int:
-        if length <= 1:
-            return 0
-        start = (slot * 4) % len(self.digest)
-        chunk = self.digest[start : start + 4]
-        if len(chunk) < 4:
-            chunk = (self.digest + self.digest)[start : start + 4]
-        return int.from_bytes(chunk, "big") % length
-
-    def pick(self, options, slot: int = 0):
-        if isinstance(options, list | tuple):
-            if not options:
-                return ""
-            return options[self.index(len(options), slot)]
-        return options
+    SubscriptionInboundData has no ``tag`` attribute, so the key is ``"|<remark>"``
+    (the remark as stored on the row, before user formatting). Keep the shape as
+    is: the address a user gets is derived from it.
+    """
+    return f"{getattr(inbound, 'tag', '')}|{getattr(inbound, 'remark', '')}"
 
 
-def _stable_pick_for(user_id, inbound_tag: str, remark: str) -> _StablePicker:
-    seed = f"{user_id}|{inbound_tag}|{remark}".encode("utf-8", "surrogatepass")
-    return _StablePicker(hashlib.sha256(seed).digest())
+def stable_pick(user_id, inbound: SubscriptionInboundData, values, slot: str = ""):
+    """Pick one of ``values`` for this user and host row; identical inputs always give the same answer.
 
-
-def stable_pick(user_id, inbound_tag: str, remark: str, options, slot: int = 0):
-    """Pick one option for this user+host; identical inputs always give the same answer."""
-    return _stable_pick_for(user_id, inbound_tag, remark).pick(options, slot)
+    ``slot=""`` is the address slot (production digest). Any other slot name is
+    an independent digest, so a stable port or short-id pick never influences
+    the address choice.
+    """
+    key = _stable_pick_key(inbound)
+    return _hexogate_stable_pick(values, user_id, f"{key}|{slot}" if slot else key)
 
 
 async def process_host(
@@ -327,7 +329,7 @@ async def process_host(
 ) -> None | tuple[SubscriptionInboundData, dict]:
     """
     Process host data for subscription generation.
-    Only does stable per-user selection and user-specific formatting!
+    Only does per-user selection (stable address, see _hexogate_stable_pick) and user-specific formatting!
     All merging and data preparation is done in hosts.py.
     """
 
@@ -356,35 +358,37 @@ async def process_host(
 
     salt = secrets.token_hex(8)
 
-    # Every multi-valued field is picked deterministically per user+host so a
-    # customer gets the same sni/host/address/port/short-id on every render
-    # (renders are cached and devices must agree).
-    picker = _stable_pick_for(user_id, inbound.inbound_tag, inbound.remark)
-
+    # The address is picked with the production digest (see _hexogate_stable_pick).
+    # The other multi-valued fields are stock-random in production; here they are
+    # picked from independent digests so a customer gets the same sni/host/port/
+    # short-id on every render (renders are cached and devices must agree) without
+    # ever changing the address choice.
     sni = ""
     if isinstance(inbound.tls_config.sni, list) and inbound.tls_config.sni:
-        sni = picker.pick(inbound.tls_config.sni, _PICK_SLOT_ENDPOINT)
+        sni = stable_pick(user_id, inbound, inbound.tls_config.sni, "sni")
     sni = sni.replace("*", salt)
     sni = sni.format_map(format_variables) if sni else ""
 
     req_host = ""
     host_list = inbound.transport_config.host
     if isinstance(host_list, list) and host_list:
-        req_host = picker.pick(host_list, _PICK_SLOT_ENDPOINT)
+        req_host = stable_pick(user_id, inbound, host_list, "host")
     req_host = req_host.replace("*", salt)
     req_host = req_host.format_map(format_variables) if req_host else ""
 
     address = ""
     if inbound.address:
-        # Same slot as the sni so sni[i] pairs with address[i].
-        address = picker.pick(inbound.address, _PICK_SLOT_ENDPOINT).replace("*", salt)
+        address = stable_pick(user_id, inbound, inbound.address).replace("*", salt)
+        # Pair the SNI with the chosen address when the row lists that name as an SNI too.
+        if address and isinstance(inbound.tls_config.sni, list) and address in inbound.tls_config.sni:
+            sni = address.format_map(format_variables)
 
     # Stable port from list
-    port = picker.pick(inbound.port, _PICK_SLOT_PORT) if inbound.port else 0
+    port = stable_pick(user_id, inbound, inbound.port, "port") if inbound.port else 0
 
     # Stable Reality short ID if several are configured
     if inbound.tls_config.reality_short_ids:
-        reality_sid = picker.pick(inbound.tls_config.reality_short_ids, _PICK_SLOT_SHORT_ID)
+        reality_sid = stable_pick(user_id, inbound, inbound.tls_config.reality_short_ids, "short_id")
     else:
         reality_sid = inbound.tls_config.reality_short_id
 
@@ -474,13 +478,20 @@ async def process_inbounds_and_tags(
 ) -> str | bytes:
     proxy_settings = user.proxy_settings.dict()
     proxy_settings["_user_id"] = user.id
-    hosts = await filter_hosts(list((await host_manager.get_hosts()).values()), user.status)
-    if randomize_order and len(hosts) > 1:
-        # Stable per-user order: the same customer sees the same sequence on every render.
-        random.Random(f"hosts|{user.id}").shuffle(hosts)
-    # Group-based presentation: curated host list per group and category ordering
-    # (stable sort, so the per-user shuffle above survives inside each category).
-    hosts = order_hosts_for_user(hosts, getattr(user, "group_ids", None) or [], load_presentation_policy())
+    # The policy needs the DB row id next to each host, so keep (id, host) pairs
+    # until presentation is settled.
+    host_items = [
+        (host_id, host)
+        for host_id, host in (await host_manager.get_hosts()).items()
+        if not host.status or user.status in host.status
+    ]
+    if randomize_order and len(host_items) > 1:
+        random.shuffle(host_items)
+    # Group presentation policy (visibility, scopes, remark overrides), then the
+    # owner's ordering: country order for everyone, method-then-country for users
+    # whose groups are a non-empty subset of CLASS_ORDER_GROUP_IDS.
+    host_items = order_hosts_for_user(user, apply_group_presentation_policy(user, host_items))
+    hosts = [host for _, host in host_items]
 
     def _resolve_host_xray_template_content(inbound: SubscriptionInboundData) -> str | None:
         if xray_template_overrides is None:
