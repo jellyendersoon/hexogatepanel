@@ -1,7 +1,7 @@
 """
-PasarGuard CLI Package
+Hexogate CLI Package
 
-A modern, type-safe CLI built with Typer for managing PasarGuard instances.
+A modern, type-safe CLI built with Typer for managing Hexogate instances.
 """
 
 from pydantic import ValidationError

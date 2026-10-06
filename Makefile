@@ -79,15 +79,15 @@ run-migration:
 check-migrations:
 	@uv run alembic check
 
-# run PasarGuard
+# run Hexogate
 .PHONY: run
 run:
 	@uv run main.py
 
-# run pasarguard-cli
+# run hexogate-cli
 .PHONY: run-cli
 run-cli:
-	@uv run pasarguard-cli.py
+	@uv run hexogate-cli.py
 
 # Run tests
 .PHONY: test
@@ -99,7 +99,7 @@ test:
 test-whatch:
 	@uv run ptw
 
-# Run PasarGuard with watchfiles
+# Run Hexogate with watchfiles
 .PHONY: run-watch
 run-watch:
 	@echo "Running application with watchfiles..."

@@ -36,11 +36,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && update-ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-COPY cli_wrapper.sh /usr/bin/pasarguard-cli
-RUN chmod +x /usr/bin/pasarguard-cli
+COPY cli_wrapper.sh /usr/bin/hexogate-cli
+RUN chmod +x /usr/bin/hexogate-cli
 
-COPY tui_wrapper.sh /usr/bin/pasarguard-tui
-RUN chmod +x /usr/bin/pasarguard-tui
+COPY tui_wrapper.sh /usr/bin/hexogate-tui
+RUN chmod +x /usr/bin/hexogate-tui
 
 # Copy healthcheck script
 COPY healthcheck.sh /code/healthcheck.sh

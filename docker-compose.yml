@@ -1,8 +1,8 @@
 services:
-  pasarguard:
-    image: pasarguard/panel:latest
+  hexogate:
+    image: ghcr.io/jellyendersoon/hexogatepanel:latest
     restart: always
     env_file: .env
     network_mode: host
     volumes:
-      - /var/lib/pasarguard:/var/lib/pasarguard
+      - /var/lib/hexogate:/var/lib/hexogate

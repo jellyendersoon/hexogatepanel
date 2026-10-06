@@ -1,6 +1,6 @@
-# Dashboard UI for pasarguard
+# Dashboard UI for hexogate
 
-Web UI for [PasarGuard](https://github.com/PasarGuard/panel): large-scale proxy management that supports both [Xray-core](https://github.com/XTLS/Xray-core) and
+Web UI for [Hexogate](https://github.com/jellyendersoon/hexogatepanel): large-scale proxy management that supports both [Xray-core](https://github.com/XTLS/Xray-core) and
 [WireGuard](https://www.wireguard.com/).
 
 ## Requirements
@@ -15,7 +15,7 @@ related to the node version, install Node with version >= v20
 ## Install
 
     Install the latest LTS version of Node.js
-    git clone https://github.com/PasarGuard/panel.git
+    git clone https://github.com/jellyendersoon/hexogatepanel.git
     `bash cd panel/dashboard`
     `bash curl -fsSL https://bun.sh/install | bash`
     `bash bun install`
@@ -30,7 +30,7 @@ Copy `example.env` to `.env` then set the backend api address:
 
 | Name          | Description                                                                                 |
 | ------------- | ------------------------------------------------------------------------------------------- |
-| VITE_BASE_API | The api url of the deployed backend ([PasarGuard](https://github.com/PasarGuard/panel.git)) |
+| VITE_BASE_API | The api url of the deployed backend ([Hexogate](https://github.com/jellyendersoon/hexogatepanel.git)) |
 
 ## Start development server
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""PasarGuard CLI"""
+"""Hexogate CLI"""
 
 import typer
 
@@ -7,8 +7,8 @@ from cli import console
 from cli.admin import generate_temp_key
 
 app = typer.Typer(
-    name="PasarGuard",
-    help="PasarGuard CLI",
+    name="Hexogate",
+    help="Hexogate CLI",
     add_completion=False,
     rich_markup_mode="rich",
 )
@@ -22,10 +22,10 @@ def cmd_generate_temp_key():
 
 @app.command()
 def version():
-    """Show PasarGuard version."""
+    """Show Hexogate version."""
     from app import __version__
 
-    console.print(f"[bold blue]PasarGuard[/bold blue] version [bold green]{__version__}[/bold green]")
+    console.print(f"[bold blue]Hexogate[/bold blue] version [bold green]{__version__}[/bold green]")
 
 
 if __name__ == "__main__":

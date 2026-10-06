@@ -1,239 +1,115 @@
 <p align="center">
-  <a href="https://github.com/PasarGuard/panel" target="_blank" rel="noopener noreferrer">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://github.com/PasarGuard/PasarGuard.github.io/raw/main/public/logos/PasarGuard-white-logo.png">
-      <img width="160" height="160" src="https://github.com/PasarGuard/PasarGuard.github.io/raw/main/public/logos/PasarGuard-black-logo.png">
-    </picture>
+  <a href="https://hexogate.com">
+    <img src="./dashboard/public/statics/favicon/logo-dark.png" alt="Hexogate" width="140" />
   </a>
 </p>
 
-<h1 align="center">🛡️ PasarGuard</h1>
+<h1 align="center">Hexogate</h1>
 
 <p align="center">
-    <strong>Unified & Censorship-Resistant Proxy Management Solution</strong>
+  Unified, censorship-resistant proxy management panel.<br />
+  <a href="https://hexogate.com">hexogate.com</a>
 </p>
 
 ---
 
-<br/>
-<p align="center">
-    <a href="https://github.com/PasarGuard/panel/actions/workflows/build.yml" target="_blank">
-        <img src="https://img.shields.io/github/actions/workflow/status/PasarGuard/panel/build.yml?style=flat-square" />
-    </a>
-    <a href="https://hub.docker.com/r/PasarGuard/panel" target="_blank">
-        <img src="https://img.shields.io/docker/pulls/pasarguard/panel?style=flat-square&logo=docker" />
-    </a>
-    <a href="https://github.com/PasarGuard/panel/blob/main/LICENSE" target="_blank">
-        <img src="https://img.shields.io/github/license/PasarGuard/panel?style=flat-square" />
-    </a>
-    <a href="https://t.me/Pasar_Guard" target="_blank">
-        <img src="https://img.shields.io/badge/telegram-group-blue?style=flat-square&logo=telegram" />
-    </a>
-    <a href="https://github.com/PasarGuard/panel" target="_blank">
-        <img src="https://img.shields.io/github/stars/PasarGuard/panel?style=social" />
-    </a>
-</p>
+## Overview
 
-<p align="center">
- <a href="./README-fa.md">
- 🇮🇷 فارسی
- </a>
-  /
-  <a href="./README-zh-cn.md">
- 🇨🇳 简体中文
- </a>
-   /
-  <a href="./README-ru.md">
- 🇷🇺 Русский
- </a>
-</p>
+Hexogate is a self-hosted control panel for running and managing proxy infrastructure. It ships with a web dashboard, a REST API, a CLI, a Telegram bot, and multi-node support, and it drives [Xray-core](https://github.com/XTLS/Xray-core) and [WireGuard](https://www.wireguard.com/) backends.
 
-<p align="center">
-  <a href="https://github.com/PasarGuard/panel" target="_blank" rel="noopener noreferrer" >
-    <img src="https://github.com/PasarGuard/PasarGuard.github.io/raw/main/public/logos/screenshot.png" alt="PasarGuard screenshots" width="600" height="auto">
-  </a>
-</p>
+### Features
 
-## 📋 Table of Contents
+**Web interface and API**
+- Built-in web dashboard
+- Full REST API backend
+- Multi-node support for distributing infrastructure
 
-> **Quick Navigation** - Jump to any section below
+**Protocols and security**
+- VMess, VLESS, Trojan, Shadowsocks, WireGuard and Hysteria2
+- TLS and REALITY
+- Multiple protocols for a single user
 
--   [📖 Overview](#-overview)
-    -   [🤔 Why using PasarGuard?](#-why-using-pasarguard)
-        -   [✨ Features](#-features)
--   [🚀 Installation guide](#-installation-guide)
--   [📚 Documentation](#-documentation)
--   [💖 Donation](#-donation)
+**User management**
+- Multiple users on a single inbound
+- Multiple inbounds on a single port (fallbacks)
+- Traffic and expiry limits, including periodic limits (daily, weekly, and so on)
+- HWID / device limits for hardware-bound access
 
----
+**Subscriptions and sharing**
+- Subscription links compatible with V2Ray, Clash and Clash Meta
+- Automatic share-link and QR code generation
+- System monitoring and traffic statistics
 
-# 📖 Overview
+**Tools and customization**
+- Customizable Xray configuration
+- Integrated Telegram bot
+- Command-line interface
+- Multi-language dashboard
+- Multi-admin with role-based access control
 
-> **What is PasarGuard?**
+## Installation
 
-PasarGuard is a powerful proxy management tool that offers an intuitive and efficient interface for handling hundreds of proxy accounts. Built with Python and React.js it combines performance, scalability, and ease of use to simplify large-scale proxy management. It supports both [Xray-core](https://github.com/XTLS/Xray-core) and [WireGuard](https://www.wireguard.com/) for maximum performance.
+### Docker Compose
 
----
+1. Create the data directory and copy the example configuration:
 
-## 🤔 Why using PasarGuard?
+   ```bash
+   sudo mkdir -p /var/lib/hexogate
+   git clone https://github.com/jellyendersoon/hexogatepanel.git /opt/hexogate
+   cd /opt/hexogate
+   cp .env.example .env
+   ```
 
-> **Simple, Powerful, Reliable**
+2. Edit `.env` to set at least `UVICORN_HOST`, `UVICORN_PORT` and `SQLALCHEMY_DATABASE_URL`.
 
-PasarGuard is a user-friendly, feature-rich, and reliable proxy management tool. It allows you to create and manage multiple proxies for your users without the need for complex configuration. With its built-in web interface, you can easily monitor activity, modify settings, and control user access limits — all from one convenient dashboard.
+3. Start the panel:
 
----
+   ```bash
+   docker compose up -d
+   ```
 
-### ✨ Features
+   The default `docker-compose.yml` pulls `ghcr.io/jellyendersoon/hexogatepanel:latest`. To build from source instead, replace the `image:` line with `build: .`.
 
-<div align="left">
+4. Create the owner account. Generate a one-time setup key and use it on the dashboard login page:
 
-**🌐 Web Interface & API**
-- Built-in **Web UI** dashboard
-- Fully **REST API** backend
-- **Multi-Node** support for infrastructure distribution
+   ```bash
+   docker compose exec hexogate hexogate-cli generate-temp-key
+   ```
 
-**🔐 Protocols & Security**
-- Supports **Vmess**, **VLESS**, **Trojan**, **Shadowsocks**, **WireGuard** and **Hysteria2**
-- **TLS** and **REALITY** support
-- **Multi-protocol** for a single user
+### From source
 
-**👥 User Management**
-- **Multi-user** on a single inbound
-- **Multi-inbound** on a **single port** (fallbacks support)
-- **Traffic** and **expiry date** limitations
-- **Periodic** traffic limit (daily, weekly, etc.)
-- **HWID/device limits** for hardware-bound access control
-
-**🔗 Subscriptions & Sharing**
-- **Subscription link** compatible with **V2ray**, **Clash** and **ClashMeta**
-- Automated **Share link** and **QRcode** generator
-- System monitoring and **traffic statistics**
-
-**🛠️ Tools & Customization**
-- Customizable xray configuration
-- Integrated **Telegram Bot**
-- **Command Line Interface (CLI)**
-- **Multi-language** support
-- **Multi-admin** support with **RBAC** for granular permissions and scoped access
-
-</div>
-
----
-
-# 🚀 Installation guide
-
-> **Quick Start** - Get PasarGuard running in minutes
-
-### For a quick setup, use the following commands based on your preferred database.
-
----
-
-**TimescaleDB (Recommended):**
-```bash
-sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install --database timescaledb
-```
-
-**SQLite:**
-```bash
-sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install
-```
-
-**MySQL:**
-```bash
-sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install --database mysql
-```
-
-**MariaDB:**
-```bash
-sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install --database mariadb
-```
-
-**PostgreSQL:**
-```bash
-sudo bash -c "$(curl -fsSL https://github.com/PasarGuard/scripts/raw/main/pasarguard.sh)" @ install --database postgresql
-```
-
-### 📋 After installation:
-
-<div align="left">
-
-**📋 Watch the logs** (press `Ctrl+C` to stop)
-
-**📁 Files are located at** `/opt/pasarguard`
-
-**⚙️ Config file:** `/opt/pasarguard/.env` (see [Configuration](#-configuration) for details)
-
-**💾 Data files:** `/var/lib/pasarguard`
-
-**🔒 Important:** Dashboard requires SSL certificate for security
-- Get SSL certificate: [Guide](https://docs.pasarguard.org/en/examples/issue-ssl-certificate)
-- Access: `https://YOUR_DOMAIN:8000/dashboard/`
-
-**🔗 For testing without domain:** Use SSH port forwarding (see below)
-
-</div>
-
----
+Requires Python 3.14+, [uv](https://docs.astral.sh/uv/) and [Bun](https://bun.sh).
 
 ```bash
-ssh -L 8000:localhost:8000 user@serverip
+git clone https://github.com/jellyendersoon/hexogatepanel.git
+cd hexogatepanel
+uv sync
+cd dashboard && bun install && bun run build && cd ..
+cp .env.example .env
+uv run main.py
 ```
 
-Then access: `http://localhost:8000/dashboard/`
-
-> ⚠️ **Testing only** - You'll lose access when you close the SSH terminal.
-
-### 🔧 Next Steps:
+## CLI
 
 ```bash
-# Generate a one-time setup key for owner account setup
-pasarguard cli generate-temp-key
+# Inside the container
+hexogate-cli --help
+hexogate-cli generate-temp-key
 
-# Use the key on the dashboard login page to create the owner account
-
-# Get help
-pasarguard --help
+# From a source checkout
+uv run hexogate-cli.py --help
 ```
 
+See [`cli/README.md`](./cli/README.md) for the full command reference.
 
+## Development
 
-# 📚 Documentation
+```bash
+make help
+```
 
-<div align="left">
+Contribution guidelines are in [CONTRIBUTING.md](./CONTRIBUTING.md).
 
-**📖 Official Documentation** - Complete guides available in:
+## License
 
-🇺🇸 **[English](https://docs.pasarguard.org/en)**
-
-🇮🇷 **[فارسی](https://docs.pasarguard.org/fa)**
-
-🇷🇺 **[Русский](https://docs.pasarguard.org/ru)**
-
-🇨🇳 **[简体中文](https://docs.pasarguard.org/zh-cn)**
-
-</div>
-
-> **Contributing:** Help improve documentation on [GitHub](https://github.com/PasarGuard/PasarGuard.github.io)
-
----
-
-# 💖 Donation
-
-<div align="left">
-
-> **Support PasarGuard Development**
-
-If PasarGuard helps you, consider supporting its development:
-
-[![Donate](https://img.shields.io/badge/Donate-Support%20Us-green?style=for-the-badge)](https://donate.pasarguard.org)
-
-**Thank you for your support!** 💖
-
-</div>
-
----
-
-<p align="center">
-  Made with ❤️ for Internet freedom
-</p>
-
+Hexogate is a fork of an AGPL-3.0 licensed project and is distributed under the same license. See [LICENSE](./LICENSE).

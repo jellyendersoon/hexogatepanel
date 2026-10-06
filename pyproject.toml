@@ -1,5 +1,5 @@
 [project]
-name = "PasarGuard"
+name = "Hexogate"
 version = "5.4.1"
 description = "Unified GUI Censorship Resistant Solution"
 readme = "README.md"

@@ -15,9 +15,7 @@ from fastapi import status
 from sqlalchemy import delete, event, func, select, update
 
 from app.db.crud.hwid import register_user_hwid
-from app.db.crud.user import get_user as get_db_user
-from app.db.crud.user import get_users as get_db_users
-from app.db.crud.user import update_users_status
+from app.db.crud.user import get_user as get_db_user, get_users as get_db_users, update_users_status
 from app.db.models import NodeUserUsage, User, UserStatus, UserUsageResetLogs
 from app.models.settings import ConfigFormat, SubRule, Subscription
 from app.models.stats import Period, UserCountMetric, UserCountMetricStat, UserCountMetricStatsList
@@ -1170,7 +1168,7 @@ def test_user_sub_update_user_agent(access_token):
     )
     try:
         url = user["subscription_url"]
-        user_agent = "v2rayNG/1.9.46 This is PasarGuard Test"
+        user_agent = "v2rayNG/1.9.46 This is Hexogate Test"
         ip = "203.0.113.10"
         client.get(url, headers={"User-Agent": user_agent, "X-Forwarded-For": ip})
         response = client.get(
@@ -1235,7 +1233,7 @@ def test_user_subscription_applies_rule_response_headers(access_token):
         **original_subscription,
         "rules": [
             {
-                "pattern": r"^PasarGuardRuleHeaderClient$",
+                "pattern": r"^HexogateRuleHeaderClient$",
                 "target": "links",
                 "response_headers": {
                     "x-subheader": "Hello {USERNAME}",
@@ -1265,7 +1263,7 @@ def test_user_subscription_applies_rule_response_headers(access_token):
     try:
         response = client.get(
             user["subscription_url"],
-            headers={"User-Agent": "PasarGuardRuleHeaderClient"},
+            headers={"User-Agent": "HexogateRuleHeaderClient"},
         )
         assert response.status_code == status.HTTP_200_OK
         assert response.text
@@ -1862,12 +1860,12 @@ def test_format_announce_url_supports_dynamic_variables():
 
 def test_detect_client_rule_matches_user_agent():
     rule = SubRule(
-        pattern=r"^PasarGuardRuleHeaderClient$",
+        pattern=r"^HexogateRuleHeaderClient$",
         target=ConfigFormat.links,
         response_headers={"x-subheader": "Hello {USERNAME}"},
     )
 
-    matched_rule = SubscriptionOperation.detect_client_rule("PasarGuardRuleHeaderClient", [rule])
+    matched_rule = SubscriptionOperation.detect_client_rule("HexogateRuleHeaderClient", [rule])
 
     assert matched_rule is not None
     assert matched_rule.target == ConfigFormat.links

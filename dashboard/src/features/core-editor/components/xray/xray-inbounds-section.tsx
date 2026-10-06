@@ -342,7 +342,7 @@ interface TlsCertificateUiItem {
   certificate: string
   key: string
   ocspStapling: string
-  /** PasarGuard / Xray: cert material stays on the node; control plane skips loading for SNI. */
+  /** Hexogate / Xray: cert material stays on the node; control plane skips loading for SNI. */
   serveOnNode: boolean
 }
 

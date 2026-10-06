@@ -10,7 +10,7 @@ on:
 
 jobs:
   notify:
-    uses: PasarGuard/.github/.github/workflows/telegram-notify.yml@main
+    uses: Hexogate/.github/.github/workflows/telegram-notify.yml@main
     secrets:
       TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
     with:

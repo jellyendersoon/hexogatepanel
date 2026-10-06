@@ -100,7 +100,7 @@ class Message:
         memory_percentage = int(stats.mem_used / stats.mem_total * 100) if stats.mem_total else 0
         disk_percentage = int(stats.disk_used / stats.disk_total * 100) if stats.disk_total else 0
         return f"""\
-⚙ {b("PasarGuard Version")}: {c(stats.version)}
+⚙ {b("Hexogate Version")}: {c(stats.version)}
 
 📊 {b("CPU Usage")}: {c(stats.cpu_usage)} %
 🎛 {b("CPU Cores")}: {c(stats.cpu_cores)}
