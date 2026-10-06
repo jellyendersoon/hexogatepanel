@@ -262,6 +262,25 @@ def sort_hosts_by_location(hosts: list[Any]) -> list[Any]:
     return sorted(hosts, key=location_rank)
 
 
+# 2026-10-06 owner: Fastly blocks are ordered by measured origin speed (Germany Fastly is served by DE-02).
+FASTLY_SPEED_ORDER = [
+    "Germany 2 \u25b8",
+    "Germany \u25b8",
+    "Finland \u25b8",
+    "Sweden 2 \u25b8",
+    "NL \u25b8",
+    "Netherlands 1 \u25b8",
+    "USA \u25b8",
+    "Spain \u25b8",
+    "Canada \u25b8",
+    "France 2 \u25b8",
+    "Sweden \u25b8",
+    "Turkey \u25b8",
+    "UK New \u25b8",
+    "UK \u25b8",
+]
+
+
 def _class_rank(entry: Any) -> int:
     remark = str(getattr(_host_data(entry), "remark", "") or "")
     if not any(flag in remark for flag in LOCATION_FLAGS):
@@ -269,32 +288,61 @@ def _class_rank(entry: Any) -> int:
     return method_rank(remark)
 
 
+def _class_key(entry: Any) -> tuple[int, int]:
+    """Method rank, then (for the two Fastly classes only) the measured-speed location order."""
+    remark = str(getattr(_host_data(entry), "remark", "") or "")
+    rank = _class_rank(entry)
+    if rank in (2, 3):
+        hits = [index for index, name in enumerate(FASTLY_SPEED_ORDER) if name in remark]
+        return rank, (min(hits) if hits else len(FASTLY_SPEED_ORDER))
+    return rank, 0
+
+
 def method_rank(remark: str) -> int:
-    """Sorted by method - VIP, Fastly, Fastly HTTP, Cloudflare ECH, Cloudflare IPv6,
-    Cloudflare (Irancell), Reality IPv6, Reality, then everything else."""
+    """2026-10-06 owner order: VIP, Fastly TLS, Fastly HTTP, direct (Reality / HTTP / ML-KEM; DE and NL lead
+    by country order), Reality IPv6, Cloudflare IPv6, Cloudflare ECH, other Cloudflare, then everything else."""
     if "VIP" in remark:
         return 1
     if "Fastly" in remark:
         return 3 if "HTTP" in remark else 2
+    ipv6 = re.search(r"\bIPv6\b", remark) is not None
     if "Cloudflare" in remark:
-        if "ECH" in remark:
-            return 4
-        return 5 if re.search(r"\bIPv6\b", remark) else 6
-    if re.search(r"\bIPv6\b", remark):
-        return 7
-    if "Reality" in remark:
-        return 8
+        if ipv6:
+            return 6
+        return 7 if "ECH" in remark else 8
+    if ipv6:
+        return 5
+    if "Reality" in remark or "HTTP" in remark or "ML-KEM" in remark:
+        return 4
     return 9
 
 
+def _dedupe_info_rows(hosts: list[Any]) -> list[Any]:
+    """2026-10-06 owner ("there are two profiles configs"): multi-group users got the same account/info row
+    twice (an old row plus the new Fastly-backed info rows). Keep only the LAST row per identical info remark."""
+    keep, seen = [], set()
+    for entry in reversed(hosts):
+        remark = str(getattr(_host_data(entry), "remark", "") or "")
+        if remark and not any(flag in remark for flag in LOCATION_FLAGS):
+            if remark in seen:
+                continue
+            seen.add(remark)
+        keep.append(entry)
+    return list(reversed(keep))
+
+
 def order_hosts_for_user(user: Any, hosts: list[Any]) -> list[Any]:
-    """Country order for everyone; class-then-country for Economy/VIP-only users."""
+    """Country order for everyone; method-then-country (Fastly by speed) for Economy/VIP-only users."""
+    try:
+        hosts = _dedupe_info_rows(hosts)
+    except Exception:  # presentation only
+        LOGGER.exception("info-row dedupe failed; keeping all rows")
     by_location = sort_hosts_by_location(hosts)
     try:
         group_ids = {int(group_id) for group_id in (getattr(user, "group_ids", None) or [])}
         if not group_ids or not group_ids <= CLASS_ORDER_GROUP_IDS:
             return by_location
-        return sorted(by_location, key=_class_rank)
+        return sorted(by_location, key=_class_key)
     except Exception:  # presentation only: never break a subscription
         LOGGER.exception("class ordering failed; keeping country order")
         return by_location

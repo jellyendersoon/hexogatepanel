@@ -412,17 +412,59 @@ def test_policy_path_setting_accepts_both_env_names(monkeypatch):
         ("🇩🇪 Germany ▸ VIP 👑", 1),
         ("🇩🇪 Germany ▸ Fastly", 2),
         ("🇩🇪 Germany ▸ Fastly HTTP", 3),
-        ("🇩🇪 Germany ▸ Cloudflare ECH · A", 4),
-        ("🇩🇪 Germany ▸ Cloudflare IPv6 · A", 5),
-        ("🇩🇪 Germany ▸ Cloudflare · B", 6),
-        ("🇩🇪 Germany ▸ Reality IPv6 · A", 7),
-        ("🇩🇪 Germany ▸ Reality", 8),
-        ("🇩🇪 Germany ▸ HTTP TLS", 9),
+        ("🇩🇪 Germany ▸ Reality", 4),
+        ("🇩🇪 Germany ▸ HTTP TLS", 4),
+        ("🇩🇪 Germany ▸ HTTP ML-KEM · A", 4),
+        ("🇩🇪 Germany ▸ Reality IPv6 · A", 5),
+        ("🇩🇪 Germany ▸ Cloudflare IPv6 · A", 6),
+        ("🇩🇪 Germany ▸ Cloudflare ECH · A", 7),
+        ("🇩🇪 Germany ▸ Cloudflare · B", 8),
+        ("🇩🇪 Germany ▸ mKCP", 9),
         ("🇩🇪 Germany ▸ IPv6only", 9),  # word boundary: "IPv6only" is not the IPv6 method
     ],
 )
 def test_method_rank(remark, rank):
     assert policy.method_rank(remark) == rank
+
+
+def test_fastly_rows_follow_measured_speed_order():
+    # 2026-10-06: inside the Fastly classes the measured origin speed decides, not the country order.
+    rows = _rows(
+        "🇬🇧 UK New ▸ Fastly",
+        "🇩🇪 Germany ▸ Fastly",
+        "🇫🇮 Finland ▸ Fastly HTTP",
+        "🇩🇪 Germany 2 ▸ Fastly",
+        "🇸🇪 Sweden 2 ▸ Fastly HTTP",
+        "🇩🇪 Germany ▸ Reality",
+    )
+    ordered = [host.remark for host in policy.order_hosts_for_user(User([8], []), rows)]
+    assert ordered == [
+        "🇩🇪 Germany 2 ▸ Fastly",
+        "🇩🇪 Germany ▸ Fastly",
+        "🇬🇧 UK New ▸ Fastly",
+        "🇫🇮 Finland ▸ Fastly HTTP",
+        "🇸🇪 Sweden 2 ▸ Fastly HTTP",
+        "🇩🇪 Germany ▸ Reality",
+    ]
+    # Paid / mixed-group users keep the plain country order.
+    assert [host.remark for host in policy.order_hosts_for_user(User([1], []), rows)] == [
+        "🇩🇪 Germany ▸ Fastly",
+        "🇩🇪 Germany 2 ▸ Fastly",
+        "🇩🇪 Germany ▸ Reality",
+        "🇬🇧 UK New ▸ Fastly",
+        "🇫🇮 Finland ▸ Fastly HTTP",
+        "🇸🇪 Sweden 2 ▸ Fastly HTTP",
+    ]
+
+
+def test_duplicate_info_rows_keep_only_the_last_copy():
+    # 2026-10-06 owner: multi-group users saw the same account row twice; the last copy wins.
+    rows = _rows("👤 Account", "🇩🇪 Germany ▸ Reality", "👤 Account", "📊 Data", "📊 Data")
+    for groups in ([8], [1], [1, 8], []):
+        ordered = policy.order_hosts_for_user(User(groups, []), rows)
+        assert [host.remark for host in ordered] == ["👤 Account", "📊 Data", "🇩🇪 Germany ▸ Reality"]
+        assert [host.id for host in ordered if host.remark == "👤 Account"] == [202]
+        assert [host.id for host in ordered if host.remark == "📊 Data"] == [204]
 
 
 def _rows(*remarks: str) -> list[Host]:
