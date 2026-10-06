@@ -3758,5 +3758,7 @@
     "updateBanner": "可用更新: {{current}} → {{latest}}",
     "updateBannerMobile": "更新: {{latest}}",
     "updateCommandLabel": "通过 SSH 连接并运行:"
-  }
+  },
+  "login.brandHeadline": "您的网关，尽在掌控。",
+  "login.brandTagline": "在一处管理用户、节点和订阅。"
 }

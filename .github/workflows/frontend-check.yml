@@ -1,0 +1,33 @@
+name: Frontend Check
+
+# Runs once per pull request touching the dashboard: lint, typecheck and a
+# production build. Pushes to feature branches do not trigger it, to keep
+# Actions usage low; run the same checks locally with `bun run check`.
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "dashboard/**"
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: dashboard
+    steps:
+      - uses: actions/checkout@v7
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Lint
+        run: bun run lint
+      - name: Typecheck
+        run: bun run typecheck
+      - name: Build
+        run: bun run build

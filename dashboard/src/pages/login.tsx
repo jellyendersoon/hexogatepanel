@@ -157,15 +157,14 @@ export const Login: FC = () => {
     resolver: zodResolver(schema),
   })
 
-  let isTelegram = false
-  let initDataRaw = ''
-  try {
-    initDataRaw = retrieveRawInitData() || ''
-    isTelegram = !!initDataRaw
-  } catch {
-    isTelegram = false
-    initDataRaw = ''
-  }
+  const { isTelegram, initDataRaw } = useMemo(() => {
+    try {
+      const raw = retrieveRawInitData() || ''
+      return { isTelegram: !!raw, initDataRaw: raw }
+    } catch {
+      return { isTelegram: false, initDataRaw: '' }
+    }
+  }, [])
 
   useEffect(() => {
     if (location.pathname !== '/login') {
@@ -400,175 +399,191 @@ export const Login: FC = () => {
           setTelegramLoading(false)
         })
     }
-  }, [])
+  }, [isTelegram, initDataRaw, navigate])
 
   return (
-    <div className="flex min-h-screen w-full flex-col justify-between p-6">
-      <div className="w-full">
+    <div className="bg-background flex min-h-screen w-full flex-col lg:flex-row">
+      <aside className="relative hidden overflow-hidden bg-[#031d44] text-[#dfeafa] lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-10 xl:p-14">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_60%,rgba(86,198,234,0.22),transparent_70%)]" />
+        <div className="relative flex items-center gap-3">
+          <img src="/statics/favicon/logo.png" alt="" className="h-10 w-10 object-contain" />
+          <span className="text-lg font-semibold tracking-wide">Hexogate</span>
+        </div>
+        <div className="relative flex flex-1 items-center justify-center py-8">
+          <img src="/statics/favicon/hero.webp" alt="" className="w-full max-w-xl object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+        </div>
+        <div className="relative space-y-2">
+          <h2 className="text-2xl font-semibold text-white">{t('login.brandHeadline', { defaultValue: 'Your gateway, under your control.' })}</h2>
+          <p className="max-w-md text-sm text-[#9fb8d8]">{t('login.brandTagline', { defaultValue: 'Manage users, nodes and subscriptions from one place.' })}</p>
+        </div>
+      </aside>
+      <div className="flex min-h-screen flex-1 flex-col justify-between p-6 lg:min-h-0">
         <div className="flex w-full items-center justify-between">
           <Language />
           <ThemeToggle />
         </div>
-        <div className="flex w-full items-center justify-center">
-          <div className="mt-6 w-full max-w-[340px]">
-            <div className="flex flex-col items-center gap-2">
-              <img src={resolvedTheme === 'dark' ? '/statics/favicon/logo.png' : '/statics/favicon/logo-dark.png'} alt="Hexogate Logo" className="h-20 w-20 object-contain" />
-              <span className="text-2xl font-semibold">{view === 'login' ? t('login.loginYourAccount') : t('setup.ownerAccess', { defaultValue: 'Owner access' })}</span>
-              <span className="text-muted-foreground text-center">
-                {view === 'login'
-                  ? t('login.welcomeBack')
-                  : t('setup.ownerAccessDescription', {
-                      defaultValue: 'Use a temporary setup key to create, promote, reset, or remove the owner account.',
-                    })}
-              </span>
-            </div>
+        <div className="flex w-full flex-1 items-center justify-center py-6">
+          <div className="w-full max-w-[400px]">
+            <div className="bg-card border-border/60 rounded-2xl border p-6 shadow-sm sm:p-8">
+              <div className="flex flex-col items-center gap-2">
+                <img src={resolvedTheme === 'dark' ? '/statics/favicon/logo.png' : '/statics/favicon/logo-dark.png'} alt="Hexogate Logo" className="h-16 w-16 object-contain" />
+                <span className="text-2xl font-semibold">{view === 'login' ? t('login.loginYourAccount') : t('setup.ownerAccess', { defaultValue: 'Owner access' })}</span>
+                <span className="text-muted-foreground text-center text-sm">
+                  {view === 'login'
+                    ? t('login.welcomeBack')
+                    : t('setup.ownerAccessDescription', {
+                        defaultValue: 'Use a temporary setup key to create, promote, reset, or remove the owner account.',
+                      })}
+                </span>
+              </div>
 
-            <div className="mx-auto w-full max-w-[300px] pt-4">
-              {view === 'login' ? (
-                <form onSubmit={handleSubmit(handleLogin)} autoComplete="on">
-                  <div className="mt-4 flex flex-col gap-y-2">
-                    <Input className="py-5" placeholder={t('username')} autoComplete="username" {...register('username')} error={t(errors?.username?.message as string)} />
-                    <PasswordInput className="py-5" placeholder={t('password')} allowBrowserSave {...register('password')} error={t(errors?.password?.message as string)} />
-                    {((error && error.data) || (miniAppError && miniAppError.data)) && (
-                      <Alert className="mt-2" variant="destructive">
-                        <CircleAlertIcon size="18px" />
-                        <AlertDescription>{getOwnerSetupErrorMessage(error || miniAppError)}</AlertDescription>
-                      </Alert>
-                    )}
-                    <div className="mt-2 flex flex-col gap-2">
-                      <LoaderButton isLoading={loading || miniAppLoading || telegramLoading} type="submit" className="flex w-full items-center gap-2">
-                        <LogInIcon size="18px" />
-                        <span>{t('login')}</span>
-                      </LoaderButton>
-                      <Button type="button" variant="outline" className="flex w-full items-center gap-2" onClick={switchToSetup}>
-                        <KeyRound className="h-4 w-4" />
-                        <span>{t('setup.ownerAccess', { defaultValue: 'Owner access' })}</span>
-                      </Button>
+              <div className="w-full pt-4">
+                {view === 'login' ? (
+                  <form onSubmit={handleSubmit(handleLogin)} autoComplete="on">
+                    <div className="mt-4 flex flex-col gap-y-2">
+                      <Input className="py-5" placeholder={t('username')} autoComplete="username" {...register('username')} error={t(errors?.username?.message as string)} />
+                      <PasswordInput className="py-5" placeholder={t('password')} allowBrowserSave {...register('password')} error={t(errors?.password?.message as string)} />
+                      {((error && error.data) || (miniAppError && miniAppError.data)) && (
+                        <Alert className="mt-2" variant="destructive">
+                          <CircleAlertIcon size="18px" />
+                          <AlertDescription>{getOwnerSetupErrorMessage(error || miniAppError)}</AlertDescription>
+                        </Alert>
+                      )}
+                      <div className="mt-2 flex flex-col gap-2">
+                        <LoaderButton isLoading={loading || miniAppLoading || telegramLoading} type="submit" className="flex w-full items-center gap-2">
+                          <LogInIcon size="18px" />
+                          <span>{t('login')}</span>
+                        </LoaderButton>
+                        <Button type="button" variant="outline" className="flex w-full items-center gap-2" onClick={switchToSetup}>
+                          <KeyRound className="h-4 w-4" />
+                          <span>{t('setup.ownerAccess', { defaultValue: 'Owner access' })}</span>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </form>
-              ) : (
-                <form className="mt-4 flex flex-col gap-2" onSubmit={handleOwnerSubmit(onOwnerSubmit)} autoComplete="off">
-                  <input type="hidden" {...registerOwner('mode')} />
-                  <Tabs value={ownerSetupMode} onValueChange={handleOwnerSetupModeChange} className="w-full">
-                    <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1">
-                      <TabsTrigger value="create" className="h-8 gap-1 px-2 text-xs">
-                        <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{t('setup.createOwnerShort', { defaultValue: 'Create' })}</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="upgrade" className="h-8 gap-1 px-2 text-xs">
-                        <UserRoundKey className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{t('setup.upgradeOwnerShort', { defaultValue: 'Make owner' })}</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="reset" className="h-8 gap-1 px-2 text-xs">
-                        <RotateCcw className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{t('setup.resetOwnerShort', { defaultValue: 'Reset' })}</span>
-                      </TabsTrigger>
-                      <TabsTrigger value="delete" className="h-8 gap-1 px-2 text-xs">
-                        <Trash2 className="h-3.5 w-3.5 shrink-0" />
-                        <span className="truncate">{t('setup.deleteOwnerShort', { defaultValue: 'Delete' })}</span>
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
+                  </form>
+                ) : (
+                  <form className="mt-4 flex flex-col gap-2" onSubmit={handleOwnerSubmit(onOwnerSubmit)} autoComplete="off">
+                    <input type="hidden" {...registerOwner('mode')} />
+                    <Tabs value={ownerSetupMode} onValueChange={handleOwnerSetupModeChange} className="w-full">
+                      <TabsList className="grid h-auto w-full grid-cols-2 gap-1 p-1">
+                        <TabsTrigger value="create" className="h-8 gap-1 px-2 text-xs">
+                          <ShieldCheck className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{t('setup.createOwnerShort', { defaultValue: 'Create' })}</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="upgrade" className="h-8 gap-1 px-2 text-xs">
+                          <UserRoundKey className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{t('setup.upgradeOwnerShort', { defaultValue: 'Make owner' })}</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="reset" className="h-8 gap-1 px-2 text-xs">
+                          <RotateCcw className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{t('setup.resetOwnerShort', { defaultValue: 'Reset' })}</span>
+                        </TabsTrigger>
+                        <TabsTrigger value="delete" className="h-8 gap-1 px-2 text-xs">
+                          <Trash2 className="h-3.5 w-3.5 shrink-0" />
+                          <span className="truncate">{t('setup.deleteOwnerShort', { defaultValue: 'Delete' })}</span>
+                        </TabsTrigger>
+                      </TabsList>
+                    </Tabs>
 
-                  <Input
-                    className="py-5"
-                    placeholder={t('setup.tempKey', { defaultValue: 'Temp key' })}
-                    autoComplete="one-time-code"
-                    {...registerOwner('key')}
-                    error={t(ownerErrors?.key?.message as string)}
-                  />
-
-                  {(ownerSetupMode === 'create' || ownerSetupMode === 'upgrade') && (
                     <Input
                       className="py-5"
-                      placeholder={t('username', { defaultValue: 'Username' })}
-                      autoComplete="username"
-                      {...registerOwner('username')}
-                      error={t(ownerErrors?.username?.message as string)}
+                      placeholder={t('setup.tempKey', { defaultValue: 'Temp key' })}
+                      autoComplete="one-time-code"
+                      {...registerOwner('key')}
+                      error={t(ownerErrors?.key?.message as string)}
                     />
-                  )}
 
-                  {ownerSetupMode === 'create' && (
-                    <>
-                      <PasswordInput
-                        className="py-5"
-                        placeholder={t('password', { defaultValue: 'Password' })}
-                        autoComplete="new-password"
-                        {...registerOwner('password')}
-                        error={t(ownerErrors?.password?.message as string)}
-                      />
-                      <PasswordInput
-                        className="py-5"
-                        placeholder={t('admins.passwordConfirm', { defaultValue: 'Confirm password' })}
-                        autoComplete="new-password"
-                        {...registerOwner('passwordConfirm')}
-                        error={t(ownerErrors?.passwordConfirm?.message as string)}
-                      />
-                    </>
-                  )}
-
-                  {ownerSetupMode === 'reset' && (
-                    <>
-                      <PasswordInput
-                        className="py-5"
-                        placeholder={t('password', { defaultValue: 'Password' })}
-                        autoComplete="new-password"
-                        {...registerOwner('password')}
-                        error={t(ownerErrors?.password?.message as string)}
-                      />
-                      <PasswordInput
-                        className="py-5"
-                        placeholder={t('admins.passwordConfirm', { defaultValue: 'Confirm password' })}
-                        autoComplete="new-password"
-                        {...registerOwner('passwordConfirm')}
-                        error={t(ownerErrors?.passwordConfirm?.message as string)}
-                      />
-                    </>
-                  )}
-
-                  {ownerSetupMode === 'delete' && (
-                    <>
+                    {(ownerSetupMode === 'create' || ownerSetupMode === 'upgrade') && (
                       <Input
                         className="py-5"
-                        placeholder={t('setup.deleteConfirm', { defaultValue: 'Type DELETE to confirm' })}
-                        {...registerOwner('deleteConfirm')}
-                        error={t(ownerErrors?.deleteConfirm?.message as string)}
+                        placeholder={t('username', { defaultValue: 'Username' })}
+                        autoComplete="username"
+                        {...registerOwner('username')}
+                        error={t(ownerErrors?.username?.message as string)}
                       />
-                      <Alert variant="destructive" className="mt-2 py-5">
-                        <CircleAlertIcon size="18px" />
-                        <AlertDescription className="leading-6">
-                          {t('setup.deleteWarning', {
-                            defaultValue: 'This action cannot be undone. The owner account will be permanently removed.',
-                          })}
-                        </AlertDescription>
-                      </Alert>
-                    </>
-                  )}
+                    )}
 
-                  <div className="mt-2 flex flex-col gap-2">
-                    <Button
-                      type="submit"
-                      variant={ownerSetupMode === 'delete' ? 'destructive' : 'default'}
-                      isLoading={ownerSetupPending}
-                      loadingText={ownerSetupTitle}
-                      disabled={ownerSetupSubmitDisabled}
-                      className="w-full"
-                    >
-                      {ownerSetupTitle}
-                    </Button>
-                    <Button type="button" variant="ghost" className="flex w-full items-center gap-2" onClick={switchToLogin}>
-                      <ArrowLeft className={dir === 'rtl' ? 'h-4 w-4 scale-x-[-1]' : 'h-4 w-4'} />
-                      <span>{t('login.backToLogin', { defaultValue: 'Back to login' })}</span>
-                    </Button>
-                  </div>
-                </form>
-              )}
+                    {ownerSetupMode === 'create' && (
+                      <>
+                        <PasswordInput
+                          className="py-5"
+                          placeholder={t('password', { defaultValue: 'Password' })}
+                          autoComplete="new-password"
+                          {...registerOwner('password')}
+                          error={t(ownerErrors?.password?.message as string)}
+                        />
+                        <PasswordInput
+                          className="py-5"
+                          placeholder={t('admins.passwordConfirm', { defaultValue: 'Confirm password' })}
+                          autoComplete="new-password"
+                          {...registerOwner('passwordConfirm')}
+                          error={t(ownerErrors?.passwordConfirm?.message as string)}
+                        />
+                      </>
+                    )}
+
+                    {ownerSetupMode === 'reset' && (
+                      <>
+                        <PasswordInput
+                          className="py-5"
+                          placeholder={t('password', { defaultValue: 'Password' })}
+                          autoComplete="new-password"
+                          {...registerOwner('password')}
+                          error={t(ownerErrors?.password?.message as string)}
+                        />
+                        <PasswordInput
+                          className="py-5"
+                          placeholder={t('admins.passwordConfirm', { defaultValue: 'Confirm password' })}
+                          autoComplete="new-password"
+                          {...registerOwner('passwordConfirm')}
+                          error={t(ownerErrors?.passwordConfirm?.message as string)}
+                        />
+                      </>
+                    )}
+
+                    {ownerSetupMode === 'delete' && (
+                      <>
+                        <Input
+                          className="py-5"
+                          placeholder={t('setup.deleteConfirm', { defaultValue: 'Type DELETE to confirm' })}
+                          {...registerOwner('deleteConfirm')}
+                          error={t(ownerErrors?.deleteConfirm?.message as string)}
+                        />
+                        <Alert variant="destructive" className="mt-2 py-5">
+                          <CircleAlertIcon size="18px" />
+                          <AlertDescription className="leading-6">
+                            {t('setup.deleteWarning', {
+                              defaultValue: 'This action cannot be undone. The owner account will be permanently removed.',
+                            })}
+                          </AlertDescription>
+                        </Alert>
+                      </>
+                    )}
+
+                    <div className="mt-2 flex flex-col gap-2">
+                      <Button
+                        type="submit"
+                        variant={ownerSetupMode === 'delete' ? 'destructive' : 'default'}
+                        isLoading={ownerSetupPending}
+                        loadingText={ownerSetupTitle}
+                        disabled={ownerSetupSubmitDisabled}
+                        className="w-full"
+                      >
+                        {ownerSetupTitle}
+                      </Button>
+                      <Button type="button" variant="ghost" className="flex w-full items-center gap-2" onClick={switchToLogin}>
+                        <ArrowLeft className={dir === 'rtl' ? 'h-4 w-4 scale-x-[-1]' : 'h-4 w-4'} />
+                        <span>{t('login.backToLogin', { defaultValue: 'Back to login' })}</span>
+                      </Button>
+                    </div>
+                  </form>
+                )}
+              </div>
             </div>
           </div>
         </div>
+        <Footer />
       </div>
-      <Footer />
     </div>
   )
 }

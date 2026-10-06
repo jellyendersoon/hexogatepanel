@@ -3720,5 +3720,7 @@
     "updateBanner": "به‌روزرسانی موجود: {{current}} → {{latest}}",
     "updateBannerMobile": "به‌روزرسانی: {{latest}}",
     "updateCommandLabel": "از طریق SSH متصل شوید و اجرا کنید:"
-  }
+  },
+  "login.brandHeadline": "دروازه شما، تحت کنترل شما.",
+  "login.brandTagline": "کاربران، نودها و اشتراک‌ها را از یک‌جا مدیریت کنید."
 }

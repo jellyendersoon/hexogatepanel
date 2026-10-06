@@ -3744,5 +3744,7 @@
     "updateBanner": "Update available: {{current}} → {{latest}}",
     "updateBannerMobile": "Update: {{latest}}",
     "updateCommandLabel": "Connect via SSH and run:"
-  }
+  },
+  "login.brandHeadline": "Your gateway, under your control.",
+  "login.brandTagline": "Manage users, nodes and subscriptions from one place."
 }

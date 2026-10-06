@@ -3705,5 +3705,7 @@
     "updateBanner": "Доступно обновление: {{current}} → {{latest}}",
     "updateBannerMobile": "Обновление: {{latest}}",
     "updateCommandLabel": "Выполните через SSH:"
-  }
+  },
+  "login.brandHeadline": "Ваш шлюз под вашим контролем.",
+  "login.brandTagline": "Управляйте пользователями, нодами и подписками из одного места."
 }
