@@ -1,0 +1,1708 @@
+{
+  "groups": {
+    "7": {
+      "hide_unless_non_target_authorized_host_ids": [
+        17163,
+        17174
+      ],
+      "non_target_group_inbound_tags": {
+        "1": [
+          "TAG-2187934b",
+          "TAG-2b387d00",
+          "TAG-bd4b8031",
+          "TAG-9792612b",
+          "TAG-46659fe0",
+          "TAG-912f2fa4",
+          "TAG-2ccfea59",
+          "TAG-38bb6c26",
+          "TAG-6b86e62c",
+          "TAG-37bb89fc",
+          "TAG-8a20850f",
+          "TAG-5727ad6d",
+          "TAG-701a76b9",
+          "TAG-2f76f40f",
+          "TAG-196da2fc",
+          "TAG-83c9f664",
+          "TAG-beb3c307",
+          "TAG-5fde37c6",
+          "TAG-cfaf8fcd",
+          "TAG-9a38dbf6",
+          "TAG-481d5e68",
+          "TAG-5e5e325d",
+          "TAG-5aae1d32",
+          "TAG-7341fbc4",
+          "TAG-e3d29fcd",
+          "TAG-5320679b",
+          "TAG-02f8a2c2",
+          "TAG-cfb567c7",
+          "TAG-2f87fec5",
+          "TAG-16816231",
+          "TAG-b937b0e2",
+          "TAG-b7b7b80a",
+          "TAG-28f20f71",
+          "TAG-e67ba49d",
+          "TAG-13d53f95",
+          "TAG-981ebe08",
+          "TAG-69d35862",
+          "TAG-07d87f6b",
+          "TAG-1e55a3a9",
+          "TAG-bddaac25",
+          "TAG-d5a45df1",
+          "TAG-ef240552",
+          "TAG-8f0eb2a4",
+          "TAG-e724528f",
+          "TAG-c3253387",
+          "TAG-2c468122",
+          "TAG-c1138c5c",
+          "TAG-3599c149",
+          "TAG-abd43c6e",
+          "TAG-81b9f369",
+          "TAG-2fbf8e66",
+          "TAG-49e9ea54",
+          "TAG-f9f49267",
+          "TAG-5f4bdab4",
+          "TAG-0d282451",
+          "TAG-213fae14",
+          "TAG-d3ae6936",
+          "TAG-f8fe29f9",
+          "TAG-116b2d30",
+          "TAG-8fc673aa",
+          "TAG-7c9a781d",
+          "TAG-71f2cfca",
+          "TAG-b42c2888",
+          "TAG-07ca46d8",
+          "TAG-fee03e0d",
+          "TAG-4aa9f16b",
+          "TAG-66d7eb9c",
+          "TAG-5c2d75da",
+          "TAG-f009ba38",
+          "TAG-cfe7f8eb",
+          "TAG-2ee1cbfe",
+          "TAG-f2d5917e",
+          "TAG-bde9e3fc",
+          "TAG-545ecf70",
+          "TAG-23061bfc",
+          "TAG-869a2840",
+          "TAG-304483a8",
+          "TAG-9f74f2b8",
+          "TAG-1be1dea1",
+          "TAG-a0a27b93",
+          "TAG-b47b2694",
+          "TAG-1ef4d8e1",
+          "TAG-48d30000",
+          "TAG-0f608fbe",
+          "TAG-949f42b7",
+          "TAG-a67c65a1",
+          "TAG-eceef810",
+          "TAG-f2a5fa15",
+          "TAG-105a8253",
+          "TAG-da39129d",
+          "TAG-ca1d76af",
+          "TAG-de4e245b",
+          "TAG-49df2727",
+          "TAG-3c189174",
+          "TAG-10d1014e",
+          "TAG-abb5c5e8",
+          "TAG-8f95e996",
+          "TAG-e150ee74",
+          "TAG-d9a4347f",
+          "TAG-03746622",
+          "TAG-6d1f2587",
+          "TAG-dfb04513",
+          "TAG-e7d6db13",
+          "TAG-ebb718b9",
+          "TAG-4f87ea41",
+          "TAG-1d960db4",
+          "TAG-521929ff",
+          "TAG-28d72267",
+          "TAG-ce307057",
+          "TAG-22b500a8",
+          "REALITY TCP BING",
+          "TAG-2e96bcf4",
+          "TAG-377d9676",
+          "TAG-7eeaf94e",
+          "TAG-292ef75d",
+          "TAG-b6b650b1",
+          "TAG-521b75c8",
+          "TAG-3fe8cb96",
+          "TAG-303d3f6f",
+          "TAG-2fb6466a",
+          "TAG-6bb67143",
+          "TAG-ca600c74",
+          "TAG-2d396823",
+          "TAG-bd113c0e",
+          "TAG-9cd14abd",
+          "TAG-72789863",
+          "TAG-ede3d110",
+          "TAG-f4cbdd7f",
+          "TAG-717b6c41",
+          "TAG-d1934fbd",
+          "TAG-8ea4380d",
+          "TAG-07459dac"
+        ],
+        "8": [
+          "TAG-e60b5c44",
+          "TAG-2187934b",
+          "TAG-2b387d00",
+          "TAG-bd4b8031",
+          "TAG-9792612b",
+          "TAG-81d16c86",
+          "TAG-46659fe0",
+          "TAG-6f6c5666",
+          "TAG-b2c32ec1",
+          "TAG-2ce4e984",
+          "TAG-912f2fa4",
+          "TAG-2ccfea59",
+          "TAG-38bb6c26",
+          "TAG-6b86e62c",
+          "TAG-37bb89fc",
+          "TAG-8a20850f",
+          "TAG-2b53b2e7",
+          "TAG-5727ad6d",
+          "TAG-701a76b9",
+          "TAG-2f76f40f",
+          "TAG-196da2fc",
+          "TAG-83c9f664",
+          "TAG-beb3c307",
+          "TAG-5fde37c6",
+          "TAG-cfaf8fcd",
+          "TAG-9a38dbf6",
+          "TAG-481d5e68",
+          "TAG-1383a08a",
+          "TAG-680402e1",
+          "TAG-0870a987",
+          "TAG-5e5e325d",
+          "TAG-5aae1d32",
+          "TAG-7341fbc4",
+          "TAG-e3d29fcd",
+          "TAG-5320679b",
+          "TAG-02f8a2c2",
+          "TAG-cfb567c7",
+          "TAG-2f87fec5",
+          "TAG-16816231",
+          "TAG-b937b0e2",
+          "TAG-b7b7b80a",
+          "TAG-28f20f71",
+          "TAG-e67ba49d",
+          "TAG-13d53f95",
+          "TAG-981ebe08",
+          "TAG-69d35862",
+          "TAG-07d87f6b",
+          "TAG-1e55a3a9",
+          "TAG-bddaac25",
+          "TAG-d5a45df1",
+          "TAG-ef240552",
+          "TAG-3599c149",
+          "TAG-abd43c6e",
+          "TAG-81b9f369",
+          "TAG-2fbf8e66",
+          "TAG-49e9ea54",
+          "TAG-f9f49267",
+          "TAG-5f4bdab4",
+          "TAG-0d282451",
+          "TAG-213fae14",
+          "TAG-d3ae6936",
+          "TAG-f8fe29f9",
+          "TAG-116b2d30",
+          "TAG-8fc673aa",
+          "TAG-7c9a781d",
+          "TAG-71f2cfca",
+          "TAG-b42c2888",
+          "TAG-07ca46d8",
+          "TAG-fee03e0d",
+          "TAG-4aa9f16b",
+          "TAG-66d7eb9c",
+          "TAG-5c2d75da",
+          "TAG-f009ba38",
+          "TAG-cfe7f8eb",
+          "TAG-2ee1cbfe",
+          "TAG-f2d5917e",
+          "TAG-bde9e3fc",
+          "TAG-545ecf70",
+          "TAG-23061bfc",
+          "TAG-869a2840",
+          "TAG-304483a8",
+          "TAG-9f74f2b8",
+          "TAG-1be1dea1",
+          "TAG-a0a27b93",
+          "TAG-b47b2694",
+          "TAG-1ef4d8e1",
+          "TAG-48d30000",
+          "TAG-0f608fbe",
+          "TAG-949f42b7",
+          "TAG-a67c65a1",
+          "TAG-eceef810",
+          "TAG-64ff200f",
+          "TAG-f2a5fa15",
+          "TAG-105a8253",
+          "TAG-da39129d",
+          "TAG-ca1d76af",
+          "TAG-de4e245b",
+          "TAG-49df2727",
+          "TAG-3c189174",
+          "TAG-10d1014e",
+          "TAG-abb5c5e8",
+          "TAG-8f95e996",
+          "TAG-e150ee74",
+          "TAG-d9a4347f",
+          "TAG-03746622",
+          "TAG-6d1f2587",
+          "TAG-dfb04513",
+          "TAG-e7d6db13",
+          "TAG-ebb718b9",
+          "TAG-4f87ea41",
+          "TAG-1d960db4",
+          "TAG-521929ff",
+          "TAG-28d72267",
+          "TAG-ce307057",
+          "TAG-22b500a8",
+          "TAG-91fd06db",
+          "REALITY TCP BING",
+          "TAG-2e96bcf4",
+          "TAG-db6fadcf",
+          "TAG-2282676a",
+          "TAG-377d9676",
+          "TAG-7eeaf94e",
+          "TAG-292ef75d",
+          "TAG-b6b650b1",
+          "TAG-fa722c49",
+          "TAG-19818a7a",
+          "TAG-521b75c8",
+          "TAG-3fe8cb96",
+          "TAG-3fe1a8ca",
+          "TAG-de816c69",
+          "TAG-303d3f6f",
+          "TAG-2fb6466a",
+          "TAG-6bb67143",
+          "TAG-ca600c74",
+          "TAG-2d396823",
+          "TAG-bd113c0e",
+          "TAG-5cb87515",
+          "TAG-9cd14abd",
+          "TAG-72789863",
+          "TAG-ede3d110",
+          "TAG-f4cbdd7f",
+          "TAG-717b6c41",
+          "TAG-d1934fbd",
+          "TAG-bd1eeb9c",
+          "TAG-9d4312bf",
+          "TAG-55ed865c",
+          "TAG-a2d9d8e3",
+          "TAG-8ea4380d",
+          "TAG-07459dac"
+        ]
+      },
+      "scopes": [
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇩🇪\\ Germany\\ ▸"
+          },
+          "name": "eco-germany",
+          "selected": [
+            {
+              "host_id": 17769,
+              "remark": "🇩🇪 Germany ▸ Reality"
+            },
+            {
+              "host_id": 18012,
+              "remark": "🇩🇪 Germany ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17320,
+              "remark": "🇩🇪 Germany ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17976,
+              "remark": "🇩🇪 Germany ▸ HTTP TLS · IP 1"
+            },
+            {
+              "host_id": 17851,
+              "remark": "🇩🇪 Germany ▸ Fastly"
+            },
+            {
+              "host_id": 17995,
+              "remark": "🇩🇪 Germany ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17963,
+              "remark": "🇩🇪 Germany ▸ ایرانسل ML-KEM"
+            },
+            {
+              "host_id": 18025,
+              "remark": "🇩🇪 Germany ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18026,
+              "remark": "🇩🇪 Germany ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18027,
+              "remark": "🇩🇪 Germany ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇳🇱\\ NL\\ ▸"
+          },
+          "name": "eco-nl-main",
+          "selected": [
+            {
+              "host_id": 17876,
+              "remark": "🇳🇱 Netherlands 1 ▸ Reality"
+            },
+            {
+              "host_id": 18013,
+              "remark": "🇳🇱 Netherlands 1 ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17795,
+              "remark": "🇳🇱 Netherlands 1 ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17969,
+              "remark": "🇳🇱 Netherlands 1 ▸ HTTP TLS · IP 1"
+            },
+            {
+              "host_id": 17859,
+              "remark": "🇳🇱 Netherlands 1 ▸ Fastly"
+            },
+            {
+              "host_id": 18001,
+              "remark": "🇳🇱 Netherlands 1 ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17964,
+              "remark": "🇳🇱 Netherlands 1 ▸ ایرانسل ML-KEM"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇳🇱\\ Netherlands\\ ▸"
+          },
+          "name": "eco-netherlands",
+          "selected": [
+            {
+              "host_id": 17766,
+              "remark": "🇳🇱 Netherlands 2 ▸ Reality"
+            },
+            {
+              "host_id": 18015,
+              "remark": "🇳🇱 Netherlands 2 ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17870,
+              "remark": "🇳🇱 Netherlands 2 ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17852,
+              "remark": "🇳🇱 Netherlands 2 ▸ Fastly"
+            },
+            {
+              "host_id": 18000,
+              "remark": "🇳🇱 Netherlands 2 ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇹🇷\\ Turkey\\ ▸"
+          },
+          "name": "eco-turkey",
+          "selected": [
+            {
+              "host_id": 17928,
+              "remark": "🇹🇷 Turkey ▸ Reality"
+            },
+            {
+              "host_id": 18016,
+              "remark": "🇹🇷 Turkey ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17498,
+              "remark": "🇹🇷 Turkey ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17858,
+              "remark": "🇹🇷 Turkey ▸ Fastly"
+            },
+            {
+              "host_id": 18004,
+              "remark": "🇹🇷 Turkey ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18028,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18029,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18030,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇪🇸\\ Spain\\ ▸"
+          },
+          "name": "eco-spain",
+          "selected": [
+            {
+              "host_id": 17952,
+              "remark": "🇪🇸 Spain ▸ Reality"
+            },
+            {
+              "host_id": 17954,
+              "remark": "🇪🇸 Spain ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17958,
+              "remark": "🇪🇸 Spain ▸ Fastly"
+            },
+            {
+              "host_id": 17996,
+              "remark": "🇪🇸 Spain ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18037,
+              "remark": "🇪🇸 Spain ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18038,
+              "remark": "🇪🇸 Spain ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18039,
+              "remark": "🇪🇸 Spain ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇬🇧\\ UK\\ New\\ ▸"
+          },
+          "name": "eco-uk",
+          "selected": [
+            {
+              "host_id": 17944,
+              "remark": "🇬🇧 UK ▸ Reality"
+            },
+            {
+              "host_id": 18017,
+              "remark": "🇬🇧 UK ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17946,
+              "remark": "🇬🇧 UK ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17950,
+              "remark": "🇬🇧 UK ▸ Fastly"
+            },
+            {
+              "host_id": 18005,
+              "remark": "🇬🇧 UK ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇷🇺\\ Russia\\ ▸"
+          },
+          "name": "eco-russia",
+          "selected": [
+            {
+              "host_id": 17927,
+              "remark": "🇷🇺 Russia ▸ Reality"
+            },
+            {
+              "host_id": 17451,
+              "remark": "🇷🇺 Russia ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17854,
+              "remark": "🇷🇺 Russia ▸ Fastly"
+            },
+            {
+              "host_id": 18002,
+              "remark": "🇷🇺 Russia ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇫🇷\\ France\\ ▸"
+          },
+          "name": "eco-france",
+          "selected": [
+            {
+              "host_id": 17930,
+              "remark": "🇫🇷 France ▸ Reality"
+            },
+            {
+              "host_id": 18018,
+              "remark": "🇫🇷 France ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17865,
+              "remark": "🇫🇷 France ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17863,
+              "remark": "🇫🇷 France ▸ Fastly"
+            },
+            {
+              "host_id": 17998,
+              "remark": "🇫🇷 France ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17966,
+              "remark": "🇫🇷 France ▸ ایرانسل ML-KEM"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇫🇷\\ France\\ 2\\ ▸"
+          },
+          "name": "eco-france2",
+          "selected": [
+            {
+              "host_id": 17991,
+              "remark": "🇫🇷 France 2 ▸ Reality"
+            },
+            {
+              "host_id": 17992,
+              "remark": "🇫🇷 France 2 ▸ Fastly"
+            },
+            {
+              "host_id": 17999,
+              "remark": "🇫🇷 France 2 ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇫🇮\\ Finland\\ ▸"
+          },
+          "name": "eco-finland",
+          "selected": [
+            {
+              "host_id": 17773,
+              "remark": "🇫🇮 Finland ▸ Reality"
+            },
+            {
+              "host_id": 18014,
+              "remark": "🇫🇮 Finland ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17521,
+              "remark": "🇫🇮 Finland ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17855,
+              "remark": "🇫🇮 Finland ▸ Fastly"
+            },
+            {
+              "host_id": 17997,
+              "remark": "🇫🇮 Finland ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17965,
+              "remark": "🇫🇮 Finland ▸ ایرانسل ML-KEM"
+            },
+            {
+              "host_id": 18022,
+              "remark": "🇫🇮 Finland ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18023,
+              "remark": "🇫🇮 Finland ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18024,
+              "remark": "🇫🇮 Finland ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇸🇪\\ Sweden\\ ▸"
+          },
+          "name": "eco-sweden",
+          "selected": [
+            {
+              "host_id": 17931,
+              "remark": "🇸🇪 Sweden ▸ Reality"
+            },
+            {
+              "host_id": 18019,
+              "remark": "🇸🇪 Sweden ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17869,
+              "remark": "🇸🇪 Sweden ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17867,
+              "remark": "🇸🇪 Sweden ▸ Fastly"
+            },
+            {
+              "host_id": 18003,
+              "remark": "🇸🇪 Sweden ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17962,
+              "remark": "🇸🇪 Sweden ▸ ایرانسل ML-KEM"
+            },
+            {
+              "host_id": 18031,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18032,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18033,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇺🇸\\ USA\\ ▸"
+          },
+          "name": "eco-usa",
+          "selected": [
+            {
+              "host_id": 17774,
+              "remark": "🇺🇸 USA ▸ Reality"
+            },
+            {
+              "host_id": 18020,
+              "remark": "🇺🇸 USA ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17499,
+              "remark": "🇺🇸 USA ▸ HTTP TLS"
+            },
+            {
+              "host_id": 17861,
+              "remark": "🇺🇸 USA ▸ Fastly"
+            },
+            {
+              "host_id": 18006,
+              "remark": "🇺🇸 USA ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18040,
+              "remark": "🇺🇸 USA ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18041,
+              "remark": "🇺🇸 USA ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18042,
+              "remark": "🇺🇸 USA ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "name": "eco-canada",
+          "match": {
+            "remark_regex": "^🇨🇦\\ Canada\\ ▸"
+          },
+          "activate_when_inbounds": [],
+          "selected": [
+            {
+              "host_id": 18009,
+              "remark": "🇨🇦 Canada ▸ Reality"
+            },
+            {
+              "host_id": 18021,
+              "remark": "🇨🇦 Canada ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 18010,
+              "remark": "🇨🇦 Canada ▸ Fastly"
+            },
+            {
+              "host_id": 18011,
+              "remark": "🇨🇦 Canada ▸ Fastly HTTP"
+            }
+          ]
+        }
+      ],
+      "unknown_non_target_group": "fail_open"
+    },
+    "8": {
+      "hide_unless_non_target_authorized_host_ids": [
+        17341,
+        17408,
+        17456,
+        17460,
+        17524,
+        17626,
+        17627,
+        17629,
+        17631,
+        17772,
+        17780,
+        17786,
+        17787,
+        17788,
+        17789,
+        17796,
+        17824,
+        17827,
+        17831,
+        17850,
+        17857,
+        17862,
+        17864,
+        17866,
+        17868,
+        17877,
+        17879,
+        17880,
+        17881,
+        17882,
+        17883,
+        17884,
+        17886,
+        17887,
+        17888,
+        17890,
+        17891,
+        17893,
+        17894,
+        17896,
+        17897,
+        17899,
+        17900,
+        17902,
+        17903,
+        17908,
+        17909,
+        17917,
+        17918,
+        17920,
+        17921,
+        17922,
+        17923,
+        17925,
+        17926,
+        17945,
+        17947,
+        17948,
+        17949,
+        17953,
+        17955,
+        17956,
+        17957
+      ],
+      "non_target_group_inbound_tags": {
+        "1": [
+          "REALITY TCP BING",
+          "TAG-8ea4380d",
+          "TAG-07459dac",
+          "TAG-ca600c74",
+          "TAG-64b522d7",
+          "TAG-bf079b9f",
+          "TAG-cd2f2d70",
+          "TAG-b277eddb",
+          "TAG-c1140e5b",
+          "TAG-059a2ca7",
+          "TAG-52eb4d6e",
+          "TAG-0f0a571d",
+          "TAG-9cf943a7",
+          "TAG-82cb4525",
+          "TAG-59732706",
+          "TAG-77b56f87",
+          "TAG-0d9e5900",
+          "TAG-79cf7a18",
+          "TAG-385261fa",
+          "TAG-3c91c87e",
+          "TAG-93988b29",
+          "TAG-46659fe0",
+          "TAG-f956f102",
+          "TAG-5a80a389",
+          "TAG-f48aedb4",
+          "TAG-11c0ad4e",
+          "TAG-481d5e68",
+          "TAG-0294c4fe",
+          "TAG-6ef0c1b6",
+          "TAG-28d72267",
+          "TAG-335ffdc3",
+          "TAG-f0105633",
+          "TAG-a6ad98cd",
+          "TAG-5dba219e",
+          "TAG-120716a1",
+          "TAG-84922102",
+          "TAG-661055f0",
+          "TAG-75114068",
+          "TAG-9f65b330",
+          "TAG-930271ef",
+          "TAG-efdf27c3",
+          "TAG-3fe8cb96",
+          "TAG-2187934b",
+          "TAG-2b387d00",
+          "TAG-42fb5fad",
+          "TAG-97b6f1ed",
+          "TAG-183362a3",
+          "TAG-00ef146f",
+          "TAG-b203dc72",
+          "TAG-e7225d64",
+          "TAG-32d9d6e2",
+          "TAG-c5175842",
+          "TAG-bdc32379",
+          "TAG-be214bc0",
+          "TAG-b0c3ee9c",
+          "TAG-b9be24f6",
+          "TAG-dfc4b5ab",
+          "TAG-eb59ec98",
+          "TAG-ca31befa",
+          "TAG-f21ae783",
+          "TAG-9ca4f53a",
+          "TAG-fa2d76ff",
+          "TAG-18f5fad2",
+          "TAG-fcf3ad83",
+          "TAG-b6b650b1",
+          "TAG-25c3f7be",
+          "TAG-bcf666fc",
+          "TAG-04f42f7f",
+          "TAG-8c26ec41",
+          "TAG-d4a120e1",
+          "TAG-580db943",
+          "TAG-5e406361",
+          "TAG-ecd58830",
+          "TAG-328681b0",
+          "TAG-684ff005",
+          "TAG-3c14f040",
+          "TAG-d733955d",
+          "TAG-65fd4dfa",
+          "TAG-1954fbc6",
+          "TAG-5b869c45",
+          "TAG-53391f61",
+          "TAG-7d07f125",
+          "TAG-22368a83",
+          "TAG-b460cbae",
+          "TAG-e9ade0f9",
+          "TAG-b37cb0e8",
+          "TAG-b5b6f0a0",
+          "TAG-8794245c",
+          "TAG-589d8592",
+          "TAG-289e0de2",
+          "TAG-00abe56c",
+          "TAG-ef177ddd",
+          "TAG-7963e17f",
+          "TAG-9fe3371b",
+          "TAG-bd113c0e",
+          "TAG-a5a76c5c",
+          "TAG-a3074d68",
+          "TAG-d5a2f5c7",
+          "TAG-2dd9cbb1",
+          "TAG-2ddae4e1",
+          "TAG-606c9a02",
+          "TAG-303d3f6f",
+          "TAG-0c776824",
+          "TAG-835c2b09",
+          "TAG-d3577ee2",
+          "TAG-09636cee",
+          "TAG-521b75c8",
+          "TAG-09fe7220",
+          "TAG-3c2e2911",
+          "TAG-9792612b",
+          "TAG-10bee473",
+          "TAG-2fb6466a",
+          "TAG-e0e7c7ae",
+          "TAG-20ef113a",
+          "TAG-eb211879",
+          "TAG-2e96bcf4",
+          "TAG-6b16dc13",
+          "TAG-acdfa8ba",
+          "TAG-9c40bd29",
+          "TAG-bef24521",
+          "TAG-3cb01cd8",
+          "TAG-bd4b8031",
+          "TAG-2f76f40f",
+          "TAG-67715029",
+          "TAG-83c9f664",
+          "TAG-196da2fc",
+          "TAG-beb3c307",
+          "TAG-5727ad6d",
+          "TAG-5fde37c6",
+          "TAG-cfaf8fcd",
+          "TAG-701a76b9",
+          "TAG-9a38dbf6",
+          "TAG-7341fbc4",
+          "TAG-5e5e325d",
+          "TAG-5aae1d32",
+          "TAG-292ef75d",
+          "TAG-377d9676",
+          "TAG-7eeaf94e",
+          "TAG-22b500a8",
+          "TAG-f4cbdd7f",
+          "TAG-717b6c41",
+          "TAG-ede3d110",
+          "TAG-dfb04513",
+          "TAG-d1934fbd",
+          "TAG-9cd14abd",
+          "TAG-72789863",
+          "TAG-6b86e62c",
+          "TAG-37bb89fc",
+          "TAG-38bb6c26",
+          "TAG-912f2fa4",
+          "TAG-b937b0e2",
+          "TAG-8a20850f",
+          "TAG-2ccfea59",
+          "TAG-5c2d75da",
+          "TAG-d5a45df1",
+          "TAG-116b2d30",
+          "TAG-b7b7b80a",
+          "TAG-7c9a781d",
+          "TAG-e67ba49d",
+          "TAG-fee03e0d",
+          "TAG-07d87f6b",
+          "TAG-71f2cfca",
+          "TAG-13d53f95",
+          "TAG-8fc673aa",
+          "TAG-28f20f71",
+          "TAG-b42c2888",
+          "TAG-981ebe08",
+          "TAG-4aa9f16b",
+          "TAG-1e55a3a9",
+          "TAG-07ca46d8",
+          "TAG-69d35862",
+          "TAG-66d7eb9c",
+          "TAG-bddaac25",
+          "TAG-f009ba38",
+          "TAG-ef240552"
+        ],
+        "10": [
+          "TAG-2ce4e984"
+        ],
+        "3": [
+          "TAG-be4d2e13"
+        ],
+        "4": [
+          "wg-istanbul-01"
+        ],
+        "5": [
+          "wg-istanbul-01"
+        ],
+        "7": [
+          "REALITY TCP BING",
+          "TAG-8ea4380d",
+          "TAG-07459dac",
+          "TAG-ca600c74",
+          "TAG-64b522d7",
+          "TAG-bf079b9f",
+          "TAG-cd2f2d70",
+          "TAG-b277eddb",
+          "TAG-c1140e5b",
+          "TAG-059a2ca7",
+          "TAG-52eb4d6e",
+          "TAG-0f0a571d",
+          "TAG-9cf943a7",
+          "TAG-82cb4525",
+          "TAG-59732706",
+          "TAG-77b56f87",
+          "TAG-0d9e5900",
+          "TAG-79cf7a18",
+          "TAG-385261fa",
+          "TAG-3c91c87e",
+          "TAG-93988b29",
+          "TAG-46659fe0",
+          "TAG-f956f102",
+          "TAG-5a80a389",
+          "TAG-f48aedb4",
+          "TAG-11c0ad4e",
+          "TAG-481d5e68",
+          "TAG-0294c4fe",
+          "TAG-6ef0c1b6",
+          "TAG-28d72267",
+          "TAG-335ffdc3",
+          "TAG-f0105633",
+          "TAG-a6ad98cd",
+          "TAG-5dba219e",
+          "TAG-120716a1",
+          "TAG-84922102",
+          "TAG-661055f0",
+          "TAG-75114068",
+          "TAG-9f65b330",
+          "TAG-930271ef",
+          "TAG-efdf27c3",
+          "TAG-3fe8cb96",
+          "TAG-2187934b",
+          "TAG-2b387d00",
+          "TAG-42fb5fad",
+          "TAG-97b6f1ed",
+          "TAG-183362a3",
+          "TAG-00ef146f",
+          "TAG-b203dc72",
+          "TAG-e7225d64",
+          "TAG-32d9d6e2",
+          "TAG-c5175842",
+          "TAG-bdc32379",
+          "TAG-be214bc0",
+          "TAG-b0c3ee9c",
+          "TAG-b9be24f6",
+          "TAG-dfc4b5ab",
+          "TAG-eb59ec98",
+          "TAG-ca31befa",
+          "TAG-f21ae783",
+          "TAG-9ca4f53a",
+          "TAG-fa2d76ff",
+          "TAG-18f5fad2",
+          "TAG-fcf3ad83",
+          "TAG-b6b650b1",
+          "TAG-25c3f7be",
+          "TAG-bcf666fc",
+          "TAG-04f42f7f",
+          "TAG-8c26ec41",
+          "TAG-d4a120e1",
+          "TAG-580db943",
+          "TAG-5e406361",
+          "TAG-ecd58830",
+          "TAG-328681b0",
+          "TAG-684ff005",
+          "TAG-3c14f040",
+          "TAG-d733955d",
+          "TAG-65fd4dfa",
+          "TAG-1954fbc6",
+          "TAG-5b869c45",
+          "TAG-53391f61",
+          "TAG-7d07f125",
+          "TAG-22368a83",
+          "TAG-b460cbae",
+          "TAG-e9ade0f9",
+          "TAG-b37cb0e8",
+          "TAG-b5b6f0a0",
+          "TAG-8794245c",
+          "TAG-589d8592",
+          "TAG-289e0de2",
+          "TAG-00abe56c",
+          "TAG-ef177ddd",
+          "TAG-7963e17f",
+          "TAG-9fe3371b",
+          "TAG-bd113c0e",
+          "TAG-a5a76c5c",
+          "TAG-a3074d68",
+          "TAG-d5a2f5c7",
+          "TAG-2dd9cbb1",
+          "TAG-2ddae4e1",
+          "TAG-606c9a02",
+          "TAG-303d3f6f",
+          "TAG-0c776824",
+          "TAG-835c2b09",
+          "TAG-d3577ee2",
+          "TAG-09636cee",
+          "TAG-521b75c8",
+          "TAG-09fe7220",
+          "TAG-3c2e2911",
+          "TAG-9792612b",
+          "TAG-10bee473",
+          "TAG-2fb6466a",
+          "TAG-e0e7c7ae",
+          "TAG-20ef113a",
+          "TAG-eb211879",
+          "TAG-2e96bcf4",
+          "TAG-6b16dc13",
+          "TAG-acdfa8ba",
+          "TAG-9c40bd29",
+          "TAG-bef24521",
+          "TAG-3cb01cd8",
+          "TAG-bd4b8031",
+          "TAG-2f76f40f",
+          "TAG-67715029",
+          "TAG-83c9f664",
+          "TAG-196da2fc",
+          "TAG-beb3c307",
+          "TAG-5727ad6d",
+          "TAG-5fde37c6",
+          "TAG-cfaf8fcd",
+          "TAG-701a76b9",
+          "TAG-9a38dbf6",
+          "TAG-7341fbc4",
+          "TAG-5e5e325d",
+          "TAG-5aae1d32",
+          "TAG-292ef75d",
+          "TAG-377d9676",
+          "TAG-7eeaf94e",
+          "TAG-22b500a8",
+          "TAG-f4cbdd7f",
+          "TAG-717b6c41",
+          "TAG-ede3d110",
+          "TAG-dfb04513",
+          "TAG-d1934fbd",
+          "TAG-9cd14abd",
+          "TAG-72789863",
+          "TAG-6b86e62c",
+          "TAG-37bb89fc",
+          "TAG-38bb6c26",
+          "TAG-912f2fa4",
+          "TAG-b937b0e2",
+          "TAG-8a20850f",
+          "TAG-2ccfea59",
+          "TAG-5c2d75da",
+          "TAG-d5a45df1",
+          "TAG-116b2d30",
+          "TAG-b7b7b80a",
+          "TAG-7c9a781d",
+          "TAG-e67ba49d",
+          "TAG-fee03e0d",
+          "TAG-07d87f6b",
+          "TAG-71f2cfca",
+          "TAG-13d53f95",
+          "TAG-8fc673aa",
+          "TAG-28f20f71",
+          "TAG-b42c2888",
+          "TAG-981ebe08",
+          "TAG-4aa9f16b",
+          "TAG-1e55a3a9",
+          "TAG-07ca46d8",
+          "TAG-69d35862",
+          "TAG-66d7eb9c",
+          "TAG-bddaac25",
+          "TAG-f009ba38",
+          "TAG-ef240552"
+        ],
+        "9": [
+          "TAG-335ffdc3",
+          "TAG-f0105633",
+          "TAG-04712e53",
+          "TAG-75114068",
+          "TAG-97b6f1ed",
+          "TAG-580db943"
+        ]
+      },
+      "scopes": [
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇩🇪"
+          },
+          "name": "germany",
+          "selected": [
+            {
+              "host_id": 17769,
+              "remark": "🇩🇪 Germany ▸ Reality ⚡"
+            },
+            {
+              "host_id": 18012,
+              "remark": "🇩🇪 Germany ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17960,
+              "remark": "🇩🇪 Germany ▸ VIP 👑"
+            },
+            {
+              "host_id": 17851,
+              "remark": "🇩🇪 Germany ▸ Fastly"
+            },
+            {
+              "host_id": 17995,
+              "remark": "🇩🇪 Germany ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18025,
+              "remark": "🇩🇪 Germany ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18026,
+              "remark": "🇩🇪 Germany ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18027,
+              "remark": "🇩🇪 Germany ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇳🇱 Netherlands ▸ "
+          },
+          "name": "netherlands",
+          "selected": [
+            {
+              "host_id": 17766,
+              "remark": "🇳🇱 Netherlands ▸ Reality ⚡"
+            },
+            {
+              "host_id": 18015,
+              "remark": "🇳🇱 Netherlands ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17937,
+              "remark": "🇳🇱 Netherlands ▸ VIP 👑"
+            },
+            {
+              "host_id": 17852,
+              "remark": "🇳🇱 Netherlands ▸ Fastly"
+            },
+            {
+              "host_id": 18000,
+              "remark": "🇳🇱 Netherlands ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇳🇱 NL ▸ "
+          },
+          "name": "nl_migrated",
+          "selected": [
+            {
+              "host_id": 17876,
+              "remark": "🇳🇱 NL ▸ Reality ⚡"
+            },
+            {
+              "host_id": 18013,
+              "remark": "🇳🇱 NL ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17938,
+              "remark": "🇳🇱 NL ▸ VIP 👑"
+            },
+            {
+              "host_id": 17859,
+              "remark": "🇳🇱 NL ▸ Fastly"
+            },
+            {
+              "host_id": 18001,
+              "remark": "🇳🇱 NL ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇹🇷"
+          },
+          "name": "turkey",
+          "selected": [
+            {
+              "host_id": 17928,
+              "remark": "🇹🇷 Turkey ▸ Reality"
+            },
+            {
+              "host_id": 18016,
+              "remark": "🇹🇷 Turkey ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17941,
+              "remark": "🇹🇷 Turkey ▸ VIP 👑"
+            },
+            {
+              "host_id": 17858,
+              "remark": "🇹🇷 Turkey ▸ Fastly"
+            },
+            {
+              "host_id": 18004,
+              "remark": "🇹🇷 Turkey ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18028,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18029,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18030,
+              "remark": "🇹🇷 Turkey ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇪🇸 Spain ▸ "
+          },
+          "name": "spain",
+          "selected": [
+            {
+              "host_id": 17952,
+              "remark": "🇪🇸 Spain ▸ Reality 2"
+            },
+            {
+              "host_id": 17959,
+              "remark": "🇪🇸 Spain ▸ VIP 👑"
+            },
+            {
+              "host_id": 17958,
+              "remark": "🇪🇸 Spain ▸ Fastly"
+            },
+            {
+              "host_id": 17996,
+              "remark": "🇪🇸 Spain ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18037,
+              "remark": "🇪🇸 Spain ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18038,
+              "remark": "🇪🇸 Spain ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18039,
+              "remark": "🇪🇸 Spain ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇬🇧 UK New ▸ "
+          },
+          "name": "uk",
+          "selected": [
+            {
+              "host_id": 17944,
+              "remark": "🇬🇧 UK New ▸ Reality 2"
+            },
+            {
+              "host_id": 18017,
+              "remark": "🇬🇧 UK New ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17951,
+              "remark": "🇬🇧 UK New ▸ VIP 👑"
+            },
+            {
+              "host_id": 17950,
+              "remark": "🇬🇧 UK New ▸ Fastly"
+            },
+            {
+              "host_id": 18005,
+              "remark": "🇬🇧 UK New ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18034,
+              "remark": "🇬🇧 UK New ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18035,
+              "remark": "🇬🇧 UK New ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18036,
+              "remark": "🇬🇧 UK New ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇷🇺"
+          },
+          "name": "russia",
+          "selected": [
+            {
+              "host_id": 17927,
+              "remark": "🇷🇺 Russia ▸ Reality"
+            },
+            {
+              "host_id": 17935,
+              "remark": "🇷🇺 Russia ▸ VIP 👑"
+            },
+            {
+              "host_id": 17854,
+              "remark": "🇷🇺 Russia ▸ Fastly"
+            },
+            {
+              "host_id": 18002,
+              "remark": "🇷🇺 Russia ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇫🇷"
+          },
+          "name": "france",
+          "selected": [
+            {
+              "host_id": 17930,
+              "remark": "🇫🇷 France ▸ Reality"
+            },
+            {
+              "host_id": 18018,
+              "remark": "🇫🇷 France ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17933,
+              "remark": "🇫🇷 France ▸ VIP 👑"
+            },
+            {
+              "host_id": 17863,
+              "remark": "🇫🇷 France ▸ Fastly"
+            },
+            {
+              "host_id": 17998,
+              "remark": "🇫🇷 France ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 17991,
+              "remark": "🇫🇷 France 2 ▸ Reality"
+            },
+            {
+              "host_id": 17992,
+              "remark": "🇫🇷 France 2 ▸ Fastly"
+            },
+            {
+              "host_id": 17999,
+              "remark": "🇫🇷 France 2 ▸ Fastly HTTP"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇫🇮"
+          },
+          "name": "finland",
+          "selected": [
+            {
+              "host_id": 17773,
+              "remark": "🇫🇮 Finland ▸ Reality"
+            },
+            {
+              "host_id": 18014,
+              "remark": "🇫🇮 Finland ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17961,
+              "remark": "🇫🇮 Finland ▸ VIP 👑"
+            },
+            {
+              "host_id": 17855,
+              "remark": "🇫🇮 Finland ▸ Fastly"
+            },
+            {
+              "host_id": 17997,
+              "remark": "🇫🇮 Finland ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18022,
+              "remark": "🇫🇮 Finland ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18023,
+              "remark": "🇫🇮 Finland ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18024,
+              "remark": "🇫🇮 Finland ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇸🇪"
+          },
+          "name": "sweden",
+          "selected": [
+            {
+              "host_id": 17931,
+              "remark": "🇸🇪 Sweden ▸ Reality"
+            },
+            {
+              "host_id": 18019,
+              "remark": "🇸🇪 Sweden ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17934,
+              "remark": "🇸🇪 Sweden ▸ VIP 👑"
+            },
+            {
+              "host_id": 17867,
+              "remark": "🇸🇪 Sweden ▸ Fastly"
+            },
+            {
+              "host_id": 18003,
+              "remark": "🇸🇪 Sweden ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18031,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18032,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18033,
+              "remark": "🇸🇪 Sweden ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "activate_when_inbounds": [],
+          "match": {
+            "remark_regex": "^🇺🇸"
+          },
+          "name": "usa",
+          "selected": [
+            {
+              "host_id": 17774,
+              "remark": "🇺🇸 USA ▸ Reality"
+            },
+            {
+              "host_id": 18020,
+              "remark": "🇺🇸 USA ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 17942,
+              "remark": "🇺🇸 USA ▸ VIP 👑"
+            },
+            {
+              "host_id": 17861,
+              "remark": "🇺🇸 USA ▸ Fastly"
+            },
+            {
+              "host_id": 18006,
+              "remark": "🇺🇸 USA ▸ Fastly HTTP"
+            },
+            {
+              "host_id": 18040,
+              "remark": "🇺🇸 USA ▸ Cloudflare ECH · همراه اول"
+            },
+            {
+              "host_id": 18041,
+              "remark": "🇺🇸 USA ▸ Cloudflare IPv6 · همراه اول"
+            },
+            {
+              "host_id": 18042,
+              "remark": "🇺🇸 USA ▸ Cloudflare · ایرانسل"
+            }
+          ]
+        },
+        {
+          "name": "canada",
+          "match": {
+            "remark_regex": "^🇨🇦"
+          },
+          "activate_when_inbounds": [],
+          "selected": [
+            {
+              "host_id": 18009,
+              "remark": "🇨🇦 Canada ▸ Reality"
+            },
+            {
+              "host_id": 18021,
+              "remark": "🇨🇦 Canada ▸ Reality IPv6 · همراه اول و ایرانسل"
+            },
+            {
+              "host_id": 18010,
+              "remark": "🇨🇦 Canada ▸ Fastly"
+            },
+            {
+              "host_id": 18011,
+              "remark": "🇨🇦 Canada ▸ Fastly HTTP"
+            }
+          ]
+        }
+      ],
+      "unknown_non_target_group": "fail_open"
+    }
+  },
+  "host_group_visibility": [
+    {
+      "any_group_ids": [
+        7
+      ],
+      "host_ids": [
+        17320,
+        17451,
+        17498,
+        17499,
+        17521,
+        17795,
+        17865,
+        17869,
+        17870,
+        17946,
+        17954,
+        17969,
+        17976
+      ]
+    },
+    {
+      "any_group_ids": [
+        7,
+        8
+      ],
+      "host_ids": [
+        17995,
+        17996,
+        17997,
+        17998,
+        17999,
+        18000,
+        18001,
+        18002,
+        18003,
+        18004,
+        18005,
+        18006,
+        18011
+      ]
+    },
+    {
+      "any_group_ids": [
+        7,
+        8
+      ],
+      "host_ids": [
+        18022,
+        18023,
+        18024,
+        18025,
+        18026,
+        18027,
+        18028,
+        18029,
+        18030,
+        18031,
+        18032,
+        18033,
+        18034,
+        18035,
+        18036,
+        18037,
+        18038,
+        18039,
+        18040,
+        18041,
+        18042
+      ]
+    }
+  ],
+  "version": 1
+}

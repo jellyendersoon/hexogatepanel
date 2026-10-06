@@ -1,0 +1,23 @@
+services:
+  subscription-renderer:
+    image: pasarguard/panel@sha256:019bd43749e334b08d01eff39ab4530f8a18f5c34348b8998dfb3dad3f93e9bb
+    container_name: pasarguard-sub-renderer-canary
+    network_mode: host
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PASARGUARD_GROUP_PRESENTATION_POLICY_PATH: /code/group-presentation-policy.json
+      SQLALCHEMY_POOL_SIZE: "10"
+      SQLALCHEMY_MAX_OVERFLOW: "20"
+    entrypoint: ["python"]
+    command:
+      - /code/sub_renderer.py
+    volumes:
+      - /var/lib/pasarguard:/var/lib/pasarguard
+      - /opt/pasarguard/overrides/group8-sub-renderer/sub_renderer.py:/code/sub_renderer.py:ro
+      - /opt/pasarguard/overrides/group8-sub-renderer/subscription-share.py:/code/app/subscription/share.py:ro
+      - /opt/pasarguard/overrides/group8-sub-renderer/operation-subscription.py:/code/app/operation/subscription.py:ro
+      - /opt/pasarguard/overrides/group8-sub-renderer/presentation_policy.py:/code/app/subscription/presentation_policy.py:ro
+      - /opt/pasarguard/overrides/group8-sub-renderer/group-presentation-policy.json:/code/group-presentation-policy.json:ro
+      - /opt/pasarguard/overrides/subscription-xray.py:/code/app/subscription/xray.py:ro

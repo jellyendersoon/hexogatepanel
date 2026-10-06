@@ -1,0 +1,87 @@
+services:
+  pasarguard:
+    image: pasarguard/panel@sha256:019bd43749e334b08d01eff39ab4530f8a18f5c34348b8998dfb3dad3f93e9bb
+    restart: always
+    env_file: .env
+    network_mode: host
+    volumes:
+      - /var/lib/pasarguard:/var/lib/pasarguard
+      - /opt/pasarguard/overrides/hexo-time-guard/sitecustomize.py:/code/.venv/lib/python3.14/site-packages/sitecustomize.py:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+      caddy:
+        condition: service_started
+
+  caddy:
+    image: caddy:latest
+    restart: always
+    networks:
+      - default
+      - hexogate_bot
+    ports:
+      - 80:80
+      - 443:443
+      - 8000:8000
+    volumes:
+      - /var/lib/pasarguard:/var/lib/pasarguard
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_volume:/data
+      - caddy_volume:/config
+
+  mysql:
+    image: mysql:lts
+    network_mode: host
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    command:
+      - --mysqlx=OFF # Disables MySQL X Plugin to save resources if X Protocol isn't used
+      - --bind-address=127.0.0.1 # Restricts access to localhost for increased security
+      - --character_set_server=utf8mb4 # Sets UTF-8 character set for full Unicode support
+      - --collation_server=utf8mb4_unicode_ci # Defines collation for Unicode
+      - --log-bin=mysql-bin # Enables binary logging for point-in-time recovery
+      - --binlog_expire_logs_seconds=21600 # Sets binary log expiration to 6 hours
+      - --host-cache-size=0 # Disables host cache to prevent DNS issues
+      - --innodb-open-files=1024 # Sets the limit for InnoDB open files
+      - --innodb-buffer-pool-size=256M # Allocates buffer pool size for InnoDB
+      - --general_log=0 # Disables general query log for lower disk usage
+      - --slow_query_log=1 # Enables slow query log for performance analysis
+      - --slow_query_log_file=/var/lib/mysql/slow.log # Logs slow queries for troubleshooting
+      - --long_query_time=2 # Defines slow query threshold as 2 seconds
+      - --event_scheduler=ON # Keeps scheduled DB retention events enabled after restart
+      - --max_connections=500 # 2026-09-22 HC-03: persisted (was only SET PERSIST in mysqld-auto.cnf); panel pool 300+5 + canary 10+20 + reserve fits. Applies at the next planned recreate.
+    volumes:
+      - /var/lib/mysql/pasarguard:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "MYSQL_PWD=\"$${MYSQL_PASSWORD}\" mysqladmin ping -h 127.0.0.1 -u \"$${MYSQL_USER}\" --silent"]
+      start_period: 5s
+      interval: 60s
+      timeout: 5s
+      retries: 10
+
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin:latest
+    restart: always
+    env_file: .env
+    network_mode: host
+    environment:
+      PMA_HOST: 127.0.0.1
+      APACHE_PORT: 8010
+      UPLOAD_LIMIT: 1024M
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+networks:
+  hexogate_bot:
+    external: true
+    name: hexogate-bot_default
+
+volumes:
+  caddy_volume:

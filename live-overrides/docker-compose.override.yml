@@ -1,0 +1,5 @@
+services:
+  pasarguard:
+    volumes:
+      - /var/lib/pasarguard:/var/lib/pasarguard
+      - /opt/pasarguard/overrides/subscription-xray.py:/code/app/subscription/xray.py:ro
