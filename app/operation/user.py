@@ -156,11 +156,14 @@ async def _resolve_users_usage_admins_filter(
 
 logger = get_logger("user-operation")
 
+# Same wording as the production time guard.
 TIME_EXTENSION_FORBIDDEN_MESSAGE = (
-    "You are not allowed to extend time for existing users. / شما اجازه افزایش زمان کاربران فعلی را ندارید."
+    "Adding time to existing configs is not allowed for this admin; you can still add data. "
+    "افزودن زمان به کانفیگ‌های موجود برای این ادمین مجاز نیست؛ فقط حجم قابل افزایش است."
 )
-# Absorbs sub-second rounding when a client echoes the current expire back unchanged.
-_TIME_EXTENSION_TOLERANCE = td(seconds=1)
+# Slack before a later value counts as "adding time", matching production: it
+# absorbs clients that round or echo the current expire back slightly changed.
+_TIME_EXTENSION_TOLERANCE = td(minutes=10)
 
 
 def _is_unlimited_time(value: dt | int | None) -> bool:

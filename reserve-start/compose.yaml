@@ -1,0 +1,32 @@
+services:
+  reserve-start:
+    image: hexogate-panel-reserve-start:2026.10.02.2
+    container_name: hexogate-panel-reserve-start
+    network_mode: host
+    user: "65532:65532"
+    read_only: true
+    restart: unless-stopped
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    # Reuse the EXISTING native panel env file; never copy credentials into source.
+    env_file:
+      - /opt/pasarguard/.env
+      - /opt/pasarguard/reserve-start/retry.env
+    environment:
+      RESERVE_PANEL_SOCKET: /var/lib/pasarguard/pasarguard.socket
+      RESERVE_STATE_DIR: /state
+      SAVE_LOGS_TO_FILE: "false"
+      # Retry only previously authorized manual intents. Historical timeout
+      # repair stays disabled because RESERVE_DUE_ALLOWLIST is not configured.
+      RESERVE_RECONCILE_ENABLED: "1"
+    volumes:
+      - /opt/pasarguard/reserve-start/state:/state
+      - /var/lib/pasarguard/reserve-start:/var/lib/pasarguard/reserve-start
+      - /var/lib/pasarguard:/var/lib/pasarguard:ro
+    tmpfs:
+      - /tmp:uid=65532,gid=65532,mode=1770
+    healthcheck:
+      test: [CMD, python, -c, "import socket; s=socket.socket(socket.AF_UNIX); s.settimeout(2); s.connect('/var/lib/pasarguard/reserve-start/reserve-start.sock'); sep=chr(13)+chr(10); s.sendall(('GET /healthz HTTP/1.1'+sep+'Host: sidecar'+sep+'Connection: close'+sep+sep).encode()); assert b' 200 ' in s.recv(128); s.close()"]
+      interval: 30s
+      timeout: 3s
+      retries: 3

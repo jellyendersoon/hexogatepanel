@@ -29,8 +29,8 @@ from tests.api.helpers import (
     unique_name,
 )
 
-EN_FRAGMENT = "not allowed to extend time"
-FA_FRAGMENT = "افزایش زمان"
+EN_FRAGMENT = "Adding time to existing configs is not allowed"
+FA_FRAGMENT = "افزودن زمان"
 
 USERS_FULL = {"create": True, "read": True, "update": True, "delete": True, "reset_usage": True}
 
