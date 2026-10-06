@@ -70,7 +70,13 @@ Hexogate is a self-hosted control panel for running and managing proxy infrastru
 
    The default `docker-compose.yml` pulls `ghcr.io/jellyendersoon/hexogatepanel:latest`. To build from source instead, replace the `image:` line with `build: .`.
 
-4. Create the owner account. Generate a one-time setup key and use it on the dashboard login page:
+4. To update or recreate the panel later, use the helper instead of a bare `docker compose up`. It clears leftover containers that still carry the service labels, which otherwise make a recreate fail or start a second panel:
+
+   ```bash
+   bash scripts/compose_recreate.sh
+   ```
+
+5. Create the owner account. Generate a one-time setup key and use it on the dashboard login page:
 
    ```bash
    docker compose exec hexogate hexogate-cli generate-temp-key

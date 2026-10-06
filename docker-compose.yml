@@ -1,6 +1,10 @@
 services:
   hexogate:
     image: ghcr.io/jellyendersoon/hexogatepanel:latest
+    # A fixed name makes a recreate fail loudly instead of starting a second
+    # panel next to a stray container; use scripts/compose_recreate.sh to
+    # recreate safely.
+    container_name: hexogate
     restart: always
     env_file: .env
     network_mode: host
