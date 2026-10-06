@@ -16,6 +16,11 @@ export default defineConfig({
           path: './src/service/http.ts',
           name: 'orvalFetcher',
         },
+        fetch: {
+          // The mutator returns the parsed body, so generate plain model types
+          // instead of { data, status, headers } wrappers.
+          includeHttpResponseReturnType: false,
+        },
       },
     },
     input: {

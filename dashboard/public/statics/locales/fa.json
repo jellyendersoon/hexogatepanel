@@ -47,7 +47,8 @@
         "user": "کاربران",
         "userTemplate": "قالب‌ها",
         "daysLeft": "انقضاها",
-        "percentageReached": "محدودیت‌های مصرف"
+        "percentageReached": "محدودیت‌های مصرف",
+        "apiKey": "کلیدهای API"
       },
       "subPermissions": {
         "create": "ایجاد",

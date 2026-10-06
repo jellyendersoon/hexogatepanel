@@ -25,14 +25,14 @@ export const customVariableSchema = z.object({
   key: z
     .string()
     .max(64, 'Variable key must be 64 characters or less')
-    .regex(/^$|^[A-Z][A-Z0-9_]*$/, 'Use uppercase letters, numbers, and underscores')
-    .default(''),
-  value: z.string().max(512, 'Variable value must be 512 characters or less').default(''),
+    .regex(/^$|^[A-Z][A-Z0-9_]*$/, 'Use uppercase letters, numbers, and underscores'),
+  value: z.string().max(512, 'Variable value must be 512 characters or less'),
 })
 
+// No .default() here: defaults are supplied by the form so the schema's input and
+// output types stay identical, which the zod resolver typing requires.
 export const customVariablesSchema = z
   .array(customVariableSchema)
-  .default([])
   .superRefine((variables, ctx) => {
     const seen = new Set<string>()
     for (const [index, variable] of variables.entries()) {

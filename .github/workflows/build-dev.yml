@@ -2,8 +2,8 @@ name: Build-Docker-dev
 
 on:
   push:
-    branches-ignore: 
-      - main
+    branches:
+      - dev
   workflow_dispatch:
       
 permissions:

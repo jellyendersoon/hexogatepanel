@@ -3,7 +3,7 @@ name: "Frontend CodeQL"
 on:
   push:
     branches:
-      - "*"
+      - main
     paths:
       - "dashboard/**"
   pull_request:

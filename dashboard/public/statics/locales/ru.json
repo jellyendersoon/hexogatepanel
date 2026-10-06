@@ -202,7 +202,8 @@
         "user": "Пользователи",
         "userTemplate": "Шаблоны",
         "daysLeft": "Истечения",
-        "percentageReached": "Использование ограничений"
+        "percentageReached": "Использование ограничений",
+        "apiKey": "API ключи"
       },
       "subPermissions": {
         "create": "Создать",

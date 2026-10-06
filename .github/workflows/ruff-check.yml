@@ -2,7 +2,7 @@ name: Code Format Checker
 on:
     push:
         branches:
-            - "*"
+            - main
         paths:
             - "**/*.py"
 

@@ -91,9 +91,7 @@ class NatsSettings(EnvSettings):
     worker_sync_subject: str = Field(default="hexogate.worker_sync", validation_alias="NATS_WORKER_SYNC_SUBJECT")
     node_command_subject: str = Field(default="hexogate.node.command", validation_alias="NATS_NODE_COMMAND_SUBJECT")
     node_rpc_subject: str = Field(default="hexogate.node.rpc", validation_alias="NATS_NODE_RPC_SUBJECT")
-    scheduler_rpc_subject: str = Field(
-        default="hexogate.scheduler.rpc", validation_alias="NATS_SCHEDULER_RPC_SUBJECT"
-    )
+    scheduler_rpc_subject: str = Field(default="hexogate.scheduler.rpc", validation_alias="NATS_SCHEDULER_RPC_SUBJECT")
     node_log_subject: str = Field(default="hexogate.node.logs", validation_alias="NATS_NODE_LOG_SUBJECT")
     node_rpc_timeout: float = Field(default=30.0, validation_alias="NATS_NODE_RPC_TIMEOUT")
     scheduler_rpc_timeout: float = Field(default=5.0, validation_alias="NATS_SCHEDULER_RPC_TIMEOUT")

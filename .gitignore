@@ -172,3 +172,5 @@ deadlock-analysis.md
 # AI
 .AGENT
 graphify-out
+*.db-shm
+*.db-wal

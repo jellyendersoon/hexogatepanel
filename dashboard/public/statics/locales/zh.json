@@ -164,7 +164,8 @@
         "user": "用户",
         "userTemplate": "模板",
         "daysLeft": "到期时间",
-        "percentageReached": "使用限制"
+        "percentageReached": "使用限制",
+        "apiKey": "API 密钥"
       },
       "subPermissions": {
         "create": "创建",

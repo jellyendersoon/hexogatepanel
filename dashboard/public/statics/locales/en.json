@@ -180,7 +180,8 @@
         "user": "Users",
         "userTemplate": "Templates",
         "daysLeft": "Expirations",
-        "percentageReached": "Usage Limits"
+        "percentageReached": "Usage Limits",
+        "apiKey": "API Keys"
       },
       "subPermissions": {
         "create": "Create",
