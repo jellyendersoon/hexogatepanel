@@ -18,11 +18,6 @@
   "creating": "در حال ایجاد...",
   "hosts": "هاست‌ها",
   "groups": "گروه‌ها",
-  "documentation": "مستندات",
-  "discussionGroup": "گروه گفتگو",
-  "github": "GitHub",
-  "community": "جامعه",
-  "supportUs": "پشتیبانی از ما",
   "manageHosts": "مدیریت و کنترل هاست‌ها",
   "manageSettings": "مدیریت و کنترل تنظیمات",
   "monitorUsers": "مدیریت کاربران",
@@ -2139,7 +2134,6 @@
   },
   "success": "موفق",
   "error": "خطا",
-  "tutorial": "مشاهده آموزش",
   "theme": {
     "title": "تم",
     "description": "سفارشی‌سازی تم برنامه شما",
@@ -3687,23 +3681,6 @@
   "hosts.filters.hostStateDescription": "مشخص می‌کند خود هاست فعال است یا غیرفعال.",
   "hosts.filters.enabledHosts": "هاست‌های فعال",
   "hosts.filters.disabledHosts": "هاست‌های غیرفعال",
-  "donation": {
-    "title": "حمایت از پاسارگارد",
-    "message": "حمایت شما به ما کمک می‌کند تا پاسارگارد را بهبود بخشیم و ویژگی‌های بهتری برای همه بسازیم!",
-    "donate": "حمایت مالی",
-    "starOnGitHub": "ستاره در GitHub"
-  },
-  "goal": {
-    "currentGoal": "هدف فعلی",
-    "progress": "پیشرفت",
-    "of": "از",
-    "remaining": "باقیمانده",
-    "contribute": "مشارکت کنید",
-    "completed": "تکمیل شده",
-    "pending": "در حال انجام",
-    "githubStarsUnit": "ستاره",
-    "githubProgress": "پیشرفت ستاره‌ها"
-  },
   "errorPage": {
     "errorCode": "خطا",
     "unauthorized": {
@@ -3737,16 +3714,10 @@
   },
   "version": {
     "title": "نسخه",
-    "newVersionAvailable": "نسخه جدید موجود است!",
     "currentVersion": "نسخه فعلی",
     "latestVersion": "آخرین نسخه",
-    "clickToUpdate": "نسخه جدید برای دانلود موجود است",
-    "upToDate": "به روز است",
-    "runningLatest": "نسخه {{version}} در حال اجرا",
     "updateBanner": "به‌روزرسانی موجود: {{current}} → {{latest}}",
     "updateBannerMobile": "به‌روزرسانی: {{latest}}",
-    "updateCommandLabel": "از طریق SSH متصل شوید و اجرا کنید:",
-    "closeBanner": "بستن اعلان به‌روزرسانی",
-    "needsUpdate": "نیاز به به‌روزرسانی"
+    "updateCommandLabel": "از طریق SSH متصل شوید و اجرا کنید:"
   }
 }

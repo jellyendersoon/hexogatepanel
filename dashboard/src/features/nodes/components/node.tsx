@@ -7,7 +7,6 @@ import { Separator } from '@/components/ui/separator'
 import { cn } from '@/lib/utils'
 import { CoresSimpleResponse, NodeResponse } from '@/service/api'
 import { useXrayReleases } from '@/hooks/use-xray-releases'
-import { useNodeReleases } from '@/hooks/use-node-releases'
 import NodeUsageDisplay from './node-usage-display'
 import NodeActionsMenu from './node-actions-menu'
 import UpdateCoreDialog from '@/features/nodes/dialogs/update-core-modal'
@@ -45,14 +44,11 @@ export default function Node({
   const dir = useDirDetection()
   const [showUpdateCoreDialog, setShowUpdateCoreDialog] = useState(false)
   const { latestVersion: latestXrayVersion, hasUpdate: hasXrayUpdate } = useXrayReleases()
-  const { latestVersion: latestNodeVersion, hasUpdate: hasNodeUpdate } = useNodeReleases()
   const coreVersion = node.core_version ?? node.xray_version
   const resolvedCoreType = coresData?.cores?.find(c => c.id === node.core_config_id)?.type ?? null
-  const isWireGuardCore = resolvedCoreType === 'wg'
   const isXrayBackend = resolvedCoreType !== 'wg'
   const coreUpdateVersion = node.xray_version ?? coreVersion
   const hasCoreUpdate = !!(isXrayBackend && coreUpdateVersion && latestXrayVersion && hasXrayUpdate(coreUpdateVersion))
-  const hasNodeVersionUpdate = !isWireGuardCore && !!latestNodeVersion && !!node.node_version && hasNodeUpdate(node.node_version)
 
   const getStatusConfig = () => {
     switch (node.status) {
@@ -220,11 +216,10 @@ export default function Node({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className={cn('group/version inline-flex items-center', dir === 'rtl' ? 'flex-row-reverse gap-1' : 'gap-1')}>
-                          <Server className={cn('h-3 w-3 shrink-0 transition-colors sm:h-3.5 sm:w-3.5', hasNodeVersionUpdate ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground')} />
-                          <span className={cn('font-mono text-[10px] font-medium sm:text-[11px]', hasNodeVersionUpdate ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground')}>
+                          <Server className={'h-3 w-3 shrink-0 transition-colors sm:h-3.5 sm:w-3.5 text-muted-foreground'} />
+                          <span className={'font-mono text-[10px] font-medium sm:text-[11px] text-muted-foreground'}>
                             {node.node_version}
                           </span>
-                          {hasNodeVersionUpdate && <div className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />}
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">
@@ -235,18 +230,6 @@ export default function Node({
                               <span>{t('version.currentVersion', { defaultValue: 'Current' })}</span>
                               <span className="font-mono font-medium">{node.node_version}</span>
                             </div>
-                            {!isWireGuardCore && latestNodeVersion && (
-                              <div className="flex items-center justify-between gap-4">
-                                <span>{t('version.latestVersion', { defaultValue: 'Latest' })}</span>
-                                <span className="font-mono font-medium">{latestNodeVersion}</span>
-                              </div>
-                            )}
-                            {hasNodeVersionUpdate && (
-                              <>
-                                <Separator className="my-1.5" />
-                                <span>{t('nodeModal.updateAvailable', { defaultValue: 'Update available' })}</span>
-                              </>
-                            )}
                           </div>
                         </div>
                       </TooltipContent>

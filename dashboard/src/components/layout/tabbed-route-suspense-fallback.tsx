@@ -1,7 +1,6 @@
 import { Spinner } from '@/components/common/spinner'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import PageHeader from '@/components/layout/page-header'
-import { getDocsUrl } from '@/utils/docs-url'
 import { useAdmin } from '@/hooks/use-admin'
 import { hasPermission, hasScopeAll } from '@/utils/rbac'
 import { cn } from '@/lib/utils'
@@ -157,7 +156,7 @@ function NodesTabbedFallback({ pathname }: { pathname: string }) {
   const activeId = nodesActiveTabId(pathname)
   return (
     <div className="flex min-h-0 w-full flex-1 flex-col items-start gap-0">
-      <PageHeader title={header.title} description={header.description} tutorialUrl={getDocsUrl(pathname)} />
+      <PageHeader title={header.title} description={header.description} />
       <div className="flex min-h-0 w-full flex-1 flex-col">
         <TabStripPlaceholder tabs={NODES_TABS} activeId={activeId} />
         <ContentSpinner />
@@ -172,7 +171,7 @@ function SettingsTabbedFallback({ pathname, isSudo }: { pathname: string; isSudo
   const activeId = settingsActiveTabId(pathname, tabs)
   return (
     <div className="flex w-full flex-col items-start gap-0">
-      <PageHeader title={t(`settings.${activeId}.title`)} description="manageSettings" tutorialUrl={getDocsUrl(pathname)} />
+      <PageHeader title={t(`settings.${activeId}.title`)} description="manageSettings" />
       <div className="relative w-full">
         <div className="flex w-full min-w-0 flex-col">
           <TabStripPlaceholder tabs={tabs} activeId={activeId} />
@@ -189,7 +188,7 @@ function BulkTabbedFallback({ pathname, isSudo }: { pathname: string; isSudo: bo
   const header = bulkHeader(pathname)
   return (
     <div className="flex w-full flex-col items-start gap-0">
-      <PageHeader title={header.title} description={header.description} tutorialUrl={getDocsUrl(pathname)} />
+      <PageHeader title={header.title} description={header.description} />
       <div className="w-full">
         <TabStripPlaceholder tabs={tabs} activeId={activeId} />
         <ContentSpinner />
@@ -203,7 +202,7 @@ function TemplatesTabbedFallback({ pathname }: { pathname: string }) {
   const activeId = pathname === '/templates/client' ? 'templates.clientTemplates' : 'templates.userTemplates'
   return (
     <div className="flex w-full flex-col items-start gap-0">
-      <PageHeader title={header.title} description={header.description} tutorialUrl={getDocsUrl(pathname)} />
+      <PageHeader title={header.title} description={header.description} />
       <div className="w-full">
         <TabStripPlaceholder tabs={TEMPLATES_TABS} activeId={activeId} />
         <ContentSpinner />

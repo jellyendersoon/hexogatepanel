@@ -7,7 +7,6 @@ import { CoresSimpleResponse, NodeResponse, NodeStatus } from '@/service/api'
 import { cn } from '@/lib/utils'
 import { Package, Server } from 'lucide-react'
 import { useXrayReleases } from '@/hooks/use-xray-releases'
-import { useNodeReleases } from '@/hooks/use-node-releases'
 import { Separator } from '@/components/ui/separator'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
 
@@ -49,7 +48,6 @@ export const useNodeListColumns = ({
 }: UseNodeListColumnsProps) => {
   const { t } = useTranslation()
   const { latestVersion: latestXrayVersion, hasUpdate: hasXrayUpdate } = useXrayReleases()
-  const { latestVersion: latestNodeVersion, hasUpdate: hasNodeUpdate } = useNodeReleases()
 
   return useMemo<ListColumn<NodeResponse>[]>(
     () => [
@@ -82,11 +80,9 @@ export const useNodeListColumns = ({
         cell: node => {
           const coreVersion = node.core_version ?? node.xray_version
           const resolvedCoreType = coresData?.cores?.find(c => c.id === node.core_config_id)?.type ?? null
-          const isWireGuardCore = resolvedCoreType === 'wg'
           const isXrayBackend = resolvedCoreType !== 'wg'
           const coreUpdateVersion = node.xray_version ?? coreVersion
           const hasCoreUpdate = !!(isXrayBackend && coreUpdateVersion && latestXrayVersion && hasXrayUpdate(coreUpdateVersion))
-          const hasNodeVersionUpdate = !isWireGuardCore && !!latestNodeVersion && !!node.node_version && hasNodeUpdate(node.node_version)
 
           if (!coreVersion && !node.node_version) return null
 
@@ -131,9 +127,8 @@ export const useNodeListColumns = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="inline-flex min-w-0 items-center gap-1.5">
-                        <Server className={cn('h-3.5 w-3.5 shrink-0 transition-colors', hasNodeVersionUpdate ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground')} />
-                        <span className={cn('truncate font-mono font-medium', hasNodeVersionUpdate ? 'text-amber-700 dark:text-amber-300' : 'text-muted-foreground')}>{node.node_version}</span>
-                        {hasNodeVersionUpdate && <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500" />}
+                        <Server className={'h-3.5 w-3.5 shrink-0 transition-colors text-muted-foreground'} />
+                        <span className={'truncate font-mono font-medium text-muted-foreground'}>{node.node_version}</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">
@@ -144,18 +139,6 @@ export const useNodeListColumns = ({
                             <span>{t('version.currentVersion', { defaultValue: 'Current' })}</span>
                             <span className="font-mono font-medium">{node.node_version}</span>
                           </div>
-                          {!isWireGuardCore && latestNodeVersion && (
-                            <div className="flex items-center justify-between gap-4">
-                              <span>{t('version.latestVersion', { defaultValue: 'Latest' })}</span>
-                              <span className="font-mono font-medium">{latestNodeVersion}</span>
-                            </div>
-                          )}
-                          {hasNodeVersionUpdate && (
-                            <>
-                              <Separator className="my-1.5" />
-                              <span>{t('nodeModal.updateAvailable', { defaultValue: 'Update available' })}</span>
-                            </>
-                          )}
                         </div>
                       </div>
                     </TooltipContent>
@@ -200,6 +183,6 @@ export const useNodeListColumns = ({
           ]
         : []),
     ],
-    [t, onEdit, onToggleStatus, coresData, canUpdate, canDelete, canReconnect, canUpdateCore, canReadStats, latestXrayVersion, hasXrayUpdate, latestNodeVersion, hasNodeUpdate],
+    [t, onEdit, onToggleStatus, coresData, canUpdate, canDelete, canReconnect, canUpdateCore, canReadStats, latestXrayVersion, hasXrayUpdate],
   )
 }

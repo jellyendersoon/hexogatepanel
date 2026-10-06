@@ -1,16 +1,9 @@
-import { REPO_URL } from '@/constants/Project'
 import { FC } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const FooterContent = () => {
-  return (
-    <p className="text-muted-foreground inline-block flex-grow text-center text-xs">
-      Made with ❤️ by &nbsp;
-      <a className="text-primary hover:underline" href={REPO_URL}>
-        PasarGuard
-      </a>{' '}
-      Team
-    </p>
-  )
+  const { t } = useTranslation()
+  return <p className="text-muted-foreground inline-block flex-grow text-center text-xs">{t('pasarguard')}</p>
 }
 
 export const Footer: FC = ({ ...props }) => {

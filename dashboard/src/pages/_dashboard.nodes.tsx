@@ -1,7 +1,6 @@
 import PageHeader from '@/components/layout/page-header'
 import PageTransition from '@/components/layout/page-transition'
 import { useAdmin } from '@/hooks/use-admin'
-import { getDocsUrl } from '@/utils/docs-url'
 import { hasPermission } from '@/utils/rbac'
 import { Cpu, LucideIcon, Share2, Plus, Logs, Network } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
@@ -125,7 +124,7 @@ const Settings = () => {
     <div className="flex min-h-0 w-full flex-1 flex-col items-start gap-0">
       {!isCoreEditorPage && (
         <PageTransition isContentTransition={true}>
-          <PageHeader {...getPageHeaderProps()} tutorialUrl={getDocsUrl(location.pathname)} />
+          <PageHeader {...getPageHeaderProps()} />
         </PageTransition>
       )}
       <div className="flex min-h-0 w-full flex-1 flex-col">

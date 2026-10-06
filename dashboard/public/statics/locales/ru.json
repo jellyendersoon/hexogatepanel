@@ -50,7 +50,6 @@
   "hosts": "Хосты",
   "success": "Успешно",
   "error": "Ошибка",
-  "tutorial": "Просмотр руководства",
   "modifying": "Изменение...",
   "removing": "Удаление...",
   "creating": "Создание...",
@@ -177,11 +176,6 @@
     "reconnectAllPrompt": "Вы уверены, что хотите переподключить все узлы? Это временно отключит все активные соединения и может занять несколько минут."
   },
   "groups": "Группы",
-  "documentation": "Документация",
-  "discussionGroup": "Группа обсуждений",
-  "github": "GitHub",
-  "community": "Сообщество",
-  "supportUs": "Поддержать нас",
   "manageHosts": "Управление и контроль хостов",
   "manageSettings": "Управление и контроль настроек",
   "settings": {
@@ -3657,23 +3651,6 @@
   "hosts.filters.hostStateDescription": "Фильтрует, включен или отключен сам хост.",
   "hosts.filters.enabledHosts": "Включенные хосты",
   "hosts.filters.disabledHosts": "Отключенные хосты",
-  "donation": {
-    "title": "Поддержите PasarGuard",
-    "message": "Ваша поддержка помогает нам улучшать PasarGuard и создавать лучшие функции для всех!",
-    "donate": "Поддержать проект",
-    "starOnGitHub": "Поставить звезду на GitHub"
-  },
-  "goal": {
-    "currentGoal": "Текущая цель",
-    "progress": "Прогресс",
-    "of": "из",
-    "remaining": "Осталось",
-    "contribute": "Поддержать",
-    "completed": "Завершено",
-    "pending": "В процессе",
-    "githubStarsUnit": "звёзд",
-    "githubProgress": "Прогресс по звёздам"
-  },
   "errorPage": {
     "errorCode": "Ошибка",
     "unauthorized": {
@@ -3722,16 +3699,10 @@
   },
   "version": {
     "title": "Версия",
-    "newVersionAvailable": "Доступна новая версия!",
     "currentVersion": "Текущая",
     "latestVersion": "Последняя",
-    "clickToUpdate": "Доступна новая версия для загрузки",
-    "upToDate": "Актуально",
-    "runningLatest": "Версия {{version}}",
     "updateBanner": "Доступно обновление: {{current}} → {{latest}}",
     "updateBannerMobile": "Обновление: {{latest}}",
-    "updateCommandLabel": "Выполните через SSH:",
-    "closeBanner": "Закрыть уведомление об обновлении",
-    "needsUpdate": "Требуется обновление"
+    "updateCommandLabel": "Выполните через SSH:"
   }
 }

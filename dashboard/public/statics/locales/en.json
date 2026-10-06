@@ -16,7 +16,6 @@
   "hosts": "Hosts",
   "success": "Success",
   "error": "Error",
-  "tutorial": "View tutorial",
   "username": "Username",
   "modifying": "Modifying...",
   "removing": "Removing...",
@@ -143,11 +142,6 @@
     "reconnectAllPrompt": "Are you sure you want to reconnect all nodes? This will temporarily disconnect all active connections and may take a few moments to complete."
   },
   "groups": "Groups",
-  "documentation": "Documentation",
-  "discussionGroup": "Discussion Group",
-  "github": "GitHub",
-  "community": "Community",
-  "supportUs": "Support Us",
   "manageHosts": "Manage and control hosts",
   "manageSettings": "Manage and control settings",
   "settings": {
@@ -3711,23 +3705,6 @@
   "hosts.filters.hostStateDescription": "Filters whether the host itself is enabled or disabled.",
   "hosts.filters.enabledHosts": "Enabled Hosts",
   "hosts.filters.disabledHosts": "Disabled Hosts",
-  "donation": {
-    "title": "Support PasarGuard",
-    "message": "Your support helps us improve PasarGuard and build better features for everyone!",
-    "donate": "Donate Now",
-    "starOnGitHub": "Star on GitHub"
-  },
-  "goal": {
-    "currentGoal": "Current Goal",
-    "progress": "Progress",
-    "of": "of",
-    "remaining": "Remaining",
-    "contribute": "Contribute",
-    "completed": "Completed",
-    "pending": "In Progress",
-    "githubStarsUnit": "stars",
-    "githubProgress": "Star progress"
-  },
   "errorPage": {
     "errorCode": "Error",
     "unauthorized": {
@@ -3761,16 +3738,10 @@
   },
   "version": {
     "title": "Version",
-    "newVersionAvailable": "New version available!",
     "currentVersion": "Current",
     "latestVersion": "Latest",
-    "clickToUpdate": "A new version is available for download",
-    "upToDate": "Up to date",
-    "runningLatest": "Running {{version}}",
     "updateBanner": "Update available: {{current}} → {{latest}}",
     "updateBannerMobile": "Update: {{latest}}",
-    "updateCommandLabel": "Connect via SSH and run:",
-    "closeBanner": "Close update notification",
-    "needsUpdate": "Needs update"
+    "updateCommandLabel": "Connect via SSH and run:"
   }
 }

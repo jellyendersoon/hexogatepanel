@@ -1,7 +1,6 @@
 import PageHeader from '@/components/layout/page-header'
 import PageTransition from '@/components/layout/page-transition'
 import { useAdmin } from '@/hooks/use-admin'
-import { getDocsUrl } from '@/utils/docs-url'
 import { hasPermission } from '@/utils/rbac'
 import { FileCode2, FileUser, LucideIcon, Plus } from 'lucide-react'
 import { useEffect, useState } from 'react'
@@ -81,7 +80,7 @@ export default function TemplatesLayout() {
   return (
     <div className="flex w-full flex-col items-start gap-0">
       <PageTransition isContentTransition={true}>
-        <PageHeader {...getPageHeaderProps()} tutorialUrl={getDocsUrl(location.pathname)} />
+        <PageHeader {...getPageHeaderProps()} />
       </PageTransition>
       <div className="w-full">
         <div className="flex border-b px-4">

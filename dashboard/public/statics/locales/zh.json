@@ -14,7 +14,6 @@
   "hosts": "主机",
   "success": "成功",
   "error": "错误",
-  "tutorial": "查看教程",
   "modifying": "修改中...",
   "removing": "删除中...",
   "creating": "正在创建...",
@@ -139,11 +138,6 @@
     "reconnectAllPrompt": "您确定要重新连接所有节点吗？这将暂时断开所有活动连接，可能需要几分钟时间。"
   },
   "groups": "群组",
-  "documentation": "文档",
-  "discussionGroup": "讨论组",
-  "github": "GitHub",
-  "community": "社区",
-  "supportUs": "支持我们",
   "manageHosts": "管理和控制主机",
   "manageSettings": "管理和控制设置",
   "settings": {
@@ -3710,23 +3704,6 @@
   "hosts.filters.hostStateDescription": "筛选主机本身是启用还是禁用。",
   "hosts.filters.enabledHosts": "已启用主机",
   "hosts.filters.disabledHosts": "已禁用主机",
-  "donation": {
-    "title": "支持 PasarGuard",
-    "message": "您的支持帮助我们改进 PasarGuard 并为所有人构建更好的功能！",
-    "donate": "立即捐赠",
-    "starOnGitHub": "在 GitHub 上加星"
-  },
-  "goal": {
-    "currentGoal": "当前目标",
-    "progress": "进度",
-    "of": "共",
-    "remaining": "剩余",
-    "contribute": "贡献",
-    "completed": "已完成",
-    "pending": "进行中",
-    "githubStarsUnit": "星标",
-    "githubProgress": "星标进度"
-  },
   "errorPage": {
     "errorCode": "错误",
     "unauthorized": {
@@ -3775,16 +3752,10 @@
   },
   "version": {
     "title": "版本",
-    "newVersionAvailable": "有新版本可用！",
     "currentVersion": "当前版本",
     "latestVersion": "最新版本",
-    "clickToUpdate": "有新版本可供下载",
-    "upToDate": "已是最新",
-    "runningLatest": "正在运行 {{version}}",
     "updateBanner": "可用更新: {{current}} → {{latest}}",
     "updateBannerMobile": "更新: {{latest}}",
-    "updateCommandLabel": "通过 SSH 连接并运行:",
-    "closeBanner": "关闭更新通知",
-    "needsUpdate": "需要更新"
+    "updateCommandLabel": "通过 SSH 连接并运行:"
   }
 }

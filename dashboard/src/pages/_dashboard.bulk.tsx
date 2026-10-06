@@ -1,7 +1,6 @@
 import PageHeader from '@/components/layout/page-header'
 import { useAdmin } from '@/hooks/use-admin'
 import PageTransition from '@/components/layout/page-transition'
-import { getDocsUrl } from '@/utils/docs-url'
 import { ArrowUpDown, Calendar, Lock, Group, UserPlus } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -70,7 +69,7 @@ const BulkPage = () => {
   return (
     <div className="flex w-full flex-col items-start gap-0">
       <PageTransition isContentTransition={true}>
-        <PageHeader {...getPageHeaderProps()} tutorialUrl={getDocsUrl(location.pathname)} />
+        <PageHeader {...getPageHeaderProps()} />
       </PageTransition>
       <div className="w-full">
         <div className="scrollbar-hide flex overflow-x-auto border-b px-4 lg:flex-wrap">
