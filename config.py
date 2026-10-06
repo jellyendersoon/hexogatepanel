@@ -130,6 +130,12 @@ class SubscriptionEnvSettings(EnvSettings):
     fallback_path: str = Field(default="sub", validation_alias="SUBSCRIPTION_PATH")
     clients_limit: int = Field(default=10, validation_alias="USER_SUBSCRIPTION_CLIENTS_LIMIT")
     external_config: str = Field(default="", validation_alias="EXTERNAL_CONFIG")
+    # Optional JSON policy that orders/filters subscription hosts per user group.
+    # See app/subscription/presentation_policy.py for the schema.
+    group_presentation_policy_path: str = Field(
+        default="/var/lib/hexogate/group-presentation-policy.json",
+        validation_alias="GROUP_PRESENTATION_POLICY_PATH",
+    )
 
     @cached_property
     def path(self) -> str:
@@ -217,6 +223,16 @@ class FeatureSettings(EnvSettings):
     stop_nodes_on_shutdown: bool = Field(default=True, validation_alias="STOP_NODES_ON_SHUTDOWN")
 
 
+class NodeSettings(EnvSettings):
+    # Consecutive failed health checks before the checker auto-reconnects a node.
+    auto_reconnect_after_failures: int = Field(default=3, ge=1, validation_alias="NODE_AUTO_RECONNECT_AFTER_FAILURES")
+    # Cap for the exponential backoff between auto-reconnect attempts, in health checks.
+    # The default (60) is ten minutes at the default JOB_CORE_HEALTH_CHECK_INTERVAL of 10s.
+    auto_reconnect_max_backoff_checks: int = Field(
+        default=60, ge=1, validation_alias="NODE_AUTO_RECONNECT_MAX_BACKOFF_CHECKS"
+    )
+
+
 database_settings = DatabaseSettings()
 server_settings = ServerSettings()
 dashboard_settings = DashboardSettings()
@@ -232,6 +248,7 @@ auth_settings = AuthSettings()
 usage_settings = UsageSettings()
 job_settings = JobSettings()
 feature_settings = FeatureSettings()
+node_settings = NodeSettings()
 
 if not database_settings.is_postgresql:
     usage_settings.enable_recording_nodes_stats = False

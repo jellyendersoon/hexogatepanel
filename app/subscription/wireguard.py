@@ -3,7 +3,7 @@ import zipfile
 
 from app.models.subscription import SubscriptionInboundData
 
-from .base import BaseSubscription
+from .base import BaseSubscription, format_host_port
 
 
 class WireGuardConfiguration(BaseSubscription):
@@ -38,7 +38,7 @@ class WireGuardConfiguration(BaseSubscription):
             "Peer": {
                 "PublicKey": payload["publickey"],
                 "AllowedIPs": payload["allowedips"].replace(",", ", "),
-                "Endpoint": f"{address}:{inbound.port}",
+                "Endpoint": format_host_port(address, inbound.port),
             },
         }
 

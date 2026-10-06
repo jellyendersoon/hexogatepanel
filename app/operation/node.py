@@ -64,7 +64,7 @@ from app.models.stats import (
 )
 from app.nats import needs_shared_bridge_memory
 from app.nats.node_rpc import node_nats_client
-from app.node import core_users, node_manager
+from app.node import core_users, node_manager, reconnect_backoff
 from app.node.manager_sync import publish_node_sync
 from app.node.nats_memory import clear_bridge_memory_for_node
 from app.operation import BaseOperation, OperatorType
@@ -471,6 +471,9 @@ class NodeOperation(BaseOperation):
         else:
             try:
                 await self._update_node_impl(db_node)
+                # An admin edit is a manual intervention: start the auto-reconnect
+                # backoff over, the same as an explicit reconnect.
+                reconnect_backoff.reset(db_node.id)
                 # force_start=True ensures the node always receives the updated config
                 # (e.g. core_config_id, usage_coefficient) even when already healthy.
                 asyncio.create_task(self._connect_single_node_background(db_node.id, force_start=True))
@@ -575,10 +578,13 @@ class NodeOperation(BaseOperation):
         logger.info(f'Node "{node_id}" disconnected')
 
     async def restart_node(self, db: AsyncSession, node_id: int, admin: AdminDetails) -> None:
+        # A manual reconnect restarts the health checker's auto-reconnect backoff.
+        reconnect_backoff.reset(node_id)
         await self.connect_single_node(db, node_id, force_start=True)
         logger.info(f'Node "{node_id}" restarted by admin "{admin.username}"')
 
     async def restart_all_node(self, db: AsyncSession, admin: AdminDetails, core_id: int | None = None) -> None:
+        reconnect_backoff.reset_all()
         await self._restart_all_impl(db, admin, core_id)
         logger.info(f'All nodes restarted by admin "{admin.username}"')
 
@@ -1279,6 +1285,8 @@ class NodeOperation(BaseOperation):
     ) -> BulkNodesActionResponse:
         db_nodes = await self._get_validated_nodes(db, bulk_nodes.ids)
 
+        for db_node in db_nodes:
+            reconnect_backoff.reset(db_node.id)
         await self.connect_nodes_bulk(db, db_nodes, force_start=True)
 
         for db_node in db_nodes:

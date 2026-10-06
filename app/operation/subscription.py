@@ -89,10 +89,12 @@ client_config = {
 
 class SubscriptionOperation(BaseOperation):
     _ENCODED_RULE_RESPONSE_HEADERS: ClassVar[set[str]] = {"announce", "profile-title"}
+    # Groups are loaded so the renderer can apply group-based presentation
+    # (host ordering/curation, see app/subscription/presentation_policy.py).
     _SUB_CONFIG_LOAD: ClassVar[dict[str, bool]] = {
         "load_next_plan": False,
         "load_usage_logs": False,
-        "load_groups": False,
+        "load_groups": True,
         "load_lifetime_used_traffic": True,
     }
     _SUB_INFO_LOAD: ClassVar[dict[str, bool]] = {
@@ -108,6 +110,8 @@ class SubscriptionOperation(BaseOperation):
         user.inbounds = await db_user.inbounds()
         user.expire = db_user.expire
         user.lifetime_used_traffic = db_user.lifetime_used_traffic
+        # Group ids drive per-group host presentation; empty when groups were not loaded.
+        user.group_ids = list(db_user.group_ids or [])
 
         return user
 

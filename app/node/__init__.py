@@ -1,4 +1,5 @@
 import asyncio
+from dataclasses import dataclass
 
 from aiorwlock import RWLock
 from PasarGuardNodeBridge import Health, NodeType, PasarGuardNode, create_node
@@ -8,7 +9,7 @@ from app.db.models import Node, NodeConnectionType
 from app.node.nats_memory import ensure_bridge_memory, get_bridge_memory
 from app.node.user import core_users
 from app.utils.logger import get_logger
-from config import nats_settings
+from config import nats_settings, node_settings
 
 type_map = {
     NodeConnectionType.rest: NodeType.rest,
@@ -239,7 +240,73 @@ class NodeManager:
                 raise result
 
 
+@dataclass(slots=True)
+class _ReconnectState:
+    failures: int = 0
+    attempts: int = 0
+    next_attempt_at: int = 0
+
+
+class NodeReconnectBackoff:
+    """Decide when the health check may auto-reconnect a node that keeps failing.
+
+    Failed checks are counted per node. The first reconnect fires once a node has
+    failed `after_failures` consecutive checks; every later attempt waits
+    min(2 ** attempts, max_backoff_checks) more failed checks, so a host that is
+    really down is retried with exponential backoff instead of on every check.
+    A successful check, or a manual reconnect, clears the node's state.
+    """
+
+    def __init__(self, after_failures: int, max_backoff_checks: int):
+        self.after_failures = max(1, after_failures)
+        self.max_backoff_checks = max(1, max_backoff_checks)
+        self._states: dict[int, _ReconnectState] = {}
+
+    def record_failure(self, node_id: int) -> bool:
+        """Count one failed check and return True when a reconnect should be attempted now."""
+        state = self._states.get(node_id)
+        if state is None:
+            state = _ReconnectState(next_attempt_at=self.after_failures)
+            self._states[node_id] = state
+
+        state.failures += 1
+        if state.failures < state.next_attempt_at:
+            return False
+
+        state.attempts += 1
+        state.next_attempt_at = state.failures + min(2**state.attempts, self.max_backoff_checks)
+        return True
+
+    def record_success(self, node_id: int) -> None:
+        self._states.pop(node_id, None)
+
+    def reset(self, node_id: int) -> None:
+        """Forget a node's failures, e.g. after an admin reconnected it by hand."""
+        self._states.pop(node_id, None)
+
+    def reset_all(self) -> None:
+        self._states.clear()
+
+    def failures(self, node_id: int) -> int:
+        state = self._states.get(node_id)
+        return state.failures if state else 0
+
+    def attempts(self, node_id: int) -> int:
+        state = self._states.get(node_id)
+        return state.attempts if state else 0
+
+    def checks_until_next_attempt(self, node_id: int) -> int:
+        state = self._states.get(node_id)
+        if state is None:
+            return self.after_failures
+        return max(0, state.next_attempt_at - state.failures)
+
+
 node_manager: NodeManager = NodeManager()
+reconnect_backoff: NodeReconnectBackoff = NodeReconnectBackoff(
+    after_failures=node_settings.auto_reconnect_after_failures,
+    max_backoff_checks=node_settings.auto_reconnect_max_backoff_checks,
+)
 
 
-__all__ = ["core_users", "node_manager"]
+__all__ = ["NodeReconnectBackoff", "core_users", "node_manager", "reconnect_backoff"]

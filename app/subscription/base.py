@@ -1,5 +1,6 @@
 import base64
 import hashlib
+import ipaddress
 import json
 import re
 from enum import Enum
@@ -7,6 +8,29 @@ from typing import Any, Literal
 from urllib.parse import quote, urlencode
 
 from app.models.subscription import SubscriptionInboundData
+
+
+def bracket_ipv6(address: Any) -> str:
+    """Wrap a bare IPv6 literal in ``[]`` so it can be used in ``host:port`` strings.
+
+    Hostnames, IPv4 literals and already-bracketed addresses are returned unchanged.
+    """
+    text = "" if address is None else str(address)
+    stripped = text.strip()
+    if not stripped or stripped.startswith("["):
+        return text
+    try:
+        parsed = ipaddress.ip_address(stripped)
+    except ValueError:
+        return text
+    if parsed.version == 6:
+        return f"[{stripped}]"
+    return text
+
+
+def format_host_port(address: Any, port: Any) -> str:
+    """Build ``host:port`` with IPv6 literals bracketed."""
+    return f"{bracket_ipv6(address)}:{port}"
 
 
 def normalize_and_remove_none_values(data: dict) -> dict:
@@ -256,7 +280,7 @@ class BaseSubscription:
             "peer_ips": peer_ips,
             "payload": payload,
             "uri": (
-                f"wireguard://{quote(private_key, safe='')}@{address}:{inbound.port}/"
+                f"wireguard://{quote(private_key, safe='')}@{format_host_port(address, inbound.port)}/"
                 f"?{urlencode(uri_payload, quote_via=quote)}#{quote(validated_remark)}"
             ),
         }

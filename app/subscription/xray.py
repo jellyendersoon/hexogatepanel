@@ -15,7 +15,7 @@ from app.models.subscription import (
 )
 
 from . import BaseSubscription
-from .base import dumps_compact
+from .base import dumps_compact, format_host_port
 
 
 class XrayConfiguration(BaseSubscription):
@@ -329,9 +329,9 @@ class XrayConfiguration(BaseSubscription):
                 }
             )
         else:  # tls
+            # allowInsecure is intentionally never emitted for xray-format output.
             config = {
                 "serverName": sni,
-                "allowInsecure": tls_config.allowinsecure,
                 "show": False,
                 "fingerprint": tls_config.fingerprint,
                 "echConfigList": tls_config.ech_config_list,
@@ -507,7 +507,7 @@ class XrayConfiguration(BaseSubscription):
             return {}
 
         peer = {
-            "endpoint": f"{address}:{self._select_port(inbound.port)}",
+            "endpoint": format_host_port(address, self._select_port(inbound.port)),
             "publicKey": public_key,
             "allowedIPs": inbound.wireguard_allowed_ips or ["0.0.0.0/0", "::/0"],
             "keepAlive": inbound.wireguard_keepalive,

@@ -17,6 +17,7 @@ from app.models.subscription import (
 from config import subscription_env_settings
 
 from . import BaseSubscription
+from .base import format_host_port
 
 
 class StandardLinks(BaseSubscription):
@@ -280,7 +281,7 @@ class StandardLinks(BaseSubscription):
             self._apply_tls_settings(payload, inbound.tls_config, inbound.fragment_settings)
 
         payload = self._normalize_and_remove_none_values(payload)
-        return f"vless://{id}@{address}:{inbound.port}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
+        return f"vless://{id}@{format_host_port(address, inbound.port)}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
 
     def _build_trojan(self, remark: str, address: str, inbound: SubscriptionInboundData, settings: dict) -> str:
         """Build Trojan link"""
@@ -302,7 +303,7 @@ class StandardLinks(BaseSubscription):
 
         payload = self._normalize_and_remove_none_values(payload)
         password = urlparse.quote(settings["password"], safe=":")
-        return f"trojan://{password}@{address}:{inbound.port}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
+        return f"trojan://{password}@{format_host_port(address, inbound.port)}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
 
     def _build_shadowsocks(self, remark: str, address: str, inbound: SubscriptionInboundData, settings: dict) -> str:
         """Build Shadowsocks link"""
@@ -315,7 +316,7 @@ class StandardLinks(BaseSubscription):
         )
 
         encoded = base64.b64encode(f"{method}:{password}".encode()).decode()
-        return f"ss://{encoded}@{address}:{inbound.port}#{urlparse.quote(remark)}"
+        return f"ss://{encoded}@{format_host_port(address, inbound.port)}#{urlparse.quote(remark)}"
 
     def _build_hysteria(self, remark: str, address: str, inbound: SubscriptionInboundData, settings: dict) -> str:
         """Build Hysteria link"""
@@ -332,7 +333,7 @@ class StandardLinks(BaseSubscription):
             self._apply_tls_settings(payload, inbound.tls_config, inbound.fragment_settings)
 
         payload = self._normalize_and_remove_none_values(payload)
-        return f"hysteria2://{settings['auth']}@{address}:{inbound.port}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
+        return f"hysteria2://{settings['auth']}@{format_host_port(address, inbound.port)}?{urlparse.urlencode(payload, quote_via=urlparse.quote)}#{urlparse.quote(remark)}"
 
     def _build_wireguard(self, remark: str, address: str, inbound: SubscriptionInboundData, settings: dict) -> str:
         """Build WireGuard link"""
