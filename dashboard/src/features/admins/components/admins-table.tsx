@@ -29,6 +29,13 @@ import { BulkActionItem, BulkActionsBar } from '@/features/users/components/bulk
 import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-alert-dialog'
 import { Power, PowerOff, RefreshCw, Trash2, UserCheck, UserMinus, UserX } from 'lucide-react'
 import { hasPermission, hasScopeAll } from '@/utils/rbac'
+import { formatErrorDetail } from '@/utils/error-utils'
+
+const getApiErrorDescription = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null) return undefined
+  const { data, message } = error as { data?: { detail?: unknown }; message?: unknown }
+  return formatErrorDetail(data?.detail) || (typeof message === 'string' && message ? message : undefined)
+}
 
 interface AdminFilters {
   sort?: string
@@ -417,7 +424,7 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
         }),
       })
       closeBulkUsersStatusDialog()
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t(actionType === 'disable' ? 'admins.disableAllActiveUsersFailed' : 'admins.activateAllDisabledUsersFailed', {
           name: admin.username,
@@ -445,7 +452,7 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
         patchAdminInAdminsCache(queryClient, adminId, { total_users: 0 })
         setRemoveAllUsersDialogOpen(false)
         setAdminToRemoveAllUsers(null)
-      } catch (error) {
+      } catch {
         toast.error(t('error', { defaultValue: 'Error' }), {
           description: t('admins.removeAllUsersFailed', {
             name: adminToRemoveAllUsers.username,
@@ -536,11 +543,10 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description:
-          error?.data?.detail ||
-          error?.message ||
+          getApiErrorDescription(error) ||
           t('admins.bulkDeleteFailed', {
             defaultValue: 'Failed to delete selected admins.',
           }),
@@ -566,9 +572,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkResetFailed', { defaultValue: 'Failed to reset usage for selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkResetFailed', { defaultValue: 'Failed to reset usage for selected admins.' }),
       })
     }
   }
@@ -591,9 +597,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkDisableFailed', { defaultValue: 'Failed to disable selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkDisableFailed', { defaultValue: 'Failed to disable selected admins.' }),
       })
     }
   }
@@ -616,9 +622,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkEnableFailed', { defaultValue: 'Failed to enable selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkEnableFailed', { defaultValue: 'Failed to enable selected admins.' }),
       })
     }
   }
@@ -641,9 +647,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkDisableUsersFailed', { defaultValue: 'Failed to disable active users for selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkDisableUsersFailed', { defaultValue: 'Failed to disable active users for selected admins.' }),
       })
     }
   }
@@ -666,9 +672,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkActivateUsersFailed', { defaultValue: 'Failed to activate disabled users for selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkActivateUsersFailed', { defaultValue: 'Failed to activate disabled users for selected admins.' }),
       })
     }
   }
@@ -691,9 +697,9 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
       clearSelection()
       setBulkAction(null)
       invalidateAdminQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('admins.bulkRemoveUsersFailed', { defaultValue: 'Failed to remove users for selected admins.' }),
+        description: getApiErrorDescription(error) || t('admins.bulkRemoveUsersFailed', { defaultValue: 'Failed to remove users for selected admins.' }),
       })
     }
   }

@@ -19,6 +19,7 @@ import {
   generateShadowsocksPassword as kitGenerateShadowsocksPassword,
   SHADOWSOCKS_PASSWORD_GENERATION_METHODS,
   type VlessBuilderOptions,
+  type VlessEncryptionResult,
 } from '@/lib/xray-generation'
 import { cn } from '@/lib/utils'
 import { useCreateCoreConfig, useModifyCoreConfig } from '@/service/api'
@@ -30,6 +31,7 @@ import { encodeURLSafe } from '@stablelib/base64'
 import { generateKeyPair } from '@stablelib/x25519'
 import { debounce } from 'es-toolkit'
 import { Sparkles, Pencil, Cpu } from 'lucide-react'
+import type { editor } from 'monaco-editor'
 import { useCallback, useEffect, useState } from 'react'
 import type { FieldErrors, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -59,6 +61,28 @@ type DataFieldProps = {
   defaultMessage: string
 }
 
+type ResultDialogData = Partial<{
+  publicKey: string
+  privateKey: string
+  shortId: string
+  password: string
+  encryptionMethod: string
+  seed: string
+  verify: string
+}> &
+  Partial<VlessEncryptionResult>
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
+const CORE_CONFIG_FORM_FIELDS: ReadonlyArray<keyof CoreConfigFormValues> = ['name', 'type', 'config', 'fallback_id', 'excluded_inbound_ids']
+
+const isCoreConfigFormField = (field: string): field is keyof CoreConfigFormValues => (CORE_CONFIG_FORM_FIELDS as ReadonlyArray<string>).includes(field)
+
+type SubmitErrorLike = {
+  message?: unknown
+  response?: { _data?: unknown; data?: unknown }
+}
+
 export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, editingCore, editingCoreId }: CoreConfigModalProps) {
   const { t } = useTranslation()
   const dir = useDirDetection()
@@ -83,7 +107,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
   // Results dialog state
   const [isResultsDialogOpen, setIsResultsDialogOpen] = useState(false)
   const [resultType, setResultType] = useState<string | null>(null)
-  const [resultData, setResultData] = useState<any>(null)
+  const [resultData, setResultData] = useState<ResultDialogData | null>(null)
 
   // Store generated values
   const [generatedKeyPair, setGeneratedKeyPair] = useState<{ publicKey: string; privateKey: string } | null>(null)
@@ -91,10 +115,10 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
   const [generatedShortId, setGeneratedShortId] = useState<string | null>(null)
   const [generatedShadowsocksPassword, setGeneratedShadowsocksPassword] = useState<{ password: string; encryptionMethod: string } | null>(null)
   const [generatedMldsa65, setGeneratedMldsa65] = useState<{ seed: string; verify: string } | null>(null)
-  const [generatedVLESS, setGeneratedVLESS] = useState<any>(null)
+  const [generatedVLESS, setGeneratedVLESS] = useState<VlessEncryptionResult | null>(null)
 
   // Helper function to show results in dialog
-  const showResultDialog = useCallback((type: string, data: any) => {
+  const showResultDialog = useCallback((type: string, data: ResultDialogData) => {
     setResultType(type)
     setResultData(data)
     setIsResultsDialogOpen(true)
@@ -121,7 +145,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
   }, [])
 
   const handleEditorValidation = useCallback(
-    (markers: any[]) => {
+    (markers: editor.IMarker[]) => {
       // Monaco editor provides validation markers
       const hasErrors = markers.length > 0
       if (hasErrors) {
@@ -151,13 +175,16 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
   const debouncedConfigChange = useCallback(
     debounce((value: string) => {
       try {
-        const parsedConfig = JSON.parse(value)
+        const parsedConfig: unknown = JSON.parse(value)
+        const config = isRecord(parsedConfig) ? parsedConfig : {}
         const selectedBackendType = (form.getValues('type') ?? 'xray') as CoreBackendType
         if (selectedBackendType === 'wg') {
-          const interfaceName = typeof parsedConfig.interface_name === 'string' ? parsedConfig.interface_name.trim() : ''
+          const interfaceName = typeof config.interface_name === 'string' ? config.interface_name.trim() : ''
           setInboundTags(interfaceName ? [interfaceName] : [])
-        } else if (parsedConfig.inbounds && Array.isArray(parsedConfig.inbounds)) {
-          const tags = parsedConfig.inbounds.filter((inbound: any) => typeof inbound.tag === 'string' && inbound.tag.trim() !== '').map((inbound: any) => inbound.tag)
+        } else if (config.inbounds && Array.isArray(config.inbounds)) {
+          const tags = config.inbounds
+            .filter((inbound: unknown): inbound is { tag: string } => isRecord(inbound) && typeof inbound.tag === 'string' && inbound.tag.trim() !== '')
+            .map(inbound => inbound.tag)
           setInboundTags(tags)
         } else {
           setInboundTags([])
@@ -188,7 +215,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
       setGeneratedKeyPair(formattedKeyPair)
       showResultDialog('keyPair', formattedKeyPair)
       toast.success(t('coreConfigModal.keyPairGenerated'))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.keyPairGenerationFailed'))
     } finally {
       setIsGeneratingKeyPair(false)
@@ -206,7 +233,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
       setGeneratedShortId(shortId)
       showResultDialog('shortId', { shortId })
       toast.success(t('coreConfigModal.shortIdGenerated'))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.shortIdGenerationFailed'))
     } finally {
       setIsGeneratingShortId(false)
@@ -225,7 +252,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
       setGeneratedShadowsocksPassword({ password: result.password, encryptionMethod: result.encryptionMethod })
       showResultDialog('shadowsocksPassword', { password: result.password, encryptionMethod: result.encryptionMethod })
       toast.success(t('coreConfigModal.shadowsocksPasswordGenerated'))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.shadowsocksPasswordGenerationFailed'))
     } finally {
       setIsGeneratingShadowsocksPassword(false)
@@ -268,7 +295,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
       setGeneratedWireGuardKeyPair(keyPair)
       showResultDialog('wireguardKeyPair', keyPair)
       toast.success(t('coreConfigModal.wireguardKeyPairGenerated', { defaultValue: 'WireGuard keypair generated' }))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.wireguardKeyPairGenerationFailed', { defaultValue: 'Failed to generate WireGuard keypair' }))
     }
   }, [showResultDialog, t])
@@ -368,31 +395,31 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
       queryClient.invalidateQueries({ queryKey: ['/api/cores/simple'] })
       form.reset({ ...values, name: coreName })
       closeModal()
-    } catch (error: any) {
+    } catch (error) {
+      const submitError: SubmitErrorLike = isRecord(error) ? error : {}
       console.error('Core config operation failed:', error)
-      console.error('Error response:', error?.response)
+      console.error('Error response:', submitError.response)
       // Error data logging removed
 
       // Reset all previous errors first
       form.clearErrors()
 
       // Handle validation errors
-      if (error?.response?._data && !isEmptyObject(error?.response?._data)) {
+      const responseData = submitError.response?._data
+      if (isRecord(responseData) && !isEmptyObject(responseData)) {
         // For zod validation errors
-        const fields = ['name', 'type', 'config', 'fallback_id', 'excluded_inbound_ids']
-
         // Show first error in a toast
-        if (error?.response?._data?.detail) {
-          const detail = error?.response?._data?.detail
+        if (responseData.detail) {
+          const detail = responseData.detail
           // If detail is an object with field errors (e.g., { status: "some error" })
-          if (typeof detail === 'object' && detail !== null && !Array.isArray(detail)) {
+          if (isRecord(detail) && !Array.isArray(detail)) {
             // Set errors for all fields in the object
             const firstField = Object.keys(detail)[0]
             const firstMessage = detail[firstField]
 
             Object.entries(detail).forEach(([field, message]) => {
-              if (fields.includes(field)) {
-                form.setError(field as any, {
+              if (isCoreConfigFormField(field)) {
+                form.setError(field, {
                   type: 'manual',
                   message:
                     typeof message === 'string'
@@ -406,42 +433,44 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
             })
 
             toast.error(
-              firstMessage ||
+              (typeof firstMessage === 'string' && firstMessage) ||
                 t('validation.invalid', {
                   field: t(`coreConfigModal.${firstField}`, { defaultValue: firstField }),
                   defaultValue: `${firstField} is invalid`,
                 }),
             )
-          } else if (typeof detail === 'string' && !Array.isArray(detail)) {
+          } else if (typeof detail === 'string') {
             toast.error(detail)
           }
         }
-      } else if (error?.response?.data) {
+      } else if (submitError.response?.data) {
         // Handle API errors
-        const apiError = error.response?.data
+        const apiError = submitError.response.data
         let errorMessage = ''
 
         if (typeof apiError === 'string') {
           errorMessage = apiError
-        } else if (apiError?.detail) {
+        } else if (isRecord(apiError) && apiError.detail) {
           if (Array.isArray(apiError.detail)) {
             // Handle array of field errors
-            apiError.detail.forEach((err: any) => {
-              if (err.loc && err.loc[1]) {
-                const fieldName = err.loc[1]
-                form.setError(fieldName as any, {
+            apiError.detail.forEach((err: unknown) => {
+              if (!isRecord(err) || !Array.isArray(err.loc)) return
+              const fieldName: unknown = err.loc[1]
+              if (typeof fieldName === 'string' && isCoreConfigFormField(fieldName)) {
+                form.setError(fieldName, {
                   type: 'manual',
-                  message: err.msg,
+                  message: typeof err.msg === 'string' ? err.msg : undefined,
                 })
               }
             })
-            errorMessage = apiError.detail[0]?.msg || 'Validation error'
+            const firstDetail: unknown = apiError.detail[0]
+            errorMessage = (isRecord(firstDetail) && typeof firstDetail.msg === 'string' && firstDetail.msg) || 'Validation error'
           } else if (typeof apiError.detail === 'string') {
             errorMessage = apiError.detail
           } else {
             errorMessage = 'Validation error'
           }
-        } else if (apiError?.message) {
+        } else if (isRecord(apiError) && typeof apiError.message === 'string' && apiError.message) {
           errorMessage = apiError.message
         } else {
           errorMessage = 'An unexpected error occurred'
@@ -450,7 +479,7 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
         toast.error(errorMessage)
       } else {
         // Generic error handling
-        toast.error(error?.message || t('coreConfigModal.genericError', { defaultValue: 'An error occurred' }))
+        toast.error((typeof submitError.message === 'string' && submitError.message) || t('coreConfigModal.genericError', { defaultValue: 'An error occurred' }))
       }
     }
   }

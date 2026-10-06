@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { getCurrentAdmin, useAdminMiniAppToken, useAdminToken, useCreateOwner, useDeleteOwner, useResetOwnerPassword, useUpgradeOwner } from '@/service/api'
 import { $fetch } from '@/service/http'
 import { getAuthToken, removeAuthToken, setAuthToken } from '@/utils/authStorage'
+import { isAuthenticationError } from '@/utils/error-utils'
 import { queryClient } from '@/utils/query-client'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { retrieveRawInitData } from '@telegram-apps/sdk'
@@ -109,7 +110,34 @@ const formatApiDetail = (detail: unknown): string | undefined => {
   return String(detail)
 }
 
-const getOwnerSetupErrorMessage = (error: any) => formatApiDetail(error?.data?.detail ?? error?.response?._data?.detail ?? error?.response?.data?.detail) || error?.message || 'Request failed'
+type ApiErrorLike = {
+  data?: { detail?: unknown }
+  response?: { _data?: { detail?: unknown }; data?: { detail?: unknown } }
+  message?: unknown
+  name?: unknown
+}
+
+const toApiErrorLike = (error: unknown): ApiErrorLike => (typeof error === 'object' && error !== null ? (error as ApiErrorLike) : {})
+
+const getOwnerSetupErrorMessage = (error: unknown) => {
+  const apiError = toApiErrorLike(error)
+  return formatApiDetail(apiError.data?.detail ?? apiError.response?._data?.detail ?? apiError.response?.data?.detail) || (typeof apiError.message === 'string' && apiError.message) || 'Request failed'
+}
+
+const getTelegramLoginErrorMessage = (error: unknown) => {
+  const message = toApiErrorLike(error).message
+  return (typeof message === 'string' && message) || 'Telegram login failed'
+}
+
+type MiniAppTokenResponse = { access_token?: unknown; detail?: unknown }
+
+const toMiniAppTokenResponse = (data: unknown): MiniAppTokenResponse => (typeof data === 'object' && data !== null ? (data as MiniAppTokenResponse) : {})
+
+type TelegramWindow = Window & {
+  Telegram?: { WebApp?: { expand?: () => void } }
+  TelegramWebviewProxy?: { postEvent?: (eventType: string, eventData: string) => void }
+  external?: { notify?: (data: string) => void }
+}
 
 export const Login: FC = () => {
   const navigate = useNavigate()
@@ -134,7 +162,7 @@ export const Login: FC = () => {
   try {
     initDataRaw = retrieveRawInitData() || ''
     isTelegram = !!initDataRaw
-  } catch (e) {
+  } catch {
     isTelegram = false
     initDataRaw = ''
   }
@@ -158,17 +186,17 @@ export const Login: FC = () => {
 
     // A token exists - check whether it's still valid before deciding
     // whether to redirect to the dashboard or drop the stale session
-    getCurrentAdmin(controller.signal)
+    getCurrentAdmin({ signal: controller.signal })
       .then(() => {
         navigate('/', { replace: true })
       })
-      .catch((error: any) => {
-        if (error?.name === 'AbortError') return
+      .catch((error: unknown) => {
+        if (toApiErrorLike(error).name === 'AbortError') return
         // Another flow (e.g. a manual login) already replaced the token - don't clobber it
         if (getAuthToken() !== token) return
         // Only drop the session on a confirmed auth failure; transient/network
         // errors shouldn't log out an otherwise-valid session
-        if (error?.status !== 401 && error?.status !== 403) return
+        if (!isAuthenticationError(error)) return
 
         // Cancel all ongoing queries first to stop any in-flight requests
         queryClient.cancelQueries()
@@ -197,10 +225,11 @@ export const Login: FC = () => {
   // MiniApp login mutation
   const { isPending: miniAppLoading, error: miniAppError } = useAdminMiniAppToken({
     mutation: {
-      onSuccess(data: any) {
+      onSuccess(data) {
         // Assume data contains access_token
-        if (data && data.access_token) {
-          setAuthToken(data.access_token)
+        const { access_token } = toMiniAppTokenResponse(data)
+        if (typeof access_token === 'string' && access_token) {
+          setAuthToken(access_token)
           navigate('/', { replace: true })
         }
       },
@@ -210,20 +239,22 @@ export const Login: FC = () => {
   const handleLogin = async (values: LoginSchema) => {
     if (isTelegram) {
       try {
-        const data = await $fetch('/api/admin/miniapp/token', {
-          method: 'POST',
-          headers: {
-            'x-telegram-authorization': initDataRaw,
-          },
-        })
-        if (data && data.access_token) {
+        const data = toMiniAppTokenResponse(
+          await $fetch<unknown>('/api/admin/miniapp/token', {
+            method: 'POST',
+            headers: {
+              'x-telegram-authorization': initDataRaw,
+            },
+          }),
+        )
+        if (typeof data.access_token === 'string' && data.access_token) {
           setAuthToken(data.access_token)
           navigate('/', { replace: true })
         } else {
-          throw new Error(data?.detail || 'Telegram login failed')
+          throw new Error(formatApiDetail(data.detail) || 'Telegram login failed')
         }
-      } catch (err: any) {
-        alert(err.message || 'Telegram login failed')
+      } catch (err) {
+        alert(getTelegramLoginErrorMessage(err))
       }
     } else {
       login({
@@ -310,7 +341,7 @@ export const Login: FC = () => {
 
       resetOwnerForm({ mode: 'create', key: '', username: '', password: '', passwordConfirm: '', deleteConfirm: '' })
       setView('login')
-    } catch (err: any) {
+    } catch (err) {
       toast.error(t('error', { defaultValue: 'Error' }), { description: getOwnerSetupErrorMessage(err) })
     }
   }
@@ -320,9 +351,9 @@ export const Login: FC = () => {
     if (isTelegram) {
       // Try to expand for all platforms
       try {
-        const win = window as any
+        const win = window as TelegramWindow
         // Always try to expand the Telegram WebApp if possible
-        if (win.Telegram && win.Telegram.WebApp && typeof win.Telegram.WebApp.expand === 'function') {
+        if (typeof win.Telegram?.WebApp?.expand === 'function') {
           win.Telegram.WebApp.expand()
         }
         // Send web_app_expand event for all platforms
@@ -335,34 +366,35 @@ export const Login: FC = () => {
           window.parent.postMessage(expandEventData, 'https://web.telegram.org')
         }
         // Windows Phone
-        if (typeof (window as any).external !== 'undefined' && typeof (window as any).external.notify === 'function') {
-          ;(window as any).external.notify(expandEventData)
+        if (typeof win.external !== 'undefined' && typeof win.external.notify === 'function') {
+          win.external.notify(expandEventData)
         }
         // Mobile/Desktop
-        if (win.TelegramWebviewProxy && typeof win.TelegramWebviewProxy.postEvent === 'function') {
+        if (typeof win.TelegramWebviewProxy?.postEvent === 'function') {
           win.TelegramWebviewProxy.postEvent('web_app_expand', '{}')
         }
-      } catch (e) {
+      } catch {
         // Ignore errors if not available
       }
 
       setTelegramLoading(true)
-      $fetch('/api/admin/miniapp/token', {
+      $fetch<unknown>('/api/admin/miniapp/token', {
         method: 'POST',
         headers: {
           'x-telegram-authorization': initDataRaw,
         },
       })
-        .then((data: any) => {
-          if (data && data.access_token) {
+        .then(response => {
+          const data = toMiniAppTokenResponse(response)
+          if (typeof data.access_token === 'string' && data.access_token) {
             setAuthToken(data.access_token)
             navigate('/', { replace: true })
           } else {
-            throw new Error(data?.detail || 'Telegram login failed')
+            throw new Error(formatApiDetail(data.detail) || 'Telegram login failed')
           }
         })
-        .catch((err: any) => {
-          alert(err.message || 'Telegram login failed')
+        .catch((err: unknown) => {
+          alert(getTelegramLoginErrorMessage(err))
         })
         .finally(() => {
           setTelegramLoading(false)

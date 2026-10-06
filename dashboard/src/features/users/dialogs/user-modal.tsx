@@ -6,7 +6,7 @@ import UsageModal from '@/features/users/dialogs/usage-modal'
 import UserAllIPsModal from '@/features/users/dialogs/user-all-ips-modal'
 import { UserHwidsModal } from '@/features/users/dialogs/user-hwids-modal'
 import { UserSubscriptionClientsModal } from '@/features/users/dialogs/user-subscription-clients-modal'
-import { type UseEditFormValues, type UseFormValues, userCreateObjectSchema, userCreateSchema, userEditObjectSchema, userEditSchema } from '@/features/users/forms/user-form'
+import { type UseEditFormValues, type UseFormValues, type UserFormValues, userCreateObjectSchema, userCreateSchema, userEditObjectSchema, userEditSchema } from '@/features/users/forms/user-form'
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
@@ -37,6 +37,7 @@ import {
   useModifyUserWithTemplateById,
   useResetUserDataUsageById,
   useRevokeUserSubscriptionById,
+  type UserCreate,
   type UserResponse,
 } from '@/service/api'
 import { dateUtils, useRelativeExpiryDate } from '@/utils/dateFormatter'
@@ -67,7 +68,7 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import { type ErrorOption, type FieldPath, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
@@ -79,7 +80,7 @@ interface UserModalProps {
   form: UseFormReturn<UseFormValues | UseEditFormValues>
   editingUser: boolean
   editingUserId?: number
-  editingUserData?: any // The user data object when editing
+  editingUserData?: UserResponse | null // The user data object when editing
   onSuccessCallback?: (user: UserResponse) => void
 }
 
@@ -108,11 +109,11 @@ const ExpiryDateField = ({
   popoverAlignDesktop,
   popoverSideDesktop,
 }: {
-  field: any
+  field: { onChange: (value: string | number) => void }
   displayDate: Date | null
   calendarOpen: boolean
   setCalendarOpen: (open: boolean) => void
-  handleFieldChange: (field: string, value: any) => void
+  handleFieldChange: (field: string, value: unknown) => void
   label: string
   useUtcTimestamp?: boolean
   fieldName?: string
@@ -450,7 +451,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
   )
 
   const handleFieldChange = React.useCallback(
-    (fieldName: string, value: any) => {
+    (fieldName: string, value: unknown) => {
       setTouchedFields(prev => ({ ...prev, [fieldName]: true }))
       const currentValues = {
         ...form.getValues(),
@@ -749,12 +750,15 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
   // Helper to clear template selection
   const clearTemplate = () => setSelectedTemplateId(null)
 
+  // Error keys here come from zod issue paths / template schemas and are not always statically known form paths.
+  const setFieldError = (name: string, error: ErrorOption) => form.setError(name as FieldPath<UserFormValues>, error)
+
   // Update validateAllFields function
-  const validateAllFields = (currentValues: any, touchedFields: any, isSubmit: boolean = false) => {
+  const validateAllFields = (currentValues: Record<string, unknown>, touchedFields: Record<string, boolean>, isSubmit: boolean = false) => {
     try {
       if (requireTemplateForCreate && !selectedTemplateId) {
         form.clearErrors()
-        form.setError('user_template_id' as any, {
+        setFieldError('user_template_id', {
           type: 'manual',
           message: t('validation.required', { field: t('userDialog.selectTemplate', { defaultValue: 'Select Template' }) }),
         })
@@ -765,7 +769,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       if (selectedTemplateId) {
         // In template mode, only validate username
         form.clearErrors()
-        if (!currentValues.username || currentValues.username.length < 3) {
+        if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
           form.setError('username', {
             type: 'manual',
             message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
@@ -778,7 +782,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       // Check for required fields in non-template mode
       if (isSubmit) {
         // Username validation
-        if (!currentValues.username || currentValues.username.length < 3) {
+        if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
           form.setError('username', {
             type: 'manual',
             message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
@@ -823,7 +827,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
               acc[key] = currentValues[key]
             }
             return acc
-          }, {} as any)
+          }, {} as Record<string, unknown>)
 
       // If no fields are touched, clear errors and return true
       if (!isSubmit && Object.keys(fieldsToValidate).length === 0) {
@@ -850,15 +854,15 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       }
 
       return true
-    } catch (error: any) {
+    } catch (error) {
       // Handle validation errors from schema.partial().parse
-      if (error?.errors) {
+      if (error instanceof z.ZodError) {
         // Clear all previous errors again just in case
         form.clearErrors()
 
         // Set new errors only for touched fields
-        error.errors.forEach((err: any) => {
-          const fieldName = err.path[0]
+        error.errors.forEach(err => {
+          const fieldName = String(err.path[0] ?? '')
           if (fieldName && (isSubmit || touchedFields[fieldName])) {
             let message = err.message
             if (fieldName === 'group_ids' && message.includes('Required')) {
@@ -872,7 +876,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
             } else if (fieldName === 'on_hold_expire_duration' && message === 'validation.required') {
               message = t('validation.required', { field: t('templates.expire') })
             }
-            form.setError(fieldName as any, {
+            setFieldError(fieldName, {
               type: 'manual',
               message,
             })
@@ -952,7 +956,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         form.reset()
         setSelectedTemplateId(null)
         setActiveTab('groups')
-      } catch (error: any) {
+      } catch (error) {
         const fields = ['username', 'note']
         handleError({ error, fields, form, contextKey: 'users' })
       } finally {
@@ -1064,9 +1068,9 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         const hasDataLimit = Number.isFinite(normalizedDataLimitGb) && normalizedDataLimitGb > 0
 
         // Prepare next plan data
-        const sendValues: any = {
+        const sendValues: UserCreate = {
           ...preparedValues,
-          data_limit: gbToBytes(normalizedDataLimitGb as any),
+          data_limit: gbToBytes(normalizedDataLimitGb),
           hwid_limit: preparedValues.hwid_limit == null ? null : Number.isFinite(Number(preparedValues.hwid_limit)) ? Math.round(Number(preparedValues.hwid_limit)) : null,
           data_limit_reset_strategy: canUseResetStrategy && hasDataLimit ? preparedValues.data_limit_reset_strategy : 'no_reset',
           expire: preparedValues.expire,
@@ -1078,7 +1082,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
           delete sendValues.next_plan
         } else if (nextPlanEnabled) {
           // Switch is ON - always send next_plan with defaults or existing data
-          const nextPlan = values.next_plan || form.getValues('next_plan') || {}
+          const nextPlan = next_plan || form.getValues('next_plan') || {}
 
           if (nextPlan.user_template_id) {
             // Template selected - include numeric fields to avoid backend nulls in next_plan.
@@ -1167,7 +1171,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         setTouchedFields({})
         setActiveTab('groups')
         setSelectedTemplateId(null)
-      } catch (error: any) {
+      } catch (error) {
         const fields = ['username', 'data_limit', 'hwid_limit', 'expire', 'note', 'data_limit_reset_strategy', 'on_hold_expire_duration', 'on_hold_timeout', 'group_ids']
         handleError({ error, fields, form, contextKey: 'users' })
       } finally {
@@ -1233,7 +1237,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         public_key: keyPair.publicKey,
       },
     }
-    form.setValue('proxy_settings', newSettings as any, { shouldDirty: true, shouldValidate: true })
+    form.setValue('proxy_settings', newSettings, { shouldDirty: true, shouldValidate: true })
     handleFieldChange('proxy_settings', newSettings)
     toast.success(t('userDialog.proxySettings.allGenerated', { defaultValue: 'All proxy credentials regenerated' }))
   }, [form, handleFieldChange, t])
@@ -1268,7 +1272,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
   }, [])
 
   const cleanProxySettings = React.useCallback(
-    (proxySettings: any) => {
+    <T extends object>(proxySettings: T | null | undefined): T | undefined => {
       if (!proxySettings) return undefined
 
       const cleanedSettings = Object.entries(proxySettings).reduce(
@@ -1317,7 +1321,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         {} as Record<string, Record<string, unknown>>,
       )
 
-      return Object.keys(cleanedSettings).length > 0 ? cleanedSettings : undefined
+      return Object.keys(cleanedSettings).length > 0 ? (cleanedSettings as T) : undefined
     },
     [hasMeaningfulProxyValue],
   )
@@ -1370,8 +1374,8 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       await resetUserDataUsageMutation.mutateAsync({ userId: currentUserId })
       toast.success(t('usersTable.resetUsageSuccess', { name: currentUsername }))
       setResetUsageDialogOpen(false)
-    } catch (error: any) {
-      toast.error(t('usersTable.resetUsageFailed', { name: currentUsername, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('usersTable.resetUsageFailed', { name: currentUsername, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -1381,8 +1385,8 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       await revokeUserSubscriptionMutation.mutateAsync({ userId: currentUserId })
       toast.success(t('userDialog.revokeSubSuccess', { name: currentUsername }))
       setRevokeSubDialogOpen(false)
-    } catch (error: any) {
-      toast.error(t('revokeUserSub.error', { name: currentUsername, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('revokeUserSub.error', { name: currentUsername, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -2183,7 +2187,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
                                     </SelectTrigger>
                                     <SelectContent>
                                       <SelectItem value="none">---</SelectItem>
-                                      {templateOptions.map((tpl: any) => (
+                                      {templateOptions.map(tpl => (
                                         <SelectItem key={tpl.id} value={String(tpl.id)}>
                                           {tpl.name}
                                         </SelectItem>
@@ -2315,7 +2319,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
                               </SelectTrigger>
                               <SelectContent>
                                 <SelectItem value="none">---</SelectItem>
-                                {templateOptions.map((template: any) => (
+                                {templateOptions.map(template => (
                                   <SelectItem key={template.id} value={String(template.id)}>
                                     {template.name}
                                   </SelectItem>

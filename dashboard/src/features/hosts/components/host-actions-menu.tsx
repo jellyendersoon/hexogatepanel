@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
 import { Copy, MoreVertical, Pencil, Power, PowerOff, Trash2 } from 'lucide-react'
-import { BaseHost, modifyHost, removeHost } from '@/service/api'
+import { BaseHost, modifyHost, removeHost, type MuxSettingsInput } from '@/service/api'
 import { toast } from 'sonner'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
@@ -49,12 +49,11 @@ export default function HostActionsMenu({ host, onEdit, onDuplicate, onDataChang
   const dir = useDirDetection()
 
   const handleToggleStatus = async () => {
-    if (!canUpdate || !host.id) return
+    const { id, ...hostData } = host
+    if (!canUpdate || !id) return
 
     try {
-      const { id, ...hostData } = host
-
-      let transformedMuxSettings = hostData.mux_settings
+      let transformedMuxSettings: MuxSettingsInput | null | undefined = hostData.mux_settings
       if (hostData.mux_settings?.xray) {
         transformedMuxSettings = {
           ...hostData.mux_settings,
@@ -63,34 +62,16 @@ export default function HostActionsMenu({ host, onEdit, onDuplicate, onDataChang
             concurrency: hostData.mux_settings.xray.concurrency,
             xudp_concurrency: hostData.mux_settings.xray.xudpConcurrency ?? undefined,
             xudp_proxy_udp_443: hostData.mux_settings.xray.xudpProxyUDP443 ?? undefined,
-          } as any,
-        }
-      }
-
-      let transformedTransportSettings = hostData.transport_settings
-      if (hostData.transport_settings?.xhttp_settings?.xmux) {
-        transformedTransportSettings = {
-          ...hostData.transport_settings,
-          xhttp_settings: {
-            ...hostData.transport_settings.xhttp_settings,
-            xmux: {
-              max_concurrency: hostData.transport_settings.xhttp_settings.xmux.maxConcurrency ?? undefined,
-              max_connections: hostData.transport_settings.xhttp_settings.xmux.maxConnections ?? undefined,
-              c_max_reuse_times: hostData.transport_settings.xhttp_settings.xmux.cMaxReuseTimes ?? undefined,
-              h_max_reusable_secs: hostData.transport_settings.xhttp_settings.xmux.hMaxReusableSecs ?? undefined,
-              h_max_request_times: hostData.transport_settings.xhttp_settings.xmux.hMaxRequestTimes ?? undefined,
-              h_keep_alive_period: hostData.transport_settings.xhttp_settings.xmux.hKeepAlivePeriod ?? undefined,
-            } as any,
           },
         }
       }
 
-      await modifyHost(host.id, {
+      await modifyHost(id, {
         ...hostData,
-        mux_settings: transformedMuxSettings as any,
-        transport_settings: transformedTransportSettings as any,
+        mux_settings: transformedMuxSettings,
+        transport_settings: hostData.transport_settings,
         is_disabled: !host.is_disabled,
-      } as any)
+      })
 
       toast.success(
         t(host.is_disabled ? 'host.enableSuccess' : 'host.disableSuccess', {
@@ -102,7 +83,7 @@ export default function HostActionsMenu({ host, onEdit, onDuplicate, onDataChang
       if (onDataChanged) {
         onDataChanged()
       }
-    } catch (error) {
+    } catch {
       toast.error(
         t(host.is_disabled ? 'host.enableFailed' : 'host.disableFailed', {
           name: host.remark ?? '',
@@ -136,7 +117,7 @@ export default function HostActionsMenu({ host, onEdit, onDuplicate, onDataChang
       if (onDataChanged) {
         onDataChanged()
       }
-    } catch (error) {
+    } catch {
       toast.error(
         t('deleteHost.deleteFailed', {
           name: host.remark ?? '',

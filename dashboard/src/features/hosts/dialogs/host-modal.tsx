@@ -16,13 +16,14 @@ import { CustomVariablesPopover, VariablesList, VariablesPopover } from '@/compo
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
-import { ClientTemplateType, UserStatus, getHosts, useGetClientTemplatesSimple } from '@/service/api'
+import { ClientTemplateType, UserStatus, getHosts, useGetClientTemplatesSimple, type BaseHost } from '@/service/api'
 import { queryClient } from '@/utils/query-client'
 import { useQuery } from '@tanstack/react-query'
 import { AlertTriangle, Cable, ChevronsLeftRightEllipsis, Copy, Pencil, GlobeLock, Info, Loader2, Lock, Network, Plus, Route, Trash2, X, ListTodo } from 'lucide-react'
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import { type Control, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import type { TFunction } from 'i18next'
 import { hostFormDefaultValues, type HostFormValues } from '@/features/hosts/forms/host-form'
 import { LoaderButton } from '@/components/ui/loader-button'
 import { FinalMaskSettings } from '../components/finalmask-settings'
@@ -30,7 +31,7 @@ import { FinalMaskSettings } from '../components/finalmask-settings'
 // Predefined sessionIDTable aliases recognized by Xray 26.6.22+.
 const SESSION_ID_TABLE_PRESETS = ['ALPHABET', 'Alphabet', 'BASE36', 'Base62', 'HEX', 'alphabet', 'base36', 'hex', 'number']
 
-function SessionIdTableField({ control, t, isDialogOpen }: { control: any; t: (key: string, opts?: any) => string; isDialogOpen: boolean }) {
+function SessionIdTableField({ control, t, isDialogOpen }: { control: Control<HostFormValues>; t: TFunction; isDialogOpen: boolean }) {
   const [customMode, setCustomMode] = useState(false)
 
   useEffect(() => {
@@ -249,7 +250,7 @@ NoiseItem.displayName = 'NoiseItem'
 
 // Reusable ArrayInput wrapper backed by shared popover-array component
 interface ArrayInputProps {
-  field: any
+  field: { value?: string[] | null; onChange: (value: string[]) => void }
   placeholder: string
   label: string
   infoContent?: React.ReactNode
@@ -312,7 +313,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
   const { t } = useTranslation()
   const dir = useDirDetection()
   const isMobile = useIsMobile()
-  const [_isSubmitting, setIsSubmitting] = useState(false)
+  const [, setIsSubmitting] = useState(false)
   const selectedInboundTag = form.watch('inbound_tag')
   const selectedNoiseSettings = form.watch('noise_settings.xray')
   const selectedFragmentSettings = form.watch('fragment_settings.xray')
@@ -625,21 +626,10 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
     [form],
   )
 
-  const cleanPayload = (data: any): any => {
-    // Helper function to check if an object has any non-empty values
-    const hasNonEmptyValues = (obj: any): boolean => {
-      if (!obj || typeof obj !== 'object') return false
-      return Object.entries(obj).some(([key, value]) => {
-        if (key === 'header' && value === '') return true
-        if (value === null || value === undefined || value === '') return false
-        if (typeof value === 'object') return hasNonEmptyValues(value)
-        return true
-      })
-    }
-
+  const cleanPayload = (data: HostFormValues): HostFormValues => {
     // Helper function to clean nested objects
-    const cleanObject = (obj: any, path: string[] = []): any => {
-      const result: any = {}
+    const cleanObject = <T extends object>(obj: T, path: string[] = []): T => {
+      const result: Record<string, unknown> = {}
       Object.entries(obj).forEach(([key, value]) => {
         const currentPath = [...path, key]
 
@@ -657,7 +647,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
 
         if ((value === null || value === undefined || value === '') && key !== 'header') return
 
-        if (typeof value === 'object' && !Array.isArray(value)) {
+        if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
           const cleanedNested = cleanObject(value, currentPath)
           if (Object.keys(cleanedNested).length > 0) {
             result[key] = cleanedNested
@@ -670,7 +660,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
           result[key] = value
         }
       })
-      return result
+      return result as T
     }
 
     return cleanObject(data)
@@ -702,7 +692,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
     queryKey: ['getHostsQueryKey'],
     queryFn: () => getHosts(),
     enabled: isDialogOpen && isTransportOpen,
-    select: (data: any[]) => data.filter((host: any) => host.id != null),
+    select: (data: BaseHost[]) => data.filter(host => host.id != null),
   })
   const { data: xrayTemplateData, isLoading: isLoadingXrayTemplates } = useGetClientTemplatesSimple(
     { template_type: ClientTemplateType.xray_subscription, all: true },
@@ -860,8 +850,8 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
       // If SingBox fragment is disabled, clear related fields
       if (!payload.fragment_settings?.sing_box?.fragment && payload.fragment_settings?.sing_box) {
         const singBox = payload.fragment_settings.sing_box!
-        ;(singBox as any).fragment_fallback_delay = undefined
-        ;(singBox as any).record_fragment = undefined
+        singBox.fragment_fallback_delay = undefined
+        singBox.record_fragment = undefined
       }
 
       // Convert fragment_fallback_delay number to ms format
@@ -2195,12 +2185,11 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                                       <FormLabel>{t('hostsDialog.xhttp.uplinkChunkSize')}</FormLabel>
                                       <FormControl>
                                         <Input
-                                          type="number"
                                           {...field}
                                           value={field.value ?? ''}
                                           onChange={e => {
-                                            const value = e.target.value
-                                            field.onChange(value === '' ? null : parseInt(value, 10))
+                                            const value = e.target.value.trim()
+                                            field.onChange(value === '' ? null : value)
                                           }}
                                         />
                                       </FormControl>
@@ -2450,7 +2439,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                                               </span>
                                             </SelectItem>
                                           ) : (
-                                            hosts.map((host: any) => (
+                                            hosts.map(host => (
                                               <SelectItem key={host.id} value={host.id?.toString() ?? ''}>
                                                 {host.remark}
                                               </SelectItem>

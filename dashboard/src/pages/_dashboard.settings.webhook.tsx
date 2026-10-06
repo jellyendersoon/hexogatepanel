@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Webhook, Globe, Plus, Trash2, Clock, RotateCw, Target } from 'lucide-react'
 import { useSettingsContext } from './_dashboard.settings'
+import type { SettingsSchema } from '@/service/api'
 import { toast } from 'sonner'
 
 // Webhook settings validation schema
@@ -27,8 +28,8 @@ const webhookSettingsSchema = z.object({
       }),
     )
     .default([]),
-  days_left: z.array(z.number().min(0).max(365)).default([]),
-  usage_percent: z.array(z.number().min(1).max(100)).default([]),
+  days_left: z.array(z.object({ value: z.number().min(0).max(365) })).default([]),
+  usage_percent: z.array(z.object({ value: z.number().min(1).max(100) })).default([]),
   timeout: z.number().min(1).max(300).default(30),
   recurrent: z.number().min(1).max(24).default(3),
   proxy_url: z.string().url('Please enter a valid URL').optional().or(z.literal('')),
@@ -59,7 +60,7 @@ export default function WebhookSettings() {
     remove: removeWebhook,
   } = useFieldArray({
     control: form.control,
-    name: 'webhooks' as any,
+    name: 'webhooks',
   })
 
   const {
@@ -68,7 +69,7 @@ export default function WebhookSettings() {
     remove: removeDaysLeft,
   } = useFieldArray({
     control: form.control,
-    name: 'days_left' as any,
+    name: 'days_left',
   })
 
   const {
@@ -77,7 +78,7 @@ export default function WebhookSettings() {
     remove: removeUsagePercent,
   } = useFieldArray({
     control: form.control,
-    name: 'usage_percent' as any,
+    name: 'usage_percent',
   })
 
   // Watch the enable field for conditional rendering
@@ -90,8 +91,8 @@ export default function WebhookSettings() {
       form.reset({
         enable: webhookData.enable || false,
         webhooks: webhookData.webhooks || [],
-        days_left: webhookData.days_left || [],
-        usage_percent: webhookData.usage_percent || [],
+        days_left: (webhookData.days_left || []).map(value => ({ value })),
+        usage_percent: (webhookData.usage_percent || []).map(value => ({ value })),
         timeout: webhookData.timeout || 30,
         recurrent: webhookData.recurrent || 3,
         proxy_url: webhookData.proxy_url || '',
@@ -102,12 +103,12 @@ export default function WebhookSettings() {
   const onSubmit = async (data: WebhookSettingsFormInput) => {
     try {
       // Filter out empty values and prepare the payload
-      const filteredData: any = {
+      const filteredData: SettingsSchema = {
         webhook: {
           ...data,
           enable: data.enable ?? false,
-          days_left: data.days_left ?? [],
-          usage_percent: data.usage_percent ?? [],
+          days_left: (data.days_left ?? []).map(item => item.value),
+          usage_percent: (data.usage_percent ?? []).map(item => item.value),
           timeout: data.timeout ?? 30,
           recurrent: data.recurrent ?? 3,
           // Convert empty strings to undefined
@@ -121,7 +122,7 @@ export default function WebhookSettings() {
       }
 
       await updateSettings(filteredData)
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent context
     }
   }
@@ -132,8 +133,8 @@ export default function WebhookSettings() {
       form.reset({
         enable: webhookData.enable || false,
         webhooks: webhookData.webhooks || [],
-        days_left: webhookData.days_left || [],
-        usage_percent: webhookData.usage_percent || [],
+        days_left: (webhookData.days_left || []).map(value => ({ value })),
+        usage_percent: (webhookData.usage_percent || []).map(value => ({ value })),
         timeout: webhookData.timeout || 30,
         recurrent: webhookData.recurrent || 3,
         proxy_url: webhookData.proxy_url || '',
@@ -147,11 +148,11 @@ export default function WebhookSettings() {
   }
 
   const addDaysLeft = () => {
-    appendDaysLeft(7 as any)
+    appendDaysLeft({ value: 7 })
   }
 
   const addUsagePercent = () => {
-    appendUsagePercent(80 as any)
+    appendUsagePercent({ value: 80 })
   }
 
   if (isLoading) {
@@ -387,7 +388,7 @@ export default function WebhookSettings() {
                       <div key={field.id} className="flex items-center gap-1">
                         <FormField
                           control={form.control}
-                          name={`days_left.${index}`}
+                          name={`days_left.${index}.value`}
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
@@ -426,7 +427,7 @@ export default function WebhookSettings() {
                       <div key={field.id} className="flex items-center gap-1">
                         <FormField
                           control={form.control}
-                          name={`usage_percent.${index}`}
+                          name={`usage_percent.${index}.value`}
                           render={({ field }) => (
                             <FormItem>
                               <FormControl>
