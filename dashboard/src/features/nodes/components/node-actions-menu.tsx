@@ -290,7 +290,7 @@ export default function NodeActionsMenu({
       setDeleteDialogOpen(false)
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('nodes.deleteFailed', {
           name: node.name,
@@ -312,10 +312,10 @@ export default function NodeActionsMenu({
       toast.success(t('nodeModal.syncSuccess'))
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         t('nodeModal.syncFailed', {
-          message: error?.message || 'Unknown error',
+          message: error instanceof Error && error.message ? error.message : 'Unknown error',
         }),
       )
     } finally {
@@ -334,10 +334,10 @@ export default function NodeActionsMenu({
       toast.success(t('nodeModal.reconnectSuccess', { defaultValue: 'Node reconnected successfully' }))
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         t('nodeModal.reconnectFailed', {
-          message: error?.message || 'Unknown error',
+          message: error instanceof Error && error.message ? error.message : 'Unknown error',
         }),
       )
     } finally {
@@ -363,10 +363,10 @@ export default function NodeActionsMenu({
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
       queryClient.invalidateQueries({ queryKey: [`/api/node/${node.id}`] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         t('nodeModal.resetUsageFailed', {
-          message: error?.message || 'Unknown error',
+          message: error instanceof Error && error.message ? error.message : 'Unknown error',
         }),
       )
     } finally {
@@ -386,10 +386,10 @@ export default function NodeActionsMenu({
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
       queryClient.invalidateQueries({ queryKey: [`/api/node/${node.id}`] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         t('nodeModal.updateNodeFailed', {
-          message: error?.message || 'Unknown error',
+          message: error instanceof Error && error.message ? error.message : 'Unknown error',
           defaultValue: 'Failed to update node: {message}',
         }),
       )

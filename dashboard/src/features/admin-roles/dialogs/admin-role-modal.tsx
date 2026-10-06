@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FieldErrors, UseFormReturn, useWatch } from 'react-hook-form'
+import { FieldErrors, type FieldPath, UseFormReturn, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useQueryClient } from '@tanstack/react-query'
@@ -89,7 +89,7 @@ export default function AdminRoleModal({ isDialogOpen, onOpenChange, form, editi
       await Promise.all([queryClient.invalidateQueries({ queryKey: getGetRolesQueryKey() }), queryClient.invalidateQueries({ queryKey: getGetRolesSimpleQueryKey() })])
       onOpenChange(false)
       form.reset(adminRoleFormDefaultValues)
-    } catch (error: any) {
+    } catch (error) {
       handleError({ error, fields: ['name'], form, contextKey: 'adminRoles' })
     }
   }
@@ -277,7 +277,7 @@ function LimitsSection({ form }: { form: AdminRoleForm }) {
               <DecimalInput
                 placeholder={t('adminRoles.unlimited', { defaultValue: 'Unlimited' })}
                 value={typeof field.value === 'number' ? field.value : null}
-                emptyValue={null as any}
+                emptyValue={undefined}
                 zeroValue={0}
                 onValueChange={value => field.onChange(value ?? null)}
               />
@@ -375,7 +375,7 @@ function HwidPolicySection({ form }: { form: AdminRoleForm }) {
   )
 }
 
-function NumberLimitField({ form, name, labelKey, disabled = false }: { form: AdminRoleForm; name: any; labelKey: string; disabled?: boolean }) {
+function NumberLimitField({ form, name, labelKey, disabled = false }: { form: AdminRoleForm; name: FieldPath<AdminRoleFormValuesInput>; labelKey: string; disabled?: boolean }) {
   const { t } = useTranslation()
   return (
     <FormField
@@ -388,7 +388,7 @@ function NumberLimitField({ form, name, labelKey, disabled = false }: { form: Ad
             <DecimalInput
               placeholder={t('adminRoles.inherit', { defaultValue: 'Inherit' })}
               value={typeof field.value === 'number' ? field.value : null}
-              emptyValue={null as any}
+              emptyValue={undefined}
               zeroValue={0}
               onValueChange={value => field.onChange(value ?? null)}
               disabled={disabled}
@@ -401,7 +401,7 @@ function NumberLimitField({ form, name, labelKey, disabled = false }: { form: Ad
   )
 }
 
-function BytesLimitField({ form, name, labelKey }: { form: AdminRoleForm; name: any; labelKey: string }) {
+function BytesLimitField({ form, name, labelKey }: { form: AdminRoleForm; name: FieldPath<AdminRoleFormValuesInput>; labelKey: string }) {
   const { t } = useTranslation()
   return (
     <FormField

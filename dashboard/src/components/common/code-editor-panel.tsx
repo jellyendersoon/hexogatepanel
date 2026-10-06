@@ -5,6 +5,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
 import { Maximize2, Minimize2 } from 'lucide-react'
+import type { editor as MonacoEditorApi } from 'monaco-editor'
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 
@@ -18,10 +19,10 @@ export type CodeEditorPanelProps = {
   language?: string
   readOnly?: boolean
   /** Merged into {@link DEFAULT_MONACO_CODE_EDITOR_OPTIONS} (desktop only). */
-  monacoOptions?: Record<string, unknown>
-  onValidate?: (markers: any[]) => void
+  monacoOptions?: MonacoEditorApi.IStandaloneEditorConstructionOptions
+  onValidate?: (markers: MonacoEditorApi.IMarker[]) => void
   /** Editor instance: Monaco `IStandaloneCodeEditor` or Ace editor. */
-  onMount?: (editor: any) => void
+  onMount?: (editor: unknown) => void
   /** Desktop Monaco only. */
   onDidBlur?: () => void
   /** Show maximize/minimize chrome (matches core-config / client-template modals). */
@@ -75,7 +76,7 @@ export function CodeEditorPanel({
   const { resolvedTheme } = useTheme()
   const [isEditorFullscreen, setIsEditorFullscreen] = useState(false)
   const [isEditorReady, setIsEditorReady] = useState(false)
-  const [editorInstance, setEditorInstance] = useState<any>(null)
+  const [editorInstance, setEditorInstance] = useState<unknown>(null)
 
   const blurDisposableRef = useRef<{ dispose: () => void } | null>(null)
 
@@ -97,7 +98,7 @@ export function CodeEditorPanel({
   }, [isEditorFullscreen, onFullscreenChange])
 
   const relayoutEditor = useCallback(
-    (editor = editorInstance) => {
+    (editor: unknown = editorInstance) => {
       relayoutCodeEditorInstance(editor)
     },
     [editorInstance],
@@ -114,15 +115,16 @@ export function CodeEditorPanel({
   }, [relayoutEditor])
 
   const handleEditorDidMount = useCallback(
-    (editor: any) => {
+    (editor: unknown) => {
       setIsEditorReady(true)
       setEditorInstance(editor)
 
       if (!isMobile) {
         blurDisposableRef.current?.dispose()
         blurDisposableRef.current = null
-        if (onDidBlur && editor?.onDidBlurEditorWidget) {
-          blurDisposableRef.current = editor.onDidBlurEditorWidget(() => onDidBlur())
+        const blurCapableEditor = editor as { onDidBlurEditorWidget?: (listener: () => void) => { dispose: () => void } } | null | undefined
+        if (onDidBlur && blurCapableEditor?.onDidBlurEditorWidget) {
+          blurDisposableRef.current = blurCapableEditor.onDidBlurEditorWidget(() => onDidBlur())
         }
         requestAnimationFrame(() => {
           relayoutCodeEditorInstance(editor)
@@ -160,11 +162,11 @@ export function CodeEditorPanel({
     setTimeout(() => relayoutEditor(), 150)
   }, [editorInstance, isEditorFullscreen, isEditorReady, relayoutEditor])
 
-  const monacoOptionsMerged = {
+  const monacoOptionsMerged: MonacoEditorApi.IStandaloneEditorConstructionOptions = {
     ...DEFAULT_MONACO_CODE_EDITOR_OPTIONS,
     readOnly,
     ...monacoOptions,
-  } as const
+  }
 
   const editorFallback = <div className="h-full min-h-[200px] w-full" aria-busy />
 
@@ -188,7 +190,7 @@ export function CodeEditorPanel({
           onChange={v => onChange(v ?? '')}
           onValidate={onValidate}
           onMount={handleEditorDidMount}
-          options={monacoOptionsMerged as any}
+          options={monacoOptionsMerged}
         />
       </Suspense>
     )
@@ -254,7 +256,8 @@ export function CodeEditorPanel({
             // Focus the editor after the dialog opens
             setTimeout(() => {
               if (editorInstance) {
-                if (typeof editorInstance.focus === 'function') editorInstance.focus()
+                const focusableEditor = editorInstance as { focus?: () => void }
+                if (typeof focusableEditor.focus === 'function') focusableEditor.focus()
               }
             }, 100)
           }}

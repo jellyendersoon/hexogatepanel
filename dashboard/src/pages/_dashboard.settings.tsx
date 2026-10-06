@@ -1,7 +1,7 @@
 import PageHeader from '@/components/layout/page-header'
 import { useAdmin } from '@/hooks/use-admin'
 import { cn } from '@/lib/utils'
-import { getGetGeneralSettingsQueryKey, getGetSettingsQueryKey, useGetSettings, useModifySettings } from '@/service/api'
+import { getGetGeneralSettingsQueryKey, getGetSettingsQueryKey, useGetSettings, useModifySettings, type SettingsSchema } from '@/service/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { Bell, Database, Fingerprint, ListTodo, LucideIcon, Palette, Send, Settings as SettingsIcon, Webhook } from 'lucide-react'
 import { createContext, useCallback, useContext, useMemo } from 'react'
@@ -17,12 +17,15 @@ interface Tab {
   url: string
 }
 
+// Settings payload accepted by updateSettings: either plain settings or already wrapped as { data }
+type SettingsUpdateInput = SettingsSchema & { data?: SettingsSchema }
+
 // Create context for settings
 interface SettingsContextType {
-  settings: any
+  settings: SettingsSchema
   isLoading: boolean
-  error: any
-  updateSettings: (data: any) => Promise<void>
+  error: unknown
+  updateSettings: (data: SettingsUpdateInput) => Promise<void>
   isSaving: boolean
 }
 
@@ -89,12 +92,13 @@ export default function Settings() {
         queryClient.invalidateQueries({ queryKey: ['/api/settings'] })
         queryClient.invalidateQueries({ queryKey: ['/api/settings/general'] })
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
         // Extract validation errors from FetchError
         let errorMessage = t(`settings.${activeTab}.saveFailed`)
+        const maybeError = error as { data?: { detail?: unknown }; response?: { data?: { detail?: unknown } }; message?: unknown } | null | undefined
 
         // Helper function to extract nested error messages
-        const extractErrorMessages = (obj: any, prefix = ''): string[] => {
+        const extractErrorMessages = (obj: unknown, prefix = ''): string[] => {
           const messages: string[] = []
 
           if (typeof obj === 'string') {
@@ -114,24 +118,24 @@ export default function Settings() {
         }
 
         // For FetchError from ofetch/nuxt
-        if (error?.data?.detail) {
-          const detail = error.data.detail
+        if (maybeError?.data?.detail) {
+          const detail = maybeError.data.detail
           const extractedMessages = extractErrorMessages(detail)
           if (extractedMessages.length > 0) {
             errorMessage = extractedMessages.join(', ')
           }
         }
         // Fallback for other error structures
-        else if (error?.response?.data?.detail) {
-          const detail = error.response.data.detail
+        else if (maybeError?.response?.data?.detail) {
+          const detail = maybeError.response.data.detail
           const extractedMessages = extractErrorMessages(detail)
           if (extractedMessages.length > 0) {
             errorMessage = extractedMessages.join(', ')
           }
         }
         // Fallback to error message
-        else if (error?.message) {
-          errorMessage = error.message
+        else if (typeof maybeError?.message === 'string' && maybeError.message) {
+          errorMessage = maybeError.message
         }
 
         toast.error(t(`settings.${activeTab}.saveFailed`), {
@@ -143,17 +147,17 @@ export default function Settings() {
 
   // Wrapper function to filter data based on active tab (only for sudo admins)
   const handleUpdateSettings = useCallback(
-    async (data: any) => {
+    async (data: SettingsUpdateInput) => {
       if (!canReadSettings && !canReadGeneral) return
 
-      let filteredData: any = {}
+      let filteredData: { data: SettingsSchema }
 
       // Only include data relevant to the active tab
       switch (activeTab) {
         case 'notifications':
           if (data.data) {
             // If data is already wrapped, use it as is
-            filteredData = data
+            filteredData = { data: data.data }
           } else {
             // Wrap notification data in the expected format
             filteredData = {
@@ -174,11 +178,11 @@ export default function Settings() {
             }
           } else {
             // If data is already wrapped, use it as is
-            filteredData = data
+            filteredData = { data: data.data ?? data }
           }
           break
         case 'hwid':
-          filteredData = data.hwid ? { data: { hwid: data.hwid } } : data
+          filteredData = data.hwid ? { data: { hwid: data.hwid } } : { data: data.data ?? data }
           break
         case 'telegram':
           // Add telegram specific filtering if needed

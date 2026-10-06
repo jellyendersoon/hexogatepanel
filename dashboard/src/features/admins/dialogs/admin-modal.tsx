@@ -23,7 +23,7 @@ import { bytesToFormGigabytes, formatBytes, gbToBytes } from '@/utils/formatByte
 import { useQueryClient } from '@tanstack/react-query'
 import { Bell, IdCard, Pencil, Plus, Sliders, Trash2, UserCog } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
-import { UseFormReturn, useWatch } from 'react-hook-form'
+import { type FieldPath, UseFormReturn, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
@@ -97,7 +97,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
   const rolesQuery = useGetRolesSimple()
   const selectedRoleId = form.watch('role_id')
   const customVariables = form.watch('custom_variables') || []
-  const typedCustomVariables = customVariables.filter((v): v is { key: string; value?: string } => v.key !== undefined)
+  const typedCustomVariables = customVariables.filter((v): v is { key: string; value: string } => v.key !== undefined)
   const builtInKeys = new Set<string>(builtInVariableKeys)
   const roleOptions = useMemo(() => {
     const rolesById = new Map<number, { id: number; name: string; is_owner: boolean }>()
@@ -125,7 +125,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
   const watchedNotificationEnable = useWatch({ control: form.control, name: 'notification_enable' })
   const watchedPermissionOverrides = useWatch({ control: form.control, name: 'permission_overrides' })
   const NOTIFICATION_KEYS = ['create', 'modify', 'delete', 'status_change', 'reset_data_usage', 'data_reset_by_next', 'subscription_revoked'] as const
-  const notificationEnabledCount = useMemo(() => NOTIFICATION_KEYS.reduce((sum, key) => sum + ((watchedNotificationEnable as any)?.[key] ? 1 : 0), 0), [watchedNotificationEnable])
+  const notificationEnabledCount = useMemo(() => NOTIFICATION_KEYS.reduce((sum, key) => sum + (watchedNotificationEnable?.[key] ? 1 : 0), 0), [watchedNotificationEnable])
   const allNotificationsEnabled = notificationEnabledCount === NOTIFICATION_KEYS.length
   const permissionOverridesCount = useMemo(
     () => Object.values(watchedPermissionOverrides || {}).filter(value => value !== null && value !== undefined && value !== '').length,
@@ -249,7 +249,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
       }
       onOpenChange(false)
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
       const fields = [
         'username',
         'password',
@@ -762,7 +762,7 @@ function PermissionOverridesFields({ form }: { form: AdminForm }) {
               <DecimalInput
                 placeholder={t('adminRoles.unlimited', { defaultValue: 'Unlimited' })}
                 value={typeof field.value === 'number' ? field.value : null}
-                emptyValue={null as any}
+                emptyValue={undefined}
                 zeroValue={0}
                 onValueChange={value => field.onChange(value ?? null)}
               />
@@ -838,7 +838,7 @@ function AdminDataLimitField({ form }: { form: AdminForm }) {
   )
 }
 
-function NumberLimitField({ form, name, labelKey }: { form: AdminForm; name: any; labelKey: string }) {
+function NumberLimitField({ form, name, labelKey }: { form: AdminForm; name: FieldPath<AdminFormValuesInput>; labelKey: string }) {
   const { t } = useTranslation()
   return (
     <FormField
@@ -851,7 +851,7 @@ function NumberLimitField({ form, name, labelKey }: { form: AdminForm; name: any
             <DecimalInput
               placeholder={t('adminRoles.unlimited', { defaultValue: 'Unlimited' })}
               value={typeof field.value === 'number' ? field.value : null}
-              emptyValue={null as any}
+              emptyValue={undefined}
               zeroValue={0}
               onValueChange={value => field.onChange(value ?? null)}
             />
@@ -863,7 +863,7 @@ function NumberLimitField({ form, name, labelKey }: { form: AdminForm; name: any
   )
 }
 
-function BytesLimitField({ form, name, labelKey }: { form: AdminForm; name: any; labelKey: string }) {
+function BytesLimitField({ form, name, labelKey }: { form: AdminForm; name: FieldPath<AdminFormValuesInput>; labelKey: string }) {
   const { t } = useTranslation()
   return (
     <FormField

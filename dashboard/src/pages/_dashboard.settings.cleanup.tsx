@@ -20,7 +20,17 @@ import { DatePicker } from '@/components/common/date-picker'
 import { formatDateByLocale } from '@/utils/datePickerUtils'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { cn } from '@/lib/utils'
-import { useClearUsageData, useDeleteExpiredUsers, useGetAdmins, useGetCurrentAdmin, useResetUsersDataUsage, type AdminDetails, type UsageTable } from '@/service/api'
+import {
+  useClearUsageData,
+  useDeleteExpiredUsers,
+  useGetAdmins,
+  useGetCurrentAdmin,
+  useResetUsersDataUsage,
+  type AdminDetails,
+  type ClearUsageDataParams,
+  type DeleteExpiredUsersParams,
+  type UsageTable,
+} from '@/service/api'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { AlertTriangle, Check, ChevronDown, Database, Eye, Loader2, RotateCcw, Server, Trash2, UserCog, UserRound } from 'lucide-react'
 import { endOfDay, startOfDay } from 'date-fns'
@@ -31,6 +41,8 @@ import { hasScopeAll, isOwner, roleLabel } from '@/utils/rbac'
 
 const PAGE_SIZE = 20
 type CleanupDeleteTarget = 'expired' | 'limited' | 'on_hold' | 'disabled'
+
+type ApiErrorLike = { data?: { detail?: unknown }; response?: { data?: { detail?: unknown } }; message?: unknown } | null | undefined
 
 export default function CleanupSettings() {
   const { t, i18n } = useTranslation()
@@ -121,7 +133,7 @@ export default function CleanupSettings() {
 
   const handleDeleteExpired = async (isDryRun: boolean = false) => {
     const target = deleteTarget
-    const params: any = { target, dry_run: isDryRun }
+    const params: DeleteExpiredUsersParams = { target, dry_run: isDryRun }
 
     if (statusChangedAfter) params.expired_after = startOfDay(statusChangedAfter).toISOString()
     if (statusChangedBefore) params.expired_before = endOfDay(statusChangedBefore).toISOString()
@@ -157,12 +169,13 @@ export default function CleanupSettings() {
             toast.success(t(successKeyMap[target], { count }))
           }
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+          const apiError = error as ApiErrorLike
           const failureMessageKey = failKeyMap[target]
           let errorMessage = t(failureMessageKey)
 
-          if (error?.data?.detail) {
-            const detail = error.data.detail
+          if (apiError?.data?.detail) {
+            const detail = apiError.data.detail
             if (typeof detail === 'string') {
               errorMessage = detail
             } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -170,8 +183,8 @@ export default function CleanupSettings() {
                 .map(([field, message]) => `${field}: ${message}`)
                 .join(', ')
             }
-          } else if (error?.response?.data?.detail) {
-            const detail = error.response.data.detail
+          } else if (apiError?.response?.data?.detail) {
+            const detail = apiError.response.data.detail
             if (typeof detail === 'string') {
               errorMessage = detail
             } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -179,8 +192,8 @@ export default function CleanupSettings() {
                 .map(([field, message]) => `${field}: ${message}`)
                 .join(', ')
             }
-          } else if (error?.message) {
-            errorMessage = error.message
+          } else if (typeof apiError?.message === 'string' && apiError.message) {
+            errorMessage = apiError.message
           }
 
           toast.error(t(failureMessageKey), { description: errorMessage })
@@ -211,12 +224,13 @@ export default function CleanupSettings() {
       onSuccess: () => {
         toast.success(t('settings.cleanup.resetUsage.resetSuccess'))
       },
-      onError: (error: any) => {
+      onError: (error: unknown) => {
+        const apiError = error as ApiErrorLike
         // Extract detailed error message
         let errorMessage = t('settings.cleanup.resetUsage.resetFailed')
 
-        if (error?.data?.detail) {
-          const detail = error.data.detail
+        if (apiError?.data?.detail) {
+          const detail = apiError.data.detail
           if (typeof detail === 'string') {
             errorMessage = detail
           } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -225,8 +239,8 @@ export default function CleanupSettings() {
               .join(', ')
             errorMessage = fieldErrors
           }
-        } else if (error?.response?.data?.detail) {
-          const detail = error.response.data.detail
+        } else if (apiError?.response?.data?.detail) {
+          const detail = apiError.response.data.detail
           if (typeof detail === 'string') {
             errorMessage = detail
           } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -235,8 +249,8 @@ export default function CleanupSettings() {
               .join(', ')
             errorMessage = fieldErrors
           }
-        } else if (error?.message) {
-          errorMessage = error.message
+        } else if (typeof apiError?.message === 'string' && apiError.message) {
+          errorMessage = apiError.message
         }
 
         toast.error(t('settings.cleanup.resetUsage.resetFailed'), {
@@ -252,7 +266,7 @@ export default function CleanupSettings() {
       return
     }
 
-    const params: any = {}
+    const params: ClearUsageDataParams = {}
     if (clearDataAfter) params.start = clearDataAfter.toISOString()
     if (clearDataBefore) params.end = clearDataBefore.toISOString()
 
@@ -265,12 +279,13 @@ export default function CleanupSettings() {
         onSuccess: () => {
           toast.success(t('settings.cleanup.clearUsageData.clearSuccess', { table: selectedTable }))
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
+          const apiError = error as ApiErrorLike
           // Extract detailed error message
           let errorMessage = t('settings.cleanup.clearUsageData.clearFailed')
 
-          if (error?.data?.detail) {
-            const detail = error.data.detail
+          if (apiError?.data?.detail) {
+            const detail = apiError.data.detail
             if (typeof detail === 'string') {
               errorMessage = detail
             } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -279,8 +294,8 @@ export default function CleanupSettings() {
                 .join(', ')
               errorMessage = fieldErrors
             }
-          } else if (error?.response?.data?.detail) {
-            const detail = error.response.data.detail
+          } else if (apiError?.response?.data?.detail) {
+            const detail = apiError.response.data.detail
             if (typeof detail === 'string') {
               errorMessage = detail
             } else if (typeof detail === 'object' && !Array.isArray(detail)) {
@@ -289,8 +304,8 @@ export default function CleanupSettings() {
                 .join(', ')
               errorMessage = fieldErrors
             }
-          } else if (error?.message) {
-            errorMessage = error.message
+          } else if (typeof apiError?.message === 'string' && apiError.message) {
+            errorMessage = apiError.message
           }
 
           toast.error(t('settings.cleanup.clearUsageData.clearFailed'), {

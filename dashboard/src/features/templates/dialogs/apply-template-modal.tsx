@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Loader2, Layers } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBulkApplyTemplateToUsers } from '@/service/api'
+import { useBulkApplyTemplateToUsers, type UserTemplateResponse } from '@/service/api'
 import { toast } from 'sonner'
 import useDynamicErrorHandler from '@/hooks/use-dynamic-errors'
 
@@ -20,7 +20,7 @@ export default function ApplyTemplateModal({ open, onClose, userIds, selectedCou
   const { t } = useTranslation()
   const [selectedTemplateId, setSelectedTemplateId] = useState<number | null>(null)
   const [submitting, setSubmitting] = useState(false)
-  const [templates, setTemplates] = useState<any[]>([])
+  const [templates, setTemplates] = useState<UserTemplateResponse[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
   const bulkApplyTemplateMutation = useBulkApplyTemplateToUsers()
@@ -45,7 +45,7 @@ export default function ApplyTemplateModal({ open, onClose, userIds, selectedCou
       const templatesResponse = await api.getUserTemplates()
       setTemplates(templatesResponse || [])
       setIsLoading(false)
-    } catch (error) {
+    } catch {
       setIsError(true)
       setIsLoading(false)
     }
@@ -64,7 +64,7 @@ export default function ApplyTemplateModal({ open, onClose, userIds, selectedCou
       toast.success(t('bulk.applyTemplateSuccess', { count: selectedCount }))
       onSuccess?.()
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       handleDynamicError({
         error,
         fields: ['user_template_id'],
@@ -110,7 +110,7 @@ export default function ApplyTemplateModal({ open, onClose, userIds, selectedCou
                 <SelectContent>
                   {templates
                     .filter(t => !t.is_disabled)
-                    .map((template: any) => (
+                    .map(template => (
                       <SelectItem key={template.id} value={template.id.toString()}>
                         {template.name}
                       </SelectItem>

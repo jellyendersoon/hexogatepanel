@@ -1246,8 +1246,6 @@ function normalizeOutboundStreamSecurity(raw: unknown): 'none' | 'tls' | 'realit
 
 function OutboundProxyEndpointSection({ ob, patchOutbound, t }: OutboundProxyEndpointSectionProps) {
   const p = ob.protocol
-  if (!PROXY_ENDPOINT_PROTOCOLS.has(p)) return null
-
   const flat = flattenOutboundSettings(ob)
   const streamRec = getOutboundStreamSettingsRecord(ob)
   const streamSecForFlow = normalizeOutboundStreamSecurity(streamRec?.security)
@@ -1259,6 +1257,8 @@ function OutboundProxyEndpointSection({ ob, patchOutbound, t }: OutboundProxyEnd
     if (!vlessVisionFlowIncompatibleWithStreamSecurity(streamSecForFlow, flowStr)) return
     patchOutboundWithSettingsMerge(ob, patchOutbound, s => ({ ...s, flow: '' }))
   }, [p, ob, flowStr, streamSecForFlow, patchOutbound])
+
+  if (!PROXY_ENDPOINT_PROTOCOLS.has(p)) return null
 
   if (p === 'vless' && hasVlessReverseSettings(flat)) {
     const reverseTag = vlessReverseTagFromSettings(flat)
@@ -1583,6 +1583,7 @@ function OutboundStreamSettingsAccordion({ ob, obStreamSettings, form, patchOutb
   }, [ob, patchOutbound, realityTransportOk, streamSecurity])
 
   const tlsSettings = streamSecurity === 'tls' && obStreamSettings?.tlsSettings && typeof obStreamSettings.tlsSettings === 'object' ? (obStreamSettings.tlsSettings as Record<string, unknown>) : null
+  const echSockopt = tlsSettings?.echSockopt && typeof tlsSettings.echSockopt === 'object' ? (tlsSettings.echSockopt as Record<string, unknown>) : undefined
 
   const realitySettings =
     streamSecurity === 'reality' && obStreamSettings?.realitySettings && typeof obStreamSettings.realitySettings === 'object' ? (obStreamSettings.realitySettings as Record<string, unknown>) : null
@@ -1826,9 +1827,9 @@ function OutboundStreamSettingsAccordion({ ob, obStreamSettings, form, patchOutb
                             rows={3}
                             className="min-h-[72px] w-full min-w-0 resize-y text-xs"
                             placeholder="ECH configs (base64 or JSON)"
-                            value={typeof (tlsSettings.echSockopt as any)?.configList === 'string' ? (tlsSettings.echSockopt as any).configList : ''}
+                            value={typeof echSockopt?.configList === 'string' ? echSockopt.configList : ''}
                             onChange={e => {
-                              const current = tlsSettings?.echSockopt as any
+                              const current = echSockopt
                               patchTls({
                                 echSockopt: {
                                   ...current,
@@ -1849,7 +1850,7 @@ function OutboundStreamSettingsAccordion({ ob, obStreamSettings, form, patchOutb
                                 value={field.value && String(field.value).trim() !== '' ? field.value : '__default'}
                                 onValueChange={v => {
                                   field.onChange(v === '__default' ? '' : v)
-                                  const current = tlsSettings?.echSockopt as any
+                                  const current = echSockopt
                                   patchTls({
                                     echSockopt: {
                                       ...current,

@@ -2140,7 +2140,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
                           form.setValue('sniffingDestOverride', JSON.stringify(nextDestOverride))
                           patchInbound({
                             sniffing: {
-                              ...(currentSniffing as any),
+                              ...currentSniffing,
                               enabled: true,
                               destOverride: nextDestOverride,
                               metadataOnly: form.getValues('sniffingMetadataOnly') === 'true',
@@ -2181,7 +2181,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
                                     field.onChange(JSON.stringify(updated))
                                     patchInbound({
                                       sniffing: {
-                                        ...(currentSniffing as any),
+                                        ...currentSniffing,
                                         destOverride: updated,
                                       },
                                     } as Partial<Inbound>)
@@ -2209,7 +2209,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
                             field.onChange(checked ? 'true' : 'false')
                             patchInbound({
                               sniffing: {
-                                ...(currentSniffing as any),
+                                ...currentSniffing,
                                 metadataOnly: checked,
                               },
                             } as Partial<Inbound>)
@@ -2232,7 +2232,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
                             field.onChange(checked ? 'true' : 'false')
                             patchInbound({
                               sniffing: {
-                                ...(currentSniffing as any),
+                                ...currentSniffing,
                                 routeOnly: checked,
                               },
                             } as Partial<Inbound>)
@@ -2306,7 +2306,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
       })
       revalidateRealityInboundForm()
       toast.success(t('coreConfigModal.keyPairGenerated'))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.keyPairGenerationFailed'))
     } finally {
       setIsGeneratingRealityKeyPair(false)
@@ -2355,7 +2355,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
       }
       revalidateRealityInboundForm()
       toast.success(t('coreConfigModal.shortIdGenerated'))
-    } catch (error) {
+    } catch {
       toast.error(t('coreConfigModal.shortIdGenerationFailed'))
     } finally {
       setIsGeneratingRealityShortId(false)

@@ -179,7 +179,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
     () => ({
       query: {
         enabled: false,
-        refetchInterval: (query: any) => {
+        refetchInterval: (query: { state: { error: unknown } }) => {
           if (!isOpen || query.state.error) {
             return false
           }
@@ -194,7 +194,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
     () => ({
       query: {
         enabled: !!(isOpen && nodeId && viewingIPs?.id),
-        refetchInterval: (query: any) => {
+        refetchInterval: (query: { state: { error: unknown } }) => {
           if (!isOpen || query.state.error) {
             return false
           }
@@ -236,8 +236,8 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
 
   // Memoized error handlers
   const handleUserStatsError = useCallback(
-    (error: any) => {
-      const errorMessage = error?.message || 'Unknown error occurred'
+    (error: unknown) => {
+      const errorMessage = (error instanceof Error ? error.message : '') || 'Unknown error occurred'
       if (errorMessage.includes('User not found')) {
         toast.error(
           t('nodeModal.onlineStats.userNotFound', {
@@ -258,8 +258,8 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
   )
 
   const handleUserIPsError = useCallback(
-    (error: any) => {
-      const errorMessage = error?.message || 'Unknown error occurred'
+    (error: unknown) => {
+      const errorMessage = (error instanceof Error ? error.message : '') || 'Unknown error occurred'
       if (errorMessage.includes('User not found')) {
         toast.error(
           t('nodeModal.onlineStats.userNotFound', {
@@ -323,7 +323,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
 
       await Promise.all(promises)
       toast.success(t('nodeModal.onlineStats.refreshed', { defaultValue: 'Data refreshed successfully' }))
-    } catch (error) {
+    } catch {
       toast.error(t('nodeModal.onlineStats.refreshFailed', { defaultValue: 'Failed to refresh data' }))
     } finally {
       setRefreshing(false)
@@ -359,7 +359,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
 
     // If userIPs is an array, handle as before
     if (Array.isArray(userIPs)) {
-      userIPs.forEach((ipObj: any) => {
+      userIPs.forEach((ipObj: unknown) => {
         if (typeof ipObj === 'object' && ipObj !== null) {
           Object.entries(ipObj).forEach(([ip, timestamp]) => {
             if (!transformedData[ip]) transformedData[ip] = []
@@ -392,8 +392,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
       })
     } else if (typeof userIPs === 'object' && Object.keys(userIPs).length === 1 && !isNaN(Number(Object.keys(userIPs)[0]))) {
       // If userIPs is an object with a single numeric key, use its value
-      const onlyKey = Object.keys(userIPs)[0]
-      const ipMap = (userIPs as any)[onlyKey]
+      const ipMap: unknown = Object.values(userIPs)[0]
       if (typeof ipMap === 'object' && ipMap !== null) {
         Object.entries(ipMap).forEach(([ip, timestamp]) => {
           if (!transformedData[ip]) transformedData[ip] = []

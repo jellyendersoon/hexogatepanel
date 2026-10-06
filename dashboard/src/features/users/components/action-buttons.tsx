@@ -447,7 +447,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
     try {
       await navigator.clipboard.writeText(String(user.id))
       toast.success(t('usersTable.copied', { defaultValue: 'Copied to clipboard' }))
-    } catch (error) {
+    } catch {
       toast.error(t('copyFailed', { defaultValue: 'Failed to copy content' }))
     }
   }
@@ -461,8 +461,8 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       await revokeUserSubscriptionMutation.mutateAsync({ userId: user.id })
       toast.success(t('userDialog.revokeSubSuccess', { name: user.username }))
       setRevokeSubDialogOpen(false)
-    } catch (error: any) {
-      toast.error(t('revokeUserSub.error', { name: user.username, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('revokeUserSub.error', { name: user.username, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -475,8 +475,8 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       await activeNextMutation.mutateAsync({ userId: user.id })
       toast.success(t('userDialog.activeNextPlanSuccess', { name: user.username }))
       setIsActiveNextPlanModalOpen(false)
-    } catch (error: any) {
-      toast.error(t('userDialog.activeNextPlanError', { name: user.username, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('userDialog.activeNextPlanError', { name: user.username, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -489,8 +489,8 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       await resetUserDataUsageMutation.mutateAsync({ userId: user.id })
       toast.success(t('usersTable.resetUsageSuccess', { name: user.username }))
       setResetUsageDialogOpen(false)
-    } catch (error: any) {
-      toast.error(t('usersTable.resetUsageFailed', { name: user.username, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('usersTable.resetUsageFailed', { name: user.username, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -508,8 +508,8 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       toast.success(t('usersTable.deleteSuccess', { name: user.username }))
       setDeleteDialogOpen(false)
       removeUserFromUsersCache(queryClient, user)
-    } catch (error: any) {
-      toast.error(t('usersTable.deleteFailed', { name: user.username, error: error?.message || '' }))
+    } catch (error) {
+      toast.error(t('usersTable.deleteFailed', { name: user.username, error: error instanceof Error ? error.message : '' }))
     }
   }
 
@@ -598,7 +598,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       } else {
         toast.error(t('copyFailed', { defaultValue: 'Failed to copy content' }))
       }
-    } catch (error) {
+    } catch {
       toast.error(t('copyFailed', { defaultValue: 'Failed to copy content' }))
     }
   }
@@ -629,7 +629,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
         document.body.removeChild(a)
         toast.success(t('usersTable.downloadStarted', { defaultValue: 'Download started' }))
       }
-    } catch (error) {
+    } catch {
       toast.error(t('downloadFailed', { defaultValue: 'Failed to download config' }))
     }
   }

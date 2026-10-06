@@ -1,4 +1,4 @@
-import { useIsFetching, useIsMutating } from '@tanstack/react-query'
+import { useIsFetching, useIsMutating, type Mutation, type Query } from '@tanstack/react-query'
 import { useEffect, useState, useRef, useMemo, useCallback } from 'react'
 
 interface LoadingState {
@@ -6,7 +6,7 @@ interface LoadingState {
   progress: number | undefined
 }
 
-let globalLoadingState: LoadingState = {
+const globalLoadingState: LoadingState = {
   isLoading: false,
   progress: undefined,
 }
@@ -98,8 +98,8 @@ const shouldIgnoreQuery = (() => {
   const cache = new WeakMap<object, boolean>()
   const stringCache = new Map<string, boolean>()
 
-  return (queryKey: string[]): boolean => {
-    const cacheKey = queryKey as any
+  return (queryKey: readonly unknown[]): boolean => {
+    const cacheKey: object = queryKey
     if (cache.has(cacheKey)) {
       return cache.get(cacheKey)!
     }
@@ -150,8 +150,8 @@ const shouldIgnoreMutation = (() => {
   const cache = new WeakMap<object, boolean>()
   const stringCache = new Map<string, boolean>()
 
-  return (mutationKey: string[]): boolean => {
-    const cacheKey = mutationKey as any
+  return (mutationKey: readonly unknown[]): boolean => {
+    const cacheKey: object = mutationKey
     if (cache.has(cacheKey)) {
       return cache.get(cacheKey)!
     }
@@ -226,8 +226,8 @@ export const useTopLoadingBar = () => {
   const debounceTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
   const maxTimeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
 
-  const queryPredicate = useCallback((query: any) => !shouldIgnoreQuery(query.queryKey), [])
-  const mutationPredicate = useCallback((mutation: any) => !shouldIgnoreMutation(mutation.options?.mutationKey || []), [])
+  const queryPredicate = useCallback((query: Query) => !shouldIgnoreQuery(query.queryKey), [])
+  const mutationPredicate = useCallback((mutation: Mutation) => !shouldIgnoreMutation(mutation.options?.mutationKey || []), [])
 
   const isFetching = useIsFetching({ predicate: queryPredicate })
   const isMutating = useIsMutating({ predicate: mutationPredicate })
@@ -242,7 +242,7 @@ export const useTopLoadingBar = () => {
 
   useEffect(() => {
     loadingStateListeners.add(listener)
-    ;(window as any).resetLoadingBarInitialState = resetInitialLoad
+    window.resetLoadingBarInitialState = resetInitialLoad
 
     return () => {
       loadingStateListeners.delete(listener)

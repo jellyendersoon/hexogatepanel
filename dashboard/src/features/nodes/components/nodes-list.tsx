@@ -17,6 +17,7 @@ import {
   NodeModify,
 } from '@/service/api'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/utils/error-utils'
 import { queryClient } from '@/utils/query-client'
 import NodeModal from '@/features/nodes/dialogs/node-modal'
 import { useForm } from 'react-hook-form'
@@ -273,7 +274,7 @@ export default function NodesList() {
       queryClient.invalidateQueries({
         queryKey: ['/api/nodes'],
       })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t(node.status === 'disabled' ? 'nodes.enableFailed' : 'nodes.disableFailed', {
           name: node.name,
@@ -394,14 +395,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description:
-          error?.data?.detail ||
-          error?.message ||
-          t('nodes.bulkDeleteFailed', {
-            defaultValue: 'Failed to delete selected nodes.',
-          }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -424,9 +420,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('nodes.bulkDisableFailed', { defaultValue: 'Failed to disable selected nodes.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -449,9 +445,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('nodes.bulkEnableFailed', { defaultValue: 'Failed to enable selected nodes.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -474,9 +470,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('nodes.bulkResetUsageFailed', { defaultValue: 'Failed to reset usage for selected nodes.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -499,9 +495,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('nodes.bulkReconnectFailed', { defaultValue: 'Failed to reconnect selected nodes.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -524,9 +520,9 @@ export default function NodesList() {
       clearSelection()
       setBulkAction(null)
       invalidateNodeQueries()
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('nodes.bulkUpdateFailed', { defaultValue: 'Failed to update selected nodes.' }),
+        description: getErrorMessage(error),
       })
     }
   }

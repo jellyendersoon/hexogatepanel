@@ -11,6 +11,13 @@ interface CachedReleases {
   timestamp: number
 }
 
+interface GitHubRelease {
+  draft?: boolean
+  tag_name?: string
+  html_url?: string
+  prerelease?: boolean
+}
+
 interface XrayReleaseResult {
   latestVersion: string | null
   releaseUrl: string | null
@@ -27,13 +34,13 @@ function compareVersions(current: string, latest: string): number {
   const currentParts = current
     .trim()
     .replace(/^v/i, '')
-    .split(/[\.-]/)
+    .split(/[.-]/)
     .filter(p => !isNaN(Number(p)))
     .map(Number)
   const latestParts = latest
     .trim()
     .replace(/^v/i, '')
-    .split(/[\.-]/)
+    .split(/[.-]/)
     .filter(p => !isNaN(Number(p)))
     .map(Number)
 
@@ -82,15 +89,19 @@ async function fetchXrayReleases(): Promise<Release[]> {
       return cached?.releases || []
     }
 
-    const data = await response.json()
-    const releases: Release[] = data
-      .filter((release: any) => !release.draft)
-      .map((release: any) => ({
+    const data: unknown = await response.json()
+    if (!Array.isArray(data)) {
+      return cached?.releases || []
+    }
+
+    const releases: Release[] = (data as GitHubRelease[])
+      .filter(release => !release.draft)
+      .map(release => ({
         version: release.tag_name?.trim().replace(/^v/i, '') || '',
         url: release.html_url || '',
         isPrerelease: !!release.prerelease,
       }))
-      .filter((r: Release) => r.version)
+      .filter(r => r.version)
 
     if (releases.length > 0) setCache(releases)
     return releases

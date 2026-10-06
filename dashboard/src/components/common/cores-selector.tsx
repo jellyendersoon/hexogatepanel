@@ -4,7 +4,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Command, CommandEmpty, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Skeleton } from '@/components/ui/skeleton'
-import { useGetCoresSimple } from '@/service/api'
+import { useGetCoresSimple, type CoreSimple } from '@/service/api'
 import { Check, ChevronDown, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef, useCallback } from 'react'
 import { Control, FieldPath, FieldValues, useController } from 'react-hook-form'
@@ -33,7 +33,7 @@ export default function CoresSelector<T extends FieldValues>({ control, name, on
 
   // Pagination and search state
   const [offset, setOffset] = useState(0)
-  const [cores, setCores] = useState<any[]>([])
+  const [cores, setCores] = useState<CoreSimple[]>([])
   const [hasMore, setHasMore] = useState(true)
   const [isLoading, setIsLoading] = useState(false)
   const [dropdownOpen, setDropdownOpen] = useState(false)
@@ -64,7 +64,7 @@ export default function CoresSelector<T extends FieldValues>({ control, name, on
   useEffect(() => {
     if (coresData?.cores) {
       const allCores = coresData.cores
-      const filteredCores = coreSearch ? allCores.filter((core: any) => core.name.toLowerCase().includes(coreSearch.toLowerCase())) : allCores
+      const filteredCores = coreSearch ? allCores.filter(core => core.name.toLowerCase().includes(coreSearch.toLowerCase())) : allCores
 
       // Simulate pagination
       const paginatedCores = filteredCores.slice(0, offset + PAGE_SIZE)
@@ -98,7 +98,7 @@ export default function CoresSelector<T extends FieldValues>({ control, name, on
     setDropdownOpen(false)
   }
 
-  const selectedCore = coresData?.cores?.find((core: any) => core.id === selectedCoreId)
+  const selectedCore = coresData?.cores?.find(core => core.id === selectedCoreId)
 
   if (coresLoading) {
     return (
@@ -143,7 +143,7 @@ export default function CoresSelector<T extends FieldValues>({ control, name, on
                   <div className="flex flex-shrink-0 items-center gap-1">{!selectedCoreId && <Check className="text-primary h-3 w-3" />}</div>
                 </CommandItem>
 
-                {cores.map((core: any) => (
+                {cores.map(core => (
                   <CommandItem
                     key={core.id}
                     onSelect={() => handleCoreSelect(core.id)}

@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { useTranslation } from 'react-i18next'
+import { getErrorMessage } from '@/utils/error-utils'
 import { queryClient } from '@/utils/query-client'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -103,7 +104,7 @@ export default function GroupsList({ isDialogOpen, onOpenChange }: GroupsListPro
       queryClient.invalidateQueries({
         queryKey: ['/api/groups'],
       })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t(group.is_disabled ? 'group.enableFailed' : 'group.disableFailed', {
           name: group.name,
@@ -145,14 +146,9 @@ export default function GroupsList({ isDialogOpen, onOpenChange }: GroupsListPro
       clearSelection()
       setBulkAction(null)
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description:
-          error?.data?.detail ||
-          error?.message ||
-          t('group.bulkDeleteFailed', {
-            defaultValue: 'Failed to delete selected groups.',
-          }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -175,9 +171,9 @@ export default function GroupsList({ isDialogOpen, onOpenChange }: GroupsListPro
       clearSelection()
       setBulkAction(null)
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('group.bulkDisableFailed', { defaultValue: 'Failed to disable selected groups.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -200,9 +196,9 @@ export default function GroupsList({ isDialogOpen, onOpenChange }: GroupsListPro
       clearSelection()
       setBulkAction(null)
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('group.bulkEnableFailed', { defaultValue: 'Failed to enable selected groups.' }),
+        description: getErrorMessage(error),
       })
     }
   }
