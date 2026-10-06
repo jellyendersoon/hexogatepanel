@@ -4,12 +4,12 @@ import PageTransition from '@/components/layout/page-transition'
 import RouteGuard from '@/components/layout/route-guard'
 import { TopLoadingBar } from '@/components/layout/top-loading-bar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getCurrentAdmin } from '@/service/api'
+import { getCurrentAdmin, type AdminDetails } from '@/service/api'
 import { isAuthenticationError } from '@/utils/error-utils'
 import { Outlet } from 'react-router'
 import { CommandPalette } from '@/components/layout/command-palette'
 
-export const clientLoader = async (): Promise<any> => {
+export const clientLoader = async (): Promise<AdminDetails> => {
   try {
     const response = await getCurrentAdmin()
     return response

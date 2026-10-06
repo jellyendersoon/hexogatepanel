@@ -13,6 +13,7 @@ import { queryClient } from '@/utils/query-client'
 import { AdminRoleResponse, getGetRolesQueryKey, getGetRolesSimpleQueryKey, useDeleteRole } from '@/service/api'
 
 import { isProtectedRole, isReadOnlyRole } from '@/features/admin-roles/forms/admin-role-form'
+import { getErrorMessage } from '@/utils/error-utils'
 
 interface AdminRoleActionsMenuProps {
   role: AdminRoleResponse
@@ -44,9 +45,9 @@ export default function AdminRoleActionsMenu({ role, onEdit, onDuplicate, classN
       })
       setDeleteDialogOpen(false)
       await Promise.all([queryClient.invalidateQueries({ queryKey: getGetRolesQueryKey() }), queryClient.invalidateQueries({ queryKey: getGetRolesSimpleQueryKey() })])
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('adminRoles.deleteFailed', { name: role.name, defaultValue: 'Failed to delete role «{{name}}»' }),
+        description: getErrorMessage(error),
       })
     }
   }

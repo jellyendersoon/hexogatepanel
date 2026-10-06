@@ -15,7 +15,7 @@ import { CopyButton } from '@/components/common/copy-button'
 import QRCodeModal from '@/features/bulk/dialogs/qrcode-modal'
 import { useClipboard } from '@/hooks/use-clipboard'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip'
-import { UserPlus, Users, FileUser, Hash, Sparkles, CheckCircle2, AlertTriangle, FileQuestion, Copy, ArrowLeft, QrCode, Check, Infinity } from 'lucide-react'
+import { UserPlus, Users, FileUser, Hash, Sparkles, CheckCircle2, AlertTriangle, FileQuestion, Copy, ArrowLeft, QrCode, Check, Infinity as InfinityIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
@@ -130,7 +130,7 @@ export default function BulkCreateUsersPage() {
           setStartNumber('1')
           setNote('')
         },
-        onError: (error: any) => {
+        onError: error => {
           toast.error(t('bulk.create.failed'), { description: error?.message || JSON.stringify(error) })
         },
       },
@@ -383,7 +383,7 @@ export default function BulkCreateUsersPage() {
                     <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">{t('userDialog.dataLimit')}:</span>
                       <span className="font-medium" dir="ltr">
-                        {selectedTemplate.data_limit === 0 ? <Infinity className="inline h-4 w-4" aria-label={unlimitedLabel} /> : formatBytes(selectedTemplate.data_limit)}
+                        {selectedTemplate.data_limit === 0 ? <InfinityIcon className="inline h-4 w-4" aria-label={unlimitedLabel} /> : formatBytes(selectedTemplate.data_limit)}
                       </span>
                     </div>
                   )}
@@ -394,7 +394,7 @@ export default function BulkCreateUsersPage() {
                         {selectedTemplate.hwid_limit === null ? (
                           t('default', { defaultValue: 'Default' })
                         ) : selectedTemplate.hwid_limit === 0 ? (
-                          <Infinity className="inline h-4 w-4" aria-label={unlimitedLabel} />
+                          <InfinityIcon className="inline h-4 w-4" aria-label={unlimitedLabel} />
                         ) : (
                           selectedTemplate.hwid_limit
                         )}
@@ -406,7 +406,7 @@ export default function BulkCreateUsersPage() {
                       <span className="text-muted-foreground">{t('expire')}:</span>
                       <span className="font-medium">
                         {selectedTemplate.expire_duration === 0 ? (
-                          <Infinity className="inline h-4 w-4" aria-label={unlimitedLabel} />
+                          <InfinityIcon className="inline h-4 w-4" aria-label={unlimitedLabel} />
                         ) : (
                           `${Math.floor(selectedTemplate.expire_duration / 86400)}${t('dateInfo.day')}`
                         )}

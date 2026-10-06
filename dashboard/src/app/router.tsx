@@ -1,6 +1,6 @@
 import { Suspense } from 'react'
 import { useAdmin } from '@/hooks/use-admin'
-import { getCurrentAdmin } from '@/service/api'
+import { getCurrentAdmin, type AdminDetails } from '@/service/api'
 import { hasPermission } from '@/utils/rbac'
 import { createHashRouter, Navigate, RouteObject } from 'react-router'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
@@ -62,7 +62,7 @@ function TemplatesIndex() {
   return <Navigate to={defaultPath} replace />
 }
 
-const fetchAdminLoader = async (): Promise<any> => {
+const fetchAdminLoader = async (): Promise<AdminDetails> => {
   try {
     const response = await getCurrentAdmin()
     return response

@@ -425,7 +425,8 @@ export function XrayDnsSection({ headerAddPulse, headerAddEpoch }: XrayDnsSectio
       if (next) {
         return { ...p, dns: p.dns ?? defaultDns() }
       }
-      const { dns: _omit, ...rest } = p
+      const rest = { ...p }
+      delete rest.dns
       return rest as Profile
     })
   }

@@ -67,7 +67,7 @@ const DropdownMenuContent = React.forwardRef<React.ElementRef<typeof DropdownMen
             className,
           )}
           {...props}
-          //   @ts-ignore
+          // @ts-expect-error Radix omits `dir` from Content props (direction is configured on Root), but it forwards the attribute to the rendered div, which is what the RTL styling relies on.
           dir={dir}
         />
       </DropdownMenuPrimitive.Portal>

@@ -153,7 +153,8 @@ function stripRealityInboundXverForKit(profile: Profile): Profile {
   const inbounds = profile.inbounds.map(inbound => {
     const security = asRecord((inbound as { security?: unknown }).security)
     if (security?.type !== 'reality' || !Object.prototype.hasOwnProperty.call(security, 'xver')) return inbound
-    const { xver: _xver, ...restSecurity } = security
+    const restSecurity = { ...security }
+    delete restSecurity.xver
     return { ...inbound, security: restSecurity } as unknown as typeof inbound
   })
 

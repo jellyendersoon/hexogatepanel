@@ -187,7 +187,7 @@ export default function UserTemplateModal({ isDialogOpen, onOpenChange, form, ed
       // Build payload according to UserTemplateCreate interface
       const submitData = {
         name: values.name,
-        data_limit: hasDataLimit ? gbToBytes(normalizedDataLimitGb as any) : 0,
+        data_limit: hasDataLimit ? gbToBytes(normalizedDataLimitGb) : 0,
         hwid_limit: normalizedHwidLimit == null ? null : Number.isFinite(normalizedHwidLimit) ? Math.floor(normalizedHwidLimit) : null,
         expire_duration: values.expire_duration,
         username_prefix: values.username_prefix || '',
@@ -231,7 +231,7 @@ export default function UserTemplateModal({ isDialogOpen, onOpenChange, form, ed
       queryClient.invalidateQueries({ queryKey: getGetUserTemplatesSimpleQueryKey() })
       onOpenChange(false)
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
       const fields = [
         'name',
         'data_limit',

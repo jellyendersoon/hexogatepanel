@@ -36,6 +36,7 @@ import {
 import AdminRoleCard from '@/features/admin-roles/components/admin-role-card'
 import { useAdminRolesListColumns } from '@/features/admin-roles/components/use-admin-roles-list-columns'
 import AdminRoleModal from '@/features/admin-roles/dialogs/admin-role-modal'
+import { getErrorMessage } from '@/utils/error-utils'
 
 interface AdminRolesListProps {
   isDialogOpen: boolean
@@ -97,9 +98,9 @@ export default function AdminRolesList({ isDialogOpen, onOpenChange }: AdminRole
         }),
       })
       await Promise.all([queryClient.invalidateQueries({ queryKey: getGetRolesQueryKey() }), queryClient.invalidateQueries({ queryKey: getGetRolesSimpleQueryKey() })])
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('adminRoles.duplicateFailed', { name: role.name, defaultValue: 'Failed to duplicate role "{{name}}".' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -166,9 +167,9 @@ export default function AdminRolesList({ isDialogOpen, onOpenChange }: AdminRole
       clearSelection()
       setConfirmBulkDelete(false)
       await Promise.all([queryClient.invalidateQueries({ queryKey: getGetRolesQueryKey() }), queryClient.invalidateQueries({ queryKey: getGetRolesSimpleQueryKey() })])
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('adminRoles.bulkDeleteFailed', { defaultValue: 'Failed to delete selected roles.' }),
+        description: getErrorMessage(error),
       })
     }
   }

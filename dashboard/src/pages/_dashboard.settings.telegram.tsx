@@ -145,7 +145,7 @@ export default function TelegramSettings() {
       // Use the mapping helper
       const filteredData = mapTelegramFormToPayload(data)
       await updateSettings(filteredData)
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent context
     }
   }

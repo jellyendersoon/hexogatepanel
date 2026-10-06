@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Infinity } from 'lucide-react'
+import { Infinity as InfinityIcon } from 'lucide-react'
 import { ListColumn } from '@/components/common/list-generator'
 import { UserTemplateResponse } from '@/service/api'
 import UserTemplateActionsMenu from '@/features/templates/components/user-template-actions-menu'
@@ -43,7 +43,7 @@ export const useUserTemplatesListColumns = ({ onEdit, onToggleStatus, canCreate 
         width: '1fr',
         cell: template => (
           <span dir="ltr" className="text-muted-foreground text-xs">
-            {!template.data_limit || template.data_limit === 0 ? <Infinity className="inline h-4 w-4" /> : formatBytes(template.data_limit)}
+            {!template.data_limit || template.data_limit === 0 ? <InfinityIcon className="inline h-4 w-4" /> : formatBytes(template.data_limit)}
           </span>
         ),
         hideOnMobile: true,
@@ -55,7 +55,7 @@ export const useUserTemplatesListColumns = ({ onEdit, onToggleStatus, canCreate 
         cell: template => (
           <span className="text-muted-foreground text-xs">
             {!template.expire_duration || template.expire_duration === 0 ? (
-              <Infinity className="inline h-4 w-4" />
+              <InfinityIcon className="inline h-4 w-4" />
             ) : (
               `${template.expire_duration / 60 / 60 / 24} ${t('time.days', { defaultValue: 'days' })}`
             )}
@@ -72,7 +72,7 @@ export const useUserTemplatesListColumns = ({ onEdit, onToggleStatus, canCreate 
             {template.hwid_limit === null || template.hwid_limit === undefined ? (
               t('default', { defaultValue: 'Default' })
             ) : template.hwid_limit === 0 ? (
-              <Infinity className="inline h-4 w-4" />
+              <InfinityIcon className="inline h-4 w-4" />
             ) : (
               template.hwid_limit
             )}

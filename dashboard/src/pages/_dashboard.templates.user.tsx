@@ -25,6 +25,7 @@ import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-a
 import { useAdmin } from '@/hooks/use-admin'
 import { useCommandCreate } from '@/hooks/use-command-create'
 import { hasPermission } from '@/utils/rbac'
+import { getErrorMessage } from '@/utils/error-utils'
 
 type BulkUserTemplateActionType = 'delete' | 'disable' | 'enable'
 
@@ -184,14 +185,9 @@ export default function UserTemplates() {
       queryClient.invalidateQueries({
         queryKey: ['/api/user_templates'],
       })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description:
-          error?.data?.detail ||
-          error?.message ||
-          t('templates.bulkDeleteFailed', {
-            defaultValue: 'Failed to delete selected user templates.',
-          }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -216,9 +212,9 @@ export default function UserTemplates() {
       queryClient.invalidateQueries({
         queryKey: ['/api/user_templates'],
       })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('templates.bulkDisableFailed', { defaultValue: 'Failed to disable selected user templates.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -243,9 +239,9 @@ export default function UserTemplates() {
       queryClient.invalidateQueries({
         queryKey: ['/api/user_templates'],
       })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('templates.bulkEnableFailed', { defaultValue: 'Failed to enable selected user templates.' }),
+        description: getErrorMessage(error),
       })
     }
   }

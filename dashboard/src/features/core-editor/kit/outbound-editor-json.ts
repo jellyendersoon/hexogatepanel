@@ -35,7 +35,8 @@ export function stripEmptyStreamSettingsFromRecord<T extends Record<string, unkn
   const ss = normalizeOutboundStreamSettings(o.streamSettings)
   if (ss === undefined) {
     if (!('streamSettings' in o)) return o
-    const { streamSettings: _removed, ...rest } = o
+    const rest: Record<string, unknown> = { ...o }
+    delete rest.streamSettings
     return rest as T
   }
   return { ...o, streamSettings: ss } as T

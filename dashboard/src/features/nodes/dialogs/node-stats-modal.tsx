@@ -11,13 +11,15 @@ import useDirDetection from '@/hooks/use-dir-detection'
 import { Cell, Pie, PieChart } from 'recharts'
 import { formatTooltipDate } from '@/utils/chart-period-utils'
 
+type NodeStatsDataPoint = Record<string, string | number | undefined>
+
 interface NodeStatsModalProps {
   open: boolean
   onClose: () => void
-  data: any
-  chartConfig: any
+  data: NodeStatsDataPoint | null | undefined
+  chartConfig: ChartConfig
   period: Period
-  allChartData?: any[]
+  allChartData?: NodeStatsDataPoint[]
   currentIndex?: number
   onNavigate?: (index: number) => void
   hideUplinkDownlink?: boolean
@@ -72,7 +74,7 @@ const NodeStatsModal = ({ open, onClose, data, chartConfig, period, allChartData
 
   if (!data) return null
 
-  const formattedDate = data._period_start ? formatTooltipDate(data._period_start, period, i18n.language) : ''
+  const formattedDate = typeof data._period_start === 'string' && data._period_start ? formatTooltipDate(data._period_start, period, i18n.language) : ''
 
   const isRTL = dir === 'rtl'
 
@@ -101,12 +103,12 @@ const NodeStatsModal = ({ open, onClose, data, chartConfig, period, allChartData
 
   // Get nodes with usage > 0
   const activeNodes = Object.keys(data)
-    .filter(key => !key.startsWith('_') && key !== 'time' && key !== '_period_start' && (data[key] || 0) > 0)
+    .filter(key => !key.startsWith('_') && key !== 'time' && key !== '_period_start' && Number(data[key] || 0) > 0)
     .map(nodeName => ({
       name: nodeName,
-      usage: data[nodeName] || 0,
-      uplink: data[`_uplink_${nodeName}`] || 0,
-      downlink: data[`_downlink_${nodeName}`] || 0,
+      usage: Number(data[nodeName] || 0),
+      uplink: Number(data[`_uplink_${nodeName}`] || 0),
+      downlink: Number(data[`_downlink_${nodeName}`] || 0),
       color: chartConfig?.[nodeName]?.color || 'hsl(var(--chart-1))',
     }))
     .sort((a, b) => b.usage - a.usage) // Sort by usage descending

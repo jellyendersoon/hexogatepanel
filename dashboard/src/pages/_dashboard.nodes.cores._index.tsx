@@ -108,20 +108,24 @@ export default function CoresIndexPage() {
           queryClient.invalidateQueries({ queryKey: ['/api/cores'] })
           queryClient.invalidateQueries({ queryKey: ['/api/cores/simple'] })
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           let errorMessage = t('settings.cores.deleteFailed', {
             name: `Core ${coreToDelete}`,
           })
 
-          const responseData = error?.response?._data || error?.response?.data || error?.data
-          if (responseData?.detail) {
-            if (typeof responseData.detail === 'string') {
-              errorMessage = responseData.detail
-            } else if (Array.isArray(responseData.detail) && responseData.detail.length > 0) {
-              errorMessage = responseData.detail[0]?.msg || responseData.detail[0] || errorMessage
+          const maybeError = typeof error === 'object' && error !== null ? (error as { response?: { _data?: unknown; data?: unknown }; data?: unknown; message?: unknown }) : undefined
+          const responseData = maybeError?.response?._data || maybeError?.response?.data || maybeError?.data
+          const detail = typeof responseData === 'object' && responseData !== null && 'detail' in responseData ? responseData.detail : undefined
+          if (detail) {
+            if (typeof detail === 'string') {
+              errorMessage = detail
+            } else if (Array.isArray(detail) && detail.length > 0) {
+              const firstError: unknown = detail[0]
+              const firstMessage = typeof firstError === 'object' && firstError !== null && 'msg' in firstError ? firstError.msg : undefined
+              errorMessage = (typeof firstMessage === 'string' && firstMessage) || (typeof firstError === 'string' && firstError) || errorMessage
             }
-          } else if (error?.message) {
-            errorMessage = error.message
+          } else if (typeof maybeError?.message === 'string' && maybeError.message) {
+            errorMessage = maybeError.message
           }
 
           toast.error(errorMessage)

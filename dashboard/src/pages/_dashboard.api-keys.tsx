@@ -32,6 +32,7 @@ import { useAdmin } from '@/hooks/use-admin'
 import { hasPermission } from '@/utils/rbac'
 import { BulkActionItem, BulkActionsBar } from '@/features/users/components/bulk-actions-bar'
 import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-alert-dialog'
+import { getErrorMessage } from '@/utils/error-utils'
 
 export default function ApiKeysPage() {
   const { t } = useTranslation()
@@ -116,9 +117,9 @@ export default function ApiKeysPage() {
       await deleteMutation.mutateAsync({ keyId: keyToDelete.id })
       toast.success(t('apiKeys.deleteSuccess'))
       setKeyToDelete(null)
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('apiKeys.deleteFailed'), {
-        description: error?.data?.detail || error?.message,
+        description: getErrorMessage(error),
       })
     }
   }
@@ -141,9 +142,9 @@ export default function ApiKeysPage() {
 
       clearSelection()
       setConfirmBulkDelete(false)
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('apiKeys.bulkDeleteFailed', { defaultValue: 'Failed to delete selected API keys.' }),
+        description: getErrorMessage(error),
       })
     }
   }
@@ -155,9 +156,9 @@ export default function ApiKeysPage() {
       setNewReissuedKey(response.api_key)
       toast.success(t('apiKeys.revokeSuccess'))
       setKeyToRevoke(null)
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('apiKeys.revokeFailed'), {
-        description: error?.data?.detail || error?.message,
+        description: getErrorMessage(error),
       })
     }
   }

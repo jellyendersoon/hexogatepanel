@@ -44,10 +44,10 @@ export default function GroupsSelector<T extends FieldValues>({ control, name, o
   )
 
   const selectedGroups = (field.value as number[]) || []
-  const filteredGroups = (groupsData?.groups || []).filter((group: any) => group.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredGroups = (groupsData?.groups || []).filter(group => group.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const handleSelectAll = (checked: boolean) => {
-    const newGroups = checked ? filteredGroups.map((group: any) => group.id) : []
+    const newGroups = checked ? filteredGroups.map(group => group.id) : []
     field.onChange(newGroups)
     onGroupsChange?.(newGroups)
   }
@@ -125,7 +125,7 @@ export default function GroupsSelector<T extends FieldValues>({ control, name, o
               </span>
             </div>
           ) : (
-            filteredGroups.map((group: any) => (
+            filteredGroups.map(group => (
               <label key={group.id} className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md p-2">
                 <Checkbox checked={selectedGroups.includes(group.id)} onCheckedChange={checked => handleGroupChange(!!checked, group.id)} disabled={disabled} />
                 <span className="text-sm">{group.name}</span>

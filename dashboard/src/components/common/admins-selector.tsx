@@ -40,10 +40,10 @@ export default function AdminsSelector<T extends FieldValues>({ control, name, o
   )
 
   const selectedAdmins = (field.value as string[]) || []
-  const filteredAdmins = (adminsData?.admins || []).filter((admin: any) => admin.username.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredAdmins = (adminsData?.admins || []).filter(admin => admin.username.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const handleSelectAll = (checked: boolean) => {
-    const newAdmins = checked ? filteredAdmins.map((admin: any) => admin.username) : []
+    const newAdmins = checked ? filteredAdmins.map(admin => admin.username) : []
     field.onChange(newAdmins)
     onAdminsChange?.(newAdmins)
   }
@@ -117,7 +117,7 @@ export default function AdminsSelector<T extends FieldValues>({ control, name, o
               </span>
             </div>
           ) : (
-            filteredAdmins.map((admin: any) => (
+            filteredAdmins.map(admin => (
               <label key={admin.username} className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md p-2">
                 <Checkbox checked={selectedAdmins.includes(admin.username)} onCheckedChange={checked => handleAdminChange(!!checked, admin.username)} disabled={disabled} />
                 <span className="text-sm">{admin.username}</span>

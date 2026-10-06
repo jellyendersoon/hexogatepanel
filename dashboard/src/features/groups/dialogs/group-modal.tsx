@@ -77,7 +77,7 @@ export default function GroupModal({ isDialogOpen, onOpenChange, form, editingGr
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] })
       onOpenChange(false)
       form.reset()
-    } catch (error: any) {
+    } catch (error) {
       const fields = ['name', 'inbound_tags']
       handleError({ error, fields, form, contextKey: 'groups' })
     }

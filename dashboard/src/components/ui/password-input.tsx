@@ -4,11 +4,11 @@ import { cn } from '@/lib/utils'
 import { Button } from './button'
 import { Input, InputProps } from './input'
 
-export interface PasswordInputProps extends InputProps {
+export interface PasswordInputProps extends Omit<InputProps, 'type'> {
   allowBrowserSave?: boolean
 }
 
-const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ className, type, error, isError, value, allowBrowserSave = false, ...props }, ref) => {
+const PasswordInput = React.forwardRef<HTMLInputElement, PasswordInputProps>(({ className, error, isError, value, allowBrowserSave = false, ...props }, ref) => {
   const [showPassword, setShowPassword] = React.useState(false)
   const [hasValue, setHasValue] = React.useState(false)
 

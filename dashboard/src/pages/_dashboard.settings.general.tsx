@@ -51,14 +51,14 @@ export default function General() {
   const onSubmit = async (data: GeneralSettingsFormInput) => {
     try {
       // Filter out empty values and prepare the payload
-      const filteredData: any = {
+      const filteredData = {
         general: {
-          default_method: data.default_method || DEFAULT_SHADOWSOCKS_METHOD,
+          default_method: (data.default_method || DEFAULT_SHADOWSOCKS_METHOD) as ShadowsocksMethods,
         },
       }
 
       await updateSettings(filteredData)
-    } catch (error) {
+    } catch {
       // Error handling is done in the parent context
     }
   }
@@ -92,7 +92,7 @@ export default function General() {
       })
 
       setIsReconnectAllDialogOpen(false)
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('nodes.reconnectAllFailed', {
           defaultValue: 'Failed to reconnect all nodes',

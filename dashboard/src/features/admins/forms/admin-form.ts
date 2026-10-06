@@ -20,7 +20,7 @@ export const passwordValidation = z.string().refine(
     if ((value.match(/[a-z]/g) || []).length < 2) {
       return false
     }
-    return /[!@#$%^&*()\-_=+\[\]{}|;:,.<>?/~`]/.test(value)
+    return /[!@#$%^&*()\-_=+[\]{}|;:,.<>?/~`]/.test(value)
   },
   value => {
     // Return specific error message based on the first validation that fails
@@ -39,7 +39,7 @@ export const passwordValidation = z.string().refine(
     if ((value.match(/[a-z]/g) || []).length < 2) {
       return { message: 'Password must contain at least 2 lowercase letters' }
     }
-    if (!/[!@#$%^&*()\-_=+\[\]{}|;:,.<>?/~`]/.test(value)) {
+    if (!/[!@#$%^&*()\-_=+[\]{}|;:,.<>?/~`]/.test(value)) {
       return { message: 'Password must contain at least one special character' }
     }
     return { message: 'Invalid password' }

@@ -22,14 +22,18 @@ interface SortableHostProps {
   selected?: boolean
 }
 
-export default function SortableHost({ host, onEdit, onDuplicate, onDataChanged, disabled = false, canUpdate = true, canCreate = true, selectionControl, selected = false }: SortableHostProps) {
-  const { t } = useTranslation()
-  const dir = useDirDetection()
+export default function SortableHost(props: SortableHostProps) {
   // Ensure host.id is not null before using it
-  if (!host.id) {
+  if (!props.host.id) {
     return null
   }
 
+  return <SortableHostCard {...props} />
+}
+
+function SortableHostCard({ host, onEdit, onDuplicate, onDataChanged, disabled = false, canUpdate = true, canCreate = true, selectionControl, selected = false }: SortableHostProps) {
+  const { t } = useTranslation()
+  const dir = useDirDetection()
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: host.id as UniqueIdentifier,
     disabled: disabled || !canUpdate,

@@ -12,6 +12,21 @@ import { dateUtils } from '@/utils/dateFormatter'
 import dayjs from '@/lib/dayjs'
 import { Checkbox } from '@/components/ui/checkbox'
 
+function DataUsageHeader({ t, handleSort, filters }: { t: (key: string) => string; handleSort: (column: string, fromDropdown?: boolean) => void; filters: { sort: string } }) {
+  const isRTL = useDirDetection() === 'rtl'
+  return (
+    <button className="flex w-full items-center gap-1 px-0 py-3" onClick={() => handleSort('used_traffic')}>
+      <div className={cn('text-xs capitalize', isRTL && 'w-full md:w-auto')}>
+        <span className={cn('inline-block w-full md:hidden', isRTL && 'text-end')}>{t('dataUsage')}</span>
+        <span className="hidden md:block">{t('dataUsage')}</span>
+      </div>
+      {filters.sort && (filters.sort === 'used_traffic' || filters.sort === '-used_traffic') && (
+        <ChevronDown size={16} className={`transition-transform duration-300 ${filters.sort === 'used_traffic' ? 'rotate-180' : ''} ${filters.sort === '-used_traffic' ? 'rotate-0' : ''} `} />
+      )}
+    </button>
+  )
+}
+
 export const setupColumns = ({
   t,
   handleSort,
@@ -212,20 +227,7 @@ export const setupColumns = ({
   },
   {
     id: 'details',
-    header: () => {
-      const isRTL = useDirDetection() === 'rtl'
-      return (
-        <button className="flex w-full items-center gap-1 px-0 py-3" onClick={() => handleSort('used_traffic')}>
-          <div className={cn('text-xs capitalize', isRTL && 'w-full md:w-auto')}>
-            <span className={cn('inline-block w-full md:hidden', isRTL && 'text-end')}>{t('dataUsage')}</span>
-            <span className="hidden md:block">{t('dataUsage')}</span>
-          </div>
-          {filters.sort && (filters.sort === 'used_traffic' || filters.sort === '-used_traffic') && (
-            <ChevronDown size={16} className={`transition-transform duration-300 ${filters.sort === 'used_traffic' ? 'rotate-180' : ''} ${filters.sort === '-used_traffic' ? 'rotate-0' : ''} `} />
-          )}
-        </button>
-      )
-    },
+    header: () => <DataUsageHeader t={t} handleSort={handleSort} filters={filters} />,
     cell: ({ row }: { row: Row<UserResponse> }) => (
       <div className="flex items-center justify-between gap-1 py-1">
         <UsageSliderCompact total={row.original.data_limit} used={row.original.used_traffic} totalUsedTraffic={row.original.lifetime_used_traffic} status={row.original.status} />

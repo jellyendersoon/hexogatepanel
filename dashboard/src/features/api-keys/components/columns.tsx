@@ -8,9 +8,10 @@ import { dateUtils } from '@/utils/dateFormatter'
 import { countEnabledPermissions } from '@/features/admin-roles/components/permission-editor'
 import { RolePermissionFormMap } from '@/features/admin-roles/forms/admin-role-form'
 import { AdminStatusBadge } from '@/features/admins/components/admin-status-badge'
+import type { TFunction } from 'i18next'
 
 interface ColumnsProps {
-  t: any
+  t: TFunction
   onEdit: (apiKey: APIKeyResponse) => void
   onDelete: (apiKey: APIKeyResponse) => void
   onRevoke: (apiKey: APIKeyResponse) => void
@@ -23,7 +24,7 @@ function countEnabledResources(permissions: RolePermissions | undefined): number
     if (!resource || typeof resource !== 'object') return total
     return Object.values(resource as Record<string, unknown>).some(value => {
       if (value === true) return true
-      return !!value && typeof value === 'object' && Number((value as any).scope) > 0
+      return !!value && typeof value === 'object' && Number((value as { scope?: unknown }).scope) > 0
     })
       ? total + 1
       : total

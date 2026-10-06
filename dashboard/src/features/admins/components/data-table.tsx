@@ -13,7 +13,7 @@ import { isOwner, roleLabel } from '@/utils/rbac'
 import UsageSliderCompact from '@/components/common/usage-slider-compact'
 
 interface DataTableProps<TData extends AdminDetails> {
-  columns: ColumnDef<TData, any>[]
+  columns: ColumnDef<TData>[]
   data: TData[]
   currentAdminUsername?: string
   onEdit?: (admin: AdminDetails) => void

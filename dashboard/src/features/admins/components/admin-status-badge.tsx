@@ -12,7 +12,7 @@ type AdminStatusProps = {
   compact?: boolean
 }
 
-export const AdminStatusBadge: FC<AdminStatusProps> = ({ isSudo: _isSudo, status, isDisabled, label, compact }) => {
+export const AdminStatusBadge: FC<AdminStatusProps> = ({ status, isDisabled, label, compact }) => {
   const { t } = useTranslation()
   const resolvedStatus = status || (isDisabled ? 'disabled' : 'active')
 

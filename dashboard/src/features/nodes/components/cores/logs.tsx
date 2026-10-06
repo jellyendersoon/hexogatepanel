@@ -44,7 +44,7 @@ const Logs = ({ className }: { className?: string }) => {
   )
 
   useWebSocket(getWebsocketUrl(selectedNode), {
-    onMessage: (e: any) => {
+    onMessage: (e: MessageEvent<string>) => {
       const newLogs = e.data.split('\n')
         .filter((line: string) => line.trim() !== '') // Remove empty lines
         .map((text: string) => ({ id: crypto.randomUUID(), text }))

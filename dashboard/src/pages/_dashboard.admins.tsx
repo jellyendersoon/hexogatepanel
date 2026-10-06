@@ -19,6 +19,7 @@ import { useGetRolesSimple } from '@/service/api'
 import { useAdmin } from '@/hooks/use-admin'
 import { hasPermission } from '@/utils/rbac'
 import { useCommandCreate } from '@/hooks/use-command-create'
+import { getErrorStatus } from '@/utils/error-utils'
 
 export default function AdminsPage() {
   const { t } = useTranslation()
@@ -109,9 +110,10 @@ export default function AdminsPage() {
           defaultValue: `Admin "{name}" has been ${disabled ? 'enabled' : 'disabled'} successfully`,
         }),
       })
-    } catch (error: any) {
-      const status = error?.status ?? error?.response?.status
-      const backendDetail = error?.data?.detail ?? error?.response?._data?.detail ?? error?.response?.data?.detail
+    } catch (error) {
+      const status = getErrorStatus(error)
+      const maybeError = typeof error === 'object' && error !== null ? (error as { data?: { detail?: unknown }; response?: { _data?: { detail?: unknown }; data?: { detail?: unknown } } }) : undefined
+      const backendDetail = maybeError?.data?.detail ?? maybeError?.response?._data?.detail ?? maybeError?.response?.data?.detail
       const disabled = isAdminDisabled(admin)
       const defaultDescription = t(disabled ? 'admins.enableFailed' : 'admins.disableFailed', {
         name: admin.username,
@@ -198,7 +200,7 @@ export default function AdminsPage() {
           defaultValue: `Admin "{name}" user usage has been reset successfully`,
         }),
       })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('admins.resetUsageFailed', {
           name: admin.username,

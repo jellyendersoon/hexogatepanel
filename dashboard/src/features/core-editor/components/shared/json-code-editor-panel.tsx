@@ -1,5 +1,6 @@
 import { CodeEditorPanel } from '@/components/common/code-editor-panel'
 import { cn } from '@/lib/utils'
+import type { editor } from 'monaco-editor'
 
 interface JsonCodeEditorPanelProps {
   value: string
@@ -11,7 +12,7 @@ interface JsonCodeEditorPanelProps {
   /** Fires when the editor text area loses focus (e.g. to commit draft state). Desktop Monaco only. */
   onDidBlur?: () => void
   /** Desktop Monaco JSON diagnostics (same as {@link CodeEditorPanel}). */
-  onValidate?: (markers: any[]) => void
+  onValidate?: (markers: editor.IMarker[]) => void
 }
 
 /**

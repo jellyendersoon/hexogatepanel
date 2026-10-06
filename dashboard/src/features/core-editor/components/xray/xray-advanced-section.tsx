@@ -12,6 +12,7 @@ import type { JsonValue } from '@pasarguard/xray-config-kit'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import type { editor } from 'monaco-editor'
 
 interface JsonValidationState {
   isValid: boolean
@@ -101,7 +102,7 @@ export function XrayAdvancedSection() {
   }, [])
 
   const handleEditorValidation = useCallback(
-    (markers: any[]) => {
+    (markers: editor.IMarker[]) => {
       const hasErrors = markers.length > 0
       if (hasErrors) {
         setJsonValidation({ isValid: false, error: markers[0].message })

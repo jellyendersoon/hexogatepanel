@@ -6,12 +6,7 @@ import LoadingBar from 'react-top-loading-bar'
 const shouldIgnoreRoute = (pathname: string): boolean => {
   const IGNORED_ROUTE_PATTERNS = [/^\/settings\/(general|notifications|subscriptions|telegram|webhook|cleanup|theme)$/, /^\/nodes\/(cores|logs)$/]
 
-  const shouldIgnore = IGNORED_ROUTE_PATTERNS.some(pattern => pattern.test(pathname))
-
-  if (process.env.NODE_ENV === 'development') {
-  }
-
-  return shouldIgnore
+  return IGNORED_ROUTE_PATTERNS.some(pattern => pattern.test(pathname))
 }
 
 declare global {
@@ -159,8 +154,8 @@ function TopLoadingBar({ height = 3, color, shadow = false, className = '' }: To
     const currentPath = location.pathname + location.search
 
     if (currentPath !== lastLocationRef.current && lastLocationRef.current !== '') {
-      if ((window as any).resetLoadingBarInitialState) {
-        ;(window as any).resetLoadingBarInitialState()
+      if (window.resetLoadingBarInitialState) {
+        window.resetLoadingBarInitialState()
       }
     }
 

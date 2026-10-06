@@ -38,7 +38,7 @@ export default function AdvanceSearchModal({ isDialogOpen, onOpenChange, form, o
 
   const { data: groupsData } = useGetGroupsSimple({ all: true })
 
-  const groupIdToName = new Map((groupsData?.groups || []).map((group: any) => [group.id, group.name]))
+  const groupIdToName = new Map((groupsData?.groups || []).map(group => [group.id, group.name]))
 
   return (
     <Dialog open={isDialogOpen} onOpenChange={onOpenChange}>

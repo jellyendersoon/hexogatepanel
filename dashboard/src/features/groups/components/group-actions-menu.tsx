@@ -69,7 +69,7 @@ export default function GroupActionsMenu({ group, onEdit, onToggleStatus, canUpd
       })
       setDeleteDialogOpen(false)
       queryClient.invalidateQueries({ queryKey: ['/api/groups'] })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('group.deleteFailed', {
           name: group.name,

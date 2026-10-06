@@ -7,6 +7,7 @@ import { Maximize2, Minimize2 } from 'lucide-react'
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { useTranslation } from 'react-i18next'
+import type { editor } from 'monaco-editor'
 
 const MonacoDiffEditor = lazy(() => import('@/components/common/monaco-editor').then(m => ({ default: m.DiffEditor })))
 
@@ -73,17 +74,16 @@ export function ConfigDiffPanel({ before, after, className }: ConfigDiffPanelPro
 
   const theme = resolvedTheme === 'dark' ? 'vs-dark' : 'light'
 
-  const diffOptions = useMemo(
-    () =>
-      ({
-        ...DEFAULT_MONACO_CODE_EDITOR_OPTIONS,
-        renderSideBySide: false,
-        readOnly: true,
-        enableSplitViewResizing: false,
-        renderOverviewRuler: false,
-        glyphMargin: false,
-        fixedOverflowWidgets: true,
-      }) as const,
+  const diffOptions = useMemo<editor.IDiffEditorConstructionOptions>(
+    () => ({
+      ...DEFAULT_MONACO_CODE_EDITOR_OPTIONS,
+      renderSideBySide: false,
+      readOnly: true,
+      enableSplitViewResizing: false,
+      renderOverviewRuler: false,
+      glyphMargin: false,
+      fixedOverflowWidgets: true,
+    }),
     [],
   )
 
@@ -101,7 +101,7 @@ export function ConfigDiffPanel({ before, after, className }: ConfigDiffPanelPro
 
   const renderDiffEditor = () => (
     <Suspense fallback={fallback}>
-      <MonacoDiffEditor height="100%" language="json" original={original} modified={modified} theme={theme} onMount={handleDiffMount} options={diffOptions as any} />
+      <MonacoDiffEditor height="100%" language="json" original={original} modified={modified} theme={theme} onMount={handleDiffMount} options={diffOptions} />
     </Suspense>
   )
 

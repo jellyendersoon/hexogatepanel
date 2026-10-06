@@ -102,13 +102,13 @@ export function installChunkLoadRecovery(): void {
   })
 }
 
-export function lazyWithChunkRecovery<T extends ComponentType<any>>(importer: () => Promise<{ default: T }>) {
+export function lazyWithChunkRecovery<P>(importer: () => Promise<{ default: ComponentType<P> }>) {
   return lazy(async () => {
     try {
       return await importer()
     } catch (error) {
       if (recoverFromChunkLoadError(error)) {
-        return new Promise<{ default: T }>(() => undefined)
+        return new Promise<{ default: ComponentType<P> }>(() => undefined)
       }
 
       throw error

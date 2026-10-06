@@ -44,16 +44,17 @@ export default function UpdateGeofilesDialog({ node, isOpen, onOpenChange }: Upd
           region: selectedRegion,
         },
       })
-      const message = (response as any)?.detail || t('nodeModal.updateGeofilesSuccess', { defaultValue: 'Geo files updated successfully' })
+      const responseDetail = typeof response === 'object' && response !== null && 'detail' in response ? response.detail : undefined
+      const message = (typeof responseDetail === 'string' && responseDetail) || t('nodeModal.updateGeofilesSuccess', { defaultValue: 'Geo files updated successfully' })
       toast.success(message)
       onOpenChange(false)
       queryClient.invalidateQueries({ queryKey: ['/api/nodes'] })
       queryClient.invalidateQueries({ queryKey: ['/api/nodes/simple'] })
       queryClient.invalidateQueries({ queryKey: [`/api/node/${node.id}`] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(
         t('nodeModal.updateGeofilesFailed', {
-          message: error?.message || 'Unknown error',
+          message: (error instanceof Error && error.message) || 'Unknown error',
           defaultValue: 'Failed to update Geo files: {message}',
         }),
       )

@@ -72,7 +72,7 @@ export default function UserTemplateActionsMenu({ template, onEdit, onToggleStat
       })
       setDeleteDialogOpen(false)
       queryClient.invalidateQueries({ queryKey: ['/api/user_templates'] })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('templates.deleteFailed', {
           name: template.name,
@@ -98,7 +98,7 @@ export default function UserTemplateActionsMenu({ template, onEdit, onToggleStat
         }),
       })
       queryClient.invalidateQueries({ queryKey: ['/api/user_templates'] })
-    } catch (error) {
+    } catch {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: t('templates.duplicateFailed', {
           name: template.name,

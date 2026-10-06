@@ -14,6 +14,7 @@ import { Fingerprint, Laptop, RefreshCw, Smartphone, Trash2 } from 'lucide-react
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import { getErrorMessage } from '@/utils/error-utils'
 
 interface UserHwidsModalProps {
   isOpen: boolean
@@ -58,9 +59,9 @@ export function UserHwidsModal({ isOpen, onOpenChange, userId, username }: UserH
         setHwidToDelete(null)
         invalidateHwids()
       },
-      onError: (deleteError: any) => {
+      onError: (deleteError: unknown) => {
         toast.error(t('hwids.deleteFailed', { defaultValue: 'Failed to remove hardware ID' }), {
-          description: deleteError?.data?.detail || deleteError?.message || '',
+          description: getErrorMessage(deleteError),
         })
       },
     },
@@ -73,9 +74,9 @@ export function UserHwidsModal({ isOpen, onOpenChange, userId, username }: UserH
         setResetDialogOpen(false)
         invalidateHwids()
       },
-      onError: (resetError: any) => {
+      onError: (resetError: unknown) => {
         toast.error(t('hwids.resetFailed', { defaultValue: 'Failed to reset hardware IDs' }), {
-          description: resetError?.data?.detail || resetError?.message || '',
+          description: getErrorMessage(resetError),
         })
       },
     },

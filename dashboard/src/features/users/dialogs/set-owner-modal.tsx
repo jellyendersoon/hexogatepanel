@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { UserCheck } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { useBulkSetOwner, useSetOwnerById, UserResponse } from '@/service/api'
+import { useBulkSetOwner, useSetOwnerById, type AdminDetails, UserResponse } from '@/service/api'
 import { toast } from 'sonner'
 import useDynamicErrorHandler from '@/hooks/use-dynamic-errors'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -25,7 +25,7 @@ export default function SetOwnerModal({ open, onClose, userId, username, userIds
   const [selectedAdmin, setSelectedAdmin] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [fetchAdmins, setFetchAdmins] = useState(false)
-  const [admins, setAdmins] = useState<any[]>([])
+  const [admins, setAdmins] = useState<AdminDetails[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [isError, setIsError] = useState(false)
   const isBulkMode = Boolean(userIds?.length)
@@ -91,7 +91,7 @@ export default function SetOwnerModal({ open, onClose, userId, username, userIds
         toast.success(t('setOwnerModal.success', { username, admin: selectedAdmin }))
       }
       onClose()
-    } catch (error: any) {
+    } catch (error) {
       handleDynamicError({
         error,
         fields: ['admin_username'],
@@ -137,7 +137,7 @@ export default function SetOwnerModal({ open, onClose, userId, username, userIds
                   <SelectValue placeholder={t('setOwnerModal.selectAdmin', { defaultValue: 'Select new owner' })} />
                 </SelectTrigger>
                 <SelectContent>
-                  {admins.map((admin: any) => (
+                  {admins.map(admin => (
                     <SelectItem key={admin.username} value={admin.username}>
                       {admin.username}
                     </SelectItem>

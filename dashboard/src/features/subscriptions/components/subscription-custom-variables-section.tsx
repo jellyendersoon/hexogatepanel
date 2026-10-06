@@ -9,7 +9,7 @@ import { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 
 export interface SubscriptionCustomVariablesSectionProps {
-  form: UseFormReturn<any>
+  form: UseFormReturn<SubscriptionFormData>
 }
 
 const nextCustomVariableKey = (variables: NonNullable<SubscriptionFormData['custom_variables']>) => {
@@ -25,7 +25,7 @@ const nextCustomVariableKey = (variables: NonNullable<SubscriptionFormData['cust
 
 export function SubscriptionCustomVariablesSection({ form }: SubscriptionCustomVariablesSectionProps) {
   const { t } = useTranslation()
-  const customVariables = form.watch('custom_variables') || []
+  const customVariables: NonNullable<SubscriptionFormData['custom_variables']> = form.watch('custom_variables') || []
   const builtInKeys = new Set<string>(builtInVariableKeys)
 
   const setCustomVariables = (variables: NonNullable<SubscriptionFormData['custom_variables']>) => {

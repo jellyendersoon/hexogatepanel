@@ -202,7 +202,7 @@ export default function UserAllIPsModal({ isOpen, onOpenChange, userId, username
     () => ({
       query: {
         enabled: !!(isOpen && userId),
-        refetchInterval: (query: any) => {
+        refetchInterval: (query: { state: { error: unknown } }) => {
           if (!isOpen || query.state.error) {
             return false
           }
@@ -215,8 +215,8 @@ export default function UserAllIPsModal({ isOpen, onOpenChange, userId, username
   const { data: userIPsData, isLoading, error, refetch: refetchIPs } = useUserOnlineIpListAllNodes(userId, userIPsQueryOptions)
 
   const handleError = useCallback(
-    (error: any) => {
-      const errorMessage = error?.message || 'Unknown error occurred'
+    (error: unknown) => {
+      const errorMessage = (error instanceof Error && error.message) || 'Unknown error occurred'
       if (errorMessage.includes('User not found')) {
         toast.error(
           t('userAllIPs.userNotFound', {
@@ -247,7 +247,7 @@ export default function UserAllIPsModal({ isOpen, onOpenChange, userId, username
     try {
       await refetchIPs()
       toast.success(t('userAllIPs.refreshed', { defaultValue: 'IP addresses updated' }))
-    } catch (error) {
+    } catch {
       toast.error(t('userAllIPs.refreshFailed', { defaultValue: 'Failed to refresh IP addresses' }))
     } finally {
       setRefreshing(false)

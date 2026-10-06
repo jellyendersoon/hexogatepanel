@@ -24,6 +24,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 import { coreConfigFormDefaultValues, coreConfigFormSchema, type CoreBackendType, type CoreConfigFormValues } from '@/features/nodes/forms/core-config-form'
 import { getCoresListUseConfigModal } from '@/utils/userPreferenceStorage'
+import { getErrorMessage } from '@/utils/error-utils'
 
 const CoreConfigModal = lazy(() => import('@/features/nodes/dialogs/core-config-modal'))
 
@@ -186,14 +187,9 @@ export default function Cores({ cores, onDuplicateCore, onDeleteCore, canCreate 
       setBulkAction(null)
       queryClient.invalidateQueries({ queryKey: ['/api/cores'] })
       queryClient.invalidateQueries({ queryKey: ['/api/cores/simple'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description:
-          error?.data?.detail ||
-          error?.message ||
-          t('core.bulkDeleteFailed', {
-            defaultValue: 'Failed to delete selected cores.',
-          }),
+        description: getErrorMessage(error),
       })
     }
   }

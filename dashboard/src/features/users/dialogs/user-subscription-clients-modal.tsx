@@ -249,7 +249,7 @@ const detectVersion = (userAgent: string): string => {
     if (match && match[1]) {
       // For iOS CFNetwork, extract the app version (first number)
       if (ua.includes('cfnetwork')) {
-        const appVersionMatch = ua.match(/^([^\/]+)\/(\d+)/i)
+        const appVersionMatch = ua.match(/^([^/]+)\/(\d+)/i)
         if (appVersionMatch && appVersionMatch[2]) {
           return appVersionMatch[2]
         }
@@ -260,7 +260,7 @@ const detectVersion = (userAgent: string): string => {
 
   // Special handling for CFNetwork format
   if (ua.includes('cfnetwork')) {
-    const appVersionMatch = ua.match(/^([^\/]+)\/(\d+)/i)
+    const appVersionMatch = ua.match(/^([^/]+)\/(\d+)/i)
     if (appVersionMatch && appVersionMatch[2]) {
       return appVersionMatch[2]
     }

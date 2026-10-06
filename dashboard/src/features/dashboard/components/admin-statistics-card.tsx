@@ -51,11 +51,10 @@ const AdminStatisticsCard = ({
   skipStatsFetch?: boolean
 }) => {
   const { t } = useTranslation()
-  if (!admin) return null
 
   // Send admin_username for specific admin stats, except for 'Total' which shows global stats
-  const systemStatsParams = admin.username !== 'Total' ? { admin_username: admin.username } : undefined
-  const shouldFetchStats = !skipStatsFetch
+  const systemStatsParams = admin && admin.username !== 'Total' ? { admin_username: admin.username } : undefined
+  const shouldFetchStats = !skipStatsFetch && !!admin
 
   // Fetch system stats specific to this admin
   const { data: adminSystemStats } = useGetSystemUsersStats(systemStatsParams, {
@@ -64,6 +63,8 @@ const AdminStatisticsCard = ({
       refetchInterval: 5000,
     },
   })
+
+  if (!admin) return null
 
   // Use admin-specific stats if available, otherwise fall back to global stats
   const statsToUse = skipStatsFetch ? systemStats : adminSystemStats || systemStats

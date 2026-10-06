@@ -21,11 +21,14 @@ const formatCommaSeparatedValue = (value: string) =>
     .filter(Boolean)
     .join(', ')
 
+// Replaces ASCII control characters (U+0000-U+001F), which cannot be expressed in a regex literal under no-control-regex.
+const replaceControlChars = (value: string, replacement: string) => Array.from(value, char => (char.charCodeAt(0) < 0x20 ? replacement : char)).join('')
+
 const sanitizeFileNameSegment = (value: string | null | undefined) => {
   if (!value) return ''
 
-  return safeDecodeURIComponent(value)
-    .replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-')
+  return replaceControlChars(safeDecodeURIComponent(value), '-')
+    .replace(/[<>:"/\\|?*]/g, '-')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
     .replace(/^\.+|\.+$/g, '')

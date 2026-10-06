@@ -17,6 +17,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
+import type { editor } from 'monaco-editor'
 
 const TEMPLATE_TYPE_LABELS: Record<string, string> = {
   [ClientTemplateType.clash_subscription]: 'Clash Subscription',
@@ -85,7 +86,7 @@ export default function ClientTemplateModal({ isDialogOpen, onOpenChange, form, 
   )
 
   const handleEditorValidation = useCallback(
-    (markers: any[]) => {
+    (markers: editor.IMarker[]) => {
       if (isYaml) {
         validateContent(form.getValues().content)
         return
@@ -156,8 +157,9 @@ export default function ClientTemplateModal({ isDialogOpen, onOpenChange, form, 
 
       queryClient.invalidateQueries({ queryKey: ['/api/client_templates'] })
       onOpenChange(false)
-    } catch (error: any) {
-      const detail = error?.response?._data?.detail || error?.response?.data?.detail || error?.message
+    } catch (error) {
+      const maybeError = typeof error === 'object' && error !== null ? (error as { response?: { _data?: { detail?: unknown }; data?: { detail?: unknown } }; message?: unknown }) : undefined
+      const detail = maybeError?.response?._data?.detail || maybeError?.response?.data?.detail || maybeError?.message
       toast.error(t('error', { defaultValue: 'Error' }), {
         description: typeof detail === 'string' ? detail : t('clientTemplates.saveFailed', { defaultValue: 'Failed to save template' }),
       })

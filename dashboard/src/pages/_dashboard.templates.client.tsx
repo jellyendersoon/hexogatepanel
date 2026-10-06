@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 import { queryClient } from '@/utils/query-client'
 import { useAdmin } from '@/hooks/use-admin'
 import { hasPermission } from '@/utils/rbac'
+import { getErrorMessage } from '@/utils/error-utils'
 
 export default function ClientTemplates() {
   const { admin } = useAdmin()
@@ -104,14 +105,9 @@ export default function ClientTemplates() {
       clearSelection()
       setBulkAction(null)
       queryClient.invalidateQueries({ queryKey: ['/api/client_templates'] })
-    } catch (error: any) {
+    } catch (error) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description:
-          error?.data?.detail ||
-          error?.message ||
-          t('clientTemplates.bulkDeleteFailed', {
-            defaultValue: 'Failed to delete selected client templates.',
-          }),
+        description: getErrorMessage(error),
       })
     }
   }

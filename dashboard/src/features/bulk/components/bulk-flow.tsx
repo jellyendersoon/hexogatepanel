@@ -215,7 +215,13 @@ export default function BulkFlow({ operationType }: BulkFlowProps) {
     })
   }
 
-  const confirmApply = () => {
+  type BulkMutationCallbacks = {
+    onSuccess: (response: unknown) => void
+    onError: (error: unknown) => void
+    onSettled: () => void
+  }
+
+  const runBulkMutation = (dryRun: boolean, callbacks: BulkMutationCallbacks) => {
     const basePayload = {
       group_ids: selectedGroups.length ? selectedGroups : [],
       users: selectedUsers.length ? selectedUsers : [],
@@ -223,184 +229,130 @@ export default function BulkFlow({ operationType }: BulkFlowProps) {
     }
     const statusPayload = selectedStatuses.length ? { status: selectedStatuses } : {}
 
-    const payload = (() => {
-      switch (operationType) {
-        case 'proxy':
-          return {
-            ...basePayload,
-            method: selectedMethod,
-            dry_run: false,
-          }
-        case 'data':
-          const dataLimitBytes = gbToBytes(dataLimit!)
-          return {
-            ...basePayload,
-            ...statusPayload,
-            ...expireDatePayload,
-            amount: dataOperation === 'subtract' ? -dataLimitBytes! : dataLimitBytes,
-            dry_run: false,
-          }
-        case 'expire':
-          return {
-            ...basePayload,
-            ...statusPayload,
-            ...expireDatePayload,
-            amount: expireOperation === 'subtract' ? -expireSeconds! : expireSeconds,
-            dry_run: false,
-          }
-        case 'groups':
-          return {
-            group_ids: selectedGroups,
-            has_group_ids: selectedHasGroups.length > 0 ? selectedHasGroups : [],
-            has_no_group: hasNoGroup,
-            users: selectedUsers.length ? selectedUsers : [],
-            admins: selectedAdmins.length ? selectedAdmins : [],
-            dry_run: false,
-          }
-        default:
-          return basePayload
+    switch (operationType) {
+      case 'proxy':
+        proxyMutation.mutate(
+          {
+            data: {
+              ...basePayload,
+              method: selectedMethod,
+              dry_run: dryRun,
+            },
+          },
+          callbacks,
+        )
+        return
+      case 'data': {
+        const dataLimitBytes = gbToBytes(dataLimit!)
+        dataMutation.mutate(
+          {
+            data: {
+              ...basePayload,
+              ...statusPayload,
+              ...expireDatePayload,
+              amount: dataOperation === 'subtract' ? -dataLimitBytes! : dataLimitBytes!,
+              dry_run: dryRun,
+            },
+          },
+          callbacks,
+        )
+        return
       }
-    })()
-
-    const mutation = (() => {
-      switch (operationType) {
-        case 'proxy':
-          return proxyMutation
-        case 'data':
-          return dataMutation
-        case 'expire':
-          return expireMutation
-        case 'groups':
-          return groupsOperation === 'add' ? addGroupsMutation : removeGroupsMutation
-        default:
-          return proxyMutation
+      case 'expire':
+        expireMutation.mutate(
+          {
+            data: {
+              ...basePayload,
+              ...statusPayload,
+              ...expireDatePayload,
+              amount: expireOperation === 'subtract' ? -expireSeconds! : expireSeconds!,
+              dry_run: dryRun,
+            },
+          },
+          callbacks,
+        )
+        return
+      case 'groups': {
+        const groupsMutation = groupsOperation === 'add' ? addGroupsMutation : removeGroupsMutation
+        groupsMutation.mutate(
+          {
+            data: {
+              group_ids: selectedGroups,
+              has_group_ids: selectedHasGroups.length > 0 ? selectedHasGroups : [],
+              has_no_group: hasNoGroup,
+              users: selectedUsers.length ? selectedUsers : [],
+              admins: selectedAdmins.length ? selectedAdmins : [],
+              dry_run: dryRun,
+            },
+          },
+          callbacks,
+        )
+        return
       }
-    })()
+    }
+  }
 
+  const describeBulkError = (error: unknown) => (error instanceof Error && error.message) || JSON.stringify(error, null, 2)
+
+  const confirmApply = () => {
     setPendingBulkAction('apply')
 
-    mutation.mutate(
-      { data: payload as any },
-      {
-        onSuccess: response => {
-          const detail = typeof response === 'object' && response && 'detail' in response ? response.detail : undefined
-          let description = ''
-          if (detail) {
-            description = typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2)
-          } else if (typeof response === 'string') {
-            description = response
-          } else if (response && Object.keys(response).length > 0) {
-            description = JSON.stringify(response, null, 2)
-          } else {
-            description = 'Operation completed successfully'
-          }
-          toast.success(t('operationSuccess', { defaultValue: 'Operation successful!' }), { description })
+    runBulkMutation(false, {
+      onSuccess: response => {
+        const detail = typeof response === 'object' && response && 'detail' in response ? response.detail : undefined
+        let description = ''
+        if (detail) {
+          description = typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2)
+        } else if (typeof response === 'string') {
+          description = response
+        } else if (response && Object.keys(response).length > 0) {
+          description = JSON.stringify(response, null, 2)
+        } else {
+          description = 'Operation completed successfully'
+        }
+        toast.success(t('operationSuccess', { defaultValue: 'Operation successful!' }), { description })
 
-          setCurrentStep(1)
-          setSelectedMethod(undefined)
-          setDataLimit(undefined)
-          setExpireSeconds(undefined)
-          setExpireAmount(undefined)
-          setSelectedGroups([])
-          setSelectedUsers([])
-          setSelectedAdmins([])
-          setSelectedHasGroups([])
-          setHasNoGroup(false)
-          setSelectedStatuses([])
-          setExpiredAfter(undefined)
-          setExpiredBefore(undefined)
-          setShowConfirmDialog(false)
-        },
-        onError: error => {
-          toast.error(t('operationFailed', { defaultValue: 'Operation failed!' }), {
-            description: error?.message || JSON.stringify(error, null, 2),
-          })
-          setShowConfirmDialog(false)
-        },
-        onSettled: () => setPendingBulkAction(null),
+        setCurrentStep(1)
+        setSelectedMethod(undefined)
+        setDataLimit(undefined)
+        setExpireSeconds(undefined)
+        setExpireAmount(undefined)
+        setSelectedGroups([])
+        setSelectedUsers([])
+        setSelectedAdmins([])
+        setSelectedHasGroups([])
+        setHasNoGroup(false)
+        setSelectedStatuses([])
+        setExpiredAfter(undefined)
+        setExpiredBefore(undefined)
+        setShowConfirmDialog(false)
       },
-    )
+      onError: error => {
+        toast.error(t('operationFailed', { defaultValue: 'Operation failed!' }), {
+          description: describeBulkError(error),
+        })
+        setShowConfirmDialog(false)
+      },
+      onSettled: () => setPendingBulkAction(null),
+    })
   }
 
   const handlePreview = () => {
-    const basePayload = {
-      group_ids: selectedGroups.length ? selectedGroups : [],
-      users: selectedUsers.length ? selectedUsers : [],
-      admins: selectedAdmins.length ? selectedAdmins : [],
-    }
-    const statusPayload = selectedStatuses.length ? { status: selectedStatuses } : {}
-
-    const payload = (() => {
-      switch (operationType) {
-        case 'proxy':
-          return {
-            ...basePayload,
-            method: selectedMethod,
-            dry_run: true,
-          }
-        case 'data': {
-          const dataLimitBytes = gbToBytes(dataLimit!)
-          return {
-            ...basePayload,
-            ...statusPayload,
-            ...expireDatePayload,
-            amount: dataOperation === 'subtract' ? -dataLimitBytes! : dataLimitBytes,
-            dry_run: true,
-          }
-        }
-        case 'expire':
-          return {
-            ...basePayload,
-            ...statusPayload,
-            ...expireDatePayload,
-            amount: expireOperation === 'subtract' ? -expireSeconds! : expireSeconds,
-            dry_run: true,
-          }
-        case 'groups':
-          return {
-            group_ids: selectedGroups,
-            has_group_ids: selectedHasGroups.length > 0 ? selectedHasGroups : [],
-            has_no_group: hasNoGroup,
-            users: selectedUsers.length ? selectedUsers : [],
-            admins: selectedAdmins.length ? selectedAdmins : [],
-            dry_run: true,
-          }
-      }
-    })()
-
-    const mutation = (() => {
-      switch (operationType) {
-        case 'proxy':
-          return proxyMutation
-        case 'data':
-          return dataMutation
-        case 'expire':
-          return expireMutation
-        case 'groups':
-          return groupsOperation === 'add' ? addGroupsMutation : removeGroupsMutation
-        default:
-          return proxyMutation
-      }
-    })()
-
     setPendingBulkAction('preview')
-    mutation.mutate(
-      { data: payload as any },
-      {
-        onSuccess: response => {
-          const description = bulkPreviewDescription(response)
-          toast.success(t('bulk.previewTitle', { defaultValue: 'Preview' }), {
-            description: description || t('bulk.previewNoCount', { defaultValue: 'Dry run completed.' }),
-          })
-        },
-        onError: error => {
-          toast.error(t('operationFailed', { defaultValue: 'Operation failed!' }), {
-            description: error?.message || JSON.stringify(error, null, 2),
-          })
-        },
-        onSettled: () => setPendingBulkAction(null),
+    runBulkMutation(true, {
+      onSuccess: response => {
+        const description = bulkPreviewDescription(response)
+        toast.success(t('bulk.previewTitle', { defaultValue: 'Preview' }), {
+          description: description || t('bulk.previewNoCount', { defaultValue: 'Dry run completed.' }),
+        })
       },
-    )
+      onError: error => {
+        toast.error(t('operationFailed', { defaultValue: 'Operation failed!' }), {
+          description: describeBulkError(error),
+        })
+      },
+      onSettled: () => setPendingBulkAction(null),
+    })
   }
 
   // For groups operation, groups are the operation target, not user targets

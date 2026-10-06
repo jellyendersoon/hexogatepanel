@@ -115,8 +115,12 @@ export default function HostsPage() {
                     ...formData.transport_settings.xhttp_settings,
                     xmux: formData.transport_settings.xhttp_settings.xmux
                       ? {
-                          ...formData.transport_settings.xhttp_settings.xmux,
-                          h_keep_alive_period: formData.transport_settings.xhttp_settings.xmux.h_keep_alive_period || undefined,
+                          maxConcurrency: formData.transport_settings.xhttp_settings.xmux.max_concurrency || undefined,
+                          maxConnections: formData.transport_settings.xhttp_settings.xmux.max_connections || undefined,
+                          cMaxReuseTimes: formData.transport_settings.xhttp_settings.xmux.c_max_reuse_times || undefined,
+                          hMaxReusableSecs: formData.transport_settings.xhttp_settings.xmux.h_max_reusable_secs || undefined,
+                          hMaxRequestTimes: formData.transport_settings.xhttp_settings.xmux.h_max_request_times || undefined,
+                          hKeepAlivePeriod: formData.transport_settings.xhttp_settings.xmux.h_keep_alive_period || undefined,
                         }
                       : undefined,
                   }
@@ -208,44 +212,46 @@ export default function HostsPage() {
         await createHost(hostData)
         return { status: 200 }
       }
-    } catch (error: any) {
+    } catch (error) {
+      const maybeError = typeof error === 'object' && error !== null ? (error as { response?: { _data?: unknown }; message?: unknown }) : undefined
       console.error('Error submitting host:', error)
-      console.error('Error response:', error?.response)
-      console.error('Error data:', error?.response?._data)
+      console.error('Error response:', maybeError?.response)
+      console.error('Error data:', maybeError?.response?._data)
 
       let errorMessage = ''
       let errorField = ''
 
-      if (error?.response?._data) {
-        const apiError = error.response._data
+      const apiError = maybeError?.response?._data
+      if (apiError) {
+        const apiErrorRecord = typeof apiError === 'object' ? (apiError as { detail?: unknown; message?: unknown }) : undefined
+        const detail = apiErrorRecord?.detail
 
         if (typeof apiError === 'string') {
           errorMessage = apiError
-        } else if (apiError?.detail) {
-          if (Array.isArray(apiError.detail)) {
+        } else if (detail) {
+          if (Array.isArray(detail)) {
             // Get first error message from array
-            const firstError = apiError.detail[0]
-            errorField = firstError?.loc?.[1] || ''
-            errorMessage = firstError?.msg || 'Validation error'
-          } else if (typeof apiError.detail === 'string') {
-            errorMessage = apiError.detail
-          } else if (typeof apiError.detail === 'object') {
+            const firstError = detail[0] as { loc?: unknown[]; msg?: unknown } | undefined
+            const errorLocation = firstError?.loc?.[1]
+            errorField = errorLocation ? String(errorLocation) : ''
+            errorMessage = typeof firstError?.msg === 'string' && firstError.msg ? firstError.msg : 'Validation error'
+          } else if (typeof detail === 'string') {
+            errorMessage = detail
+          } else if (typeof detail === 'object') {
             // Get first error message from object
-            const firstError = Object.entries(apiError.detail)[0]
+            const firstError = Object.entries(detail)[0]
             errorField = firstError[0]
             errorMessage = typeof firstError[1] === 'string' ? firstError[1] : t('validation.invalid', { field: firstError[0] })
-          } else if (typeof apiError.detail === 'string' && !Array.isArray(apiError.detail)) {
-            toast.error(apiError.detail)
           } else {
             errorMessage = 'Validation error'
           }
-        } else if (apiError?.message) {
-          errorMessage = apiError.message
+        } else if (typeof apiErrorRecord?.message === 'string' && apiErrorRecord.message) {
+          errorMessage = apiErrorRecord.message
         } else {
           errorMessage = t('hosts.genericError', { defaultValue: 'An unexpected error occurred' })
         }
       } else {
-        errorMessage = error?.message || t('hosts.genericError', { defaultValue: 'An error occurred' })
+        errorMessage = (typeof maybeError?.message === 'string' && maybeError.message) || t('hosts.genericError', { defaultValue: 'An error occurred' })
       }
 
       // Show error message in toast with field name if available
