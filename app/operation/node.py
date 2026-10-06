@@ -69,7 +69,7 @@ from app.node.manager_sync import publish_node_sync
 from app.node.nats_memory import clear_bridge_memory_for_node
 from app.operation import BaseOperation, OperatorType
 from app.utils.logger import get_logger
-from config import runtime_settings
+from config import node_settings, runtime_settings
 
 MAX_MESSAGE_LENGTH = 128
 # Cap parallel start/attach so ~100 nodes don't stampede NATS lifecycle KV.
@@ -274,11 +274,47 @@ class NodeOperation(BaseOperation):
             return None
 
     @staticmethod
+    async def _attach_running_fresh(pg_node: PasarGuardNode, db_node: Node, users: list):
+        """Attach to a node whose core is already running without sending Start.
+
+        Used only when NODE_ATTACH_RUNNING_ON_STARTUP is on and this process has no
+        lifecycle state for the node yet (panel restart or image swap). The running
+        core keeps its config and its connections; the current user set is pushed with
+        a chunked sync so users created or changed meanwhile are not lost. Any failure
+        falls back to the regular Start.
+        """
+        try:
+            info = await pg_node.info()
+            if info is None or not info.started or not info.node_version or not info.core_version:
+                return None
+            await pg_node.connect(info.node_version, info.core_version)
+            try:
+                await pg_node.sync_users_chunked(users, flush_pending=True)
+            except Exception as exc:
+                await pg_node.disconnect()
+                logger.warning(f'Attach to "{db_node.name}" dropped: user sync failed ({exc}); falling back to Start')
+                return None
+            logger.info(
+                f'Attached to running "{db_node.name}" node v{info.node_version}, core v{info.core_version} '
+                f"without restarting it; synced {len(users)} users"
+            )
+            return info
+        except Exception as exc:
+            logger.debug(f'Attach to running "{db_node.name}" skipped: {exc}')
+            return None
+
+    @staticmethod
     async def _start_or_attach_node(
         pg_node: PasarGuardNode, db_node: Node, core, users: list, backend_type, *, force_start: bool = False
     ):
         if not force_start:
             state = await pg_node.get_lifecycle_state()
+            if state is None and node_settings.attach_running_nodes_on_startup:
+                # Fresh panel process (no lifecycle state yet): a node that still runs its core
+                # from the previous panel keeps it; only the user set is pushed.
+                attached = await NodeOperation._attach_running_fresh(pg_node, db_node, users)
+                if attached is not None:
+                    return attached
             if state is not None and (
                 state.observed in (LifecycleStatus.HEALTHY, LifecycleStatus.STARTING)
                 or state.desired is LifecycleStatus.HEALTHY

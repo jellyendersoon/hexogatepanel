@@ -233,6 +233,11 @@ class NodeSettings(EnvSettings):
     auto_reconnect_max_backoff_checks: int = Field(
         default=60, ge=1, validation_alias="NODE_AUTO_RECONNECT_MAX_BACKOFF_CHECKS"
     )
+    # On panel startup, attach to a node whose core is already running instead of
+    # sending Start (which restarts the core and drops every user on that node).
+    # The panel then pushes the current user set; the core config is NOT re-pushed,
+    # so turn this on only when no core was edited while the panel was down.
+    attach_running_nodes_on_startup: bool = Field(default=False, validation_alias="NODE_ATTACH_RUNNING_ON_STARTUP")
 
 
 database_settings = DatabaseSettings()
