@@ -76,6 +76,15 @@ Hexogate is a self-hosted control panel for running and managing proxy infrastru
    docker compose exec hexogate hexogate-cli generate-temp-key
    ```
 
+### Migrating from PasarGuard
+
+On a server that already runs PasarGuard, stop it and run the migration script from the Hexogate checkout. It moves the data directory to `/var/lib/hexogate` (leaving a symlink behind), rewrites the paths in your `.env`, and prints the remaining manual steps:
+
+```bash
+sudo bash scripts/migrate_from_pasarguard.sh --dry-run   # preview
+sudo bash scripts/migrate_from_pasarguard.sh             # apply
+```
+
 ### From source
 
 Requires Python 3.14+, [uv](https://docs.astral.sh/uv/) and [Bun](https://bun.sh).
