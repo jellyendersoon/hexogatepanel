@@ -410,7 +410,7 @@ export const Login: FC = () => {
           <span className="text-lg font-semibold tracking-wide">Hexogate</span>
         </div>
         <div className="relative flex flex-1 items-center justify-center py-8">
-          <img src="/statics/favicon/hero.webp" alt="" className="w-full max-w-xl object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+          <img src="/statics/favicon/logo.png" alt="" className="w-full max-w-xs object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
         </div>
         <div className="relative space-y-2">
           <h2 className="text-2xl font-semibold text-white">{t('login.brandHeadline', { defaultValue: 'Your gateway, under your control.' })}</h2>
