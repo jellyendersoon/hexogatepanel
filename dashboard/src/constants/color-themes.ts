@@ -122,8 +122,76 @@ function accentOverlay(name: string, lightPrimary: string, lightFg: string, dark
   }
 }
 
+/**
+ * Hexogate brand palette (hexogate.com): navy surfaces with a cyan accent.
+ *   navy #031d44 · surface #082a58 · text #dfeafa · muted #9fb8d8 · cyan #56c6ea · cyan-soft #a5e2f6 · green #4fe0b0
+ */
+const hexogatePalette: ColorThemeConfig = {
+  name: 'Hexogate',
+  light: {
+    ...lightShared,
+    '--background': '210 40% 97%',
+    '--foreground': '216 60% 12%',
+    '--secondary': '212 40% 92%',
+    '--secondary-foreground': '216 60% 18%',
+    '--muted': '212 35% 92%',
+    '--muted-foreground': '215 25% 42%',
+    '--accent': '212 40% 92%',
+    '--accent-foreground': '216 60% 18%',
+    '--border': '213 30% 85%',
+    '--input': '213 30% 90%',
+    '--card': '0 0% 100%',
+    '--primary': '215 82% 21%',
+    '--primary-foreground': '210 40% 98%',
+    '--ring': '195 78% 45%',
+    '--chart-1': '215 82% 21%',
+    '--chart-2': '195 78% 45%',
+    '--chart-3': '200 70% 35%',
+    '--chart-4': '195 60% 60%',
+    '--chart-5': '215 40% 70%',
+    '--sidebar-background': '212 40% 93%',
+    '--sidebar-foreground': '216 60% 18%',
+    '--sidebar-primary': '215 82% 21%',
+    '--sidebar-primary-foreground': '210 40% 98%',
+    '--sidebar-accent': '212 40% 87%',
+    '--sidebar-accent-foreground': '216 60% 12%',
+    '--sidebar-border': '213 30% 82%',
+    '--sidebar-ring': '195 78% 45%',
+  },
+  dark: {
+    ...darkShared,
+    '--background': '216 92% 14%',
+    '--foreground': '216 73% 93%',
+    '--secondary': '215 82% 21%',
+    '--secondary-foreground': '216 73% 93%',
+    '--muted': '215 82% 21%',
+    '--muted-foreground': '214 42% 73%',
+    '--accent': '215 83% 24%',
+    '--accent-foreground': '216 73% 95%',
+    '--border': '215 70% 27%',
+    '--input': '215 80% 22%',
+    '--card': '215 83% 19%',
+    '--primary': '195 78% 63%',
+    '--primary-foreground': '202 90% 12%',
+    '--ring': '195 78% 63%',
+    '--chart-1': '195 78% 63%',
+    '--chart-2': '195 82% 81%',
+    '--chart-3': '193 100% 80%',
+    '--chart-4': '160 70% 59%',
+    '--chart-5': '215 60% 55%',
+    '--sidebar-background': '217 90% 11%',
+    '--sidebar-foreground': '214 42% 80%',
+    '--sidebar-primary': '195 78% 63%',
+    '--sidebar-primary-foreground': '202 90% 12%',
+    '--sidebar-accent': '215 83% 19%',
+    '--sidebar-accent-foreground': '216 73% 95%',
+    '--sidebar-border': '215 70% 24%',
+    '--sidebar-ring': '195 78% 63%',
+  },
+}
+
 export const baseColors: Record<BaseColor, ColorThemeConfig> = {
-  default: basePalette('Neutral', 240, 5, 2, '216 46% 40%', '240 5% 98%', '216 46% 53%', '0 0% 5%'),
+  default: hexogatePalette,
   zinc: basePalette('Zinc', 240, 6, 3, '240 6% 10%', '0 0% 98%', '0 0% 98%', '240 6% 10%'),
   slate: basePalette('Slate', 215, 14, 8, '222 47% 11%', '210 40% 98%', '210 40% 98%', '222 47% 11%'),
   stone: basePalette('Stone', 30, 6, 4, '24 10% 10%', '60 9% 98%', '24 6% 83%', '24 10% 10%'),
@@ -154,7 +222,7 @@ export const baseColorOrder: BaseColor[] = ['default', 'zinc', 'slate', 'stone',
 export const colorThemeOrder: ColorTheme[] = ['default', 'inverse', 'red', 'rose', 'pink', 'orange', 'amber', 'yellow', 'green', 'teal', 'cyan', 'blue', 'indigo', 'violet']
 
 export const baseSwatches: Record<BaseColor, string> = {
-  default: '#4f6d8c',
+  default: '#031d44',
   zinc: '#71717a',
   slate: '#64748b',
   stone: '#78716c',

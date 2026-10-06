@@ -11,7 +11,7 @@ import { useAdmin } from '@/hooks/use-admin'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useSystemVersion } from '@/hooks/use-system-version'
 import { cn } from '@/lib/utils'
-import { canReadResourcePage, hasPermission, hasScopeAll } from '@/utils/rbac'
+import { canReadResourcePage, hasPermission, hasScopeAll, isOwner } from '@/utils/rbac'
 import {
   ArrowUpDown,
   Bell,
