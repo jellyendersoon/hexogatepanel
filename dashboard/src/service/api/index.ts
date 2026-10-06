@@ -385,6 +385,7 @@ export const AdminStatus = {
 export interface RoleFeatures {
   can_use_reset_strategy?: boolean;
   can_use_next_plan?: boolean;
+  can_extend_time?: boolean;
 }
 
 export interface RoleAccess {

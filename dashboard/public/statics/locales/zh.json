@@ -994,6 +994,10 @@
       "can_use_next_plan": {
         "title": "使用下一计划",
         "description": "允许此角色配置自动应用的下一计划。"
+      },
+      "can_extend_time": {
+        "title": "可延长用户时间",
+        "description": "允许此角色为现有用户增加时间（更晚或无限期到期、新建或更长的保留）。关闭则仅可增加流量。"
       }
     }
   },

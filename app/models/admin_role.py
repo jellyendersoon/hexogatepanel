@@ -112,6 +112,9 @@ class RoleLimits(BaseModel):
 class RoleFeatures(BaseModel):
     can_use_reset_strategy: bool = True
     can_use_next_plan: bool = True
+    # When False, admins with this role may add data to existing users but never time:
+    # later/unlimited expire, new or longer on-hold reservations and later on-hold timeouts are rejected.
+    can_extend_time: bool = True
 
     model_config = ConfigDict(from_attributes=True)
 

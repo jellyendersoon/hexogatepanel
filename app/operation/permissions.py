@@ -131,6 +131,18 @@ def get_effective_limits(admin: AdminDetails) -> RoleLimits:
     )
 
 
+def can_extend_time(admin: AdminDetails) -> bool:
+    """
+    Return True if the admin may add time to existing users (later/unlimited expire,
+    new or longer on-hold reservations, later on-hold timeouts, bulk expire increase).
+    Owner always may; otherwise governed by role.features.can_extend_time.
+    Features have no per-admin override (permission_overrides only carries RoleLimits).
+    """
+    if admin.is_owner or admin.role is None:
+        return True
+    return admin.role.features.can_extend_time
+
+
 def get_allowed_group_ids(admin: AdminDetails) -> list[int] | None:
     """None means all groups allowed (owner or no restriction)."""
     if admin.is_owner or admin.role is None:

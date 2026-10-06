@@ -994,6 +994,10 @@
       "can_use_next_plan": {
         "title": "Use next plan",
         "description": "Allow this role to configure auto-applied next plans."
+      },
+      "can_extend_time": {
+        "title": "Can extend user time",
+        "description": "Allow this role to add time to existing users (later or unlimited expire, new or longer on-hold). Off means data only."
       }
     }
   },

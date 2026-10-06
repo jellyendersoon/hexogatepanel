@@ -101,6 +101,7 @@ from app.operation import BaseOperation, OperatorType
 from app.operation.permissions import (
     PermissionDenied,
     apply_template_access,
+    can_extend_time,
     enforce_permission,
     get_effective_limits,
     get_scope_admin_id,
@@ -154,6 +155,17 @@ async def _resolve_users_usage_admins_filter(
 
 
 logger = get_logger("user-operation")
+
+TIME_EXTENSION_FORBIDDEN_MESSAGE = (
+    "You are not allowed to extend time for existing users. / شما اجازه افزایش زمان کاربران فعلی را ندارید."
+)
+# Absorbs sub-second rounding when a client echoes the current expire back unchanged.
+_TIME_EXTENSION_TOLERANCE = td(seconds=1)
+
+
+def _is_unlimited_time(value: dt | int | None) -> bool:
+    return value is None or value == 0
+
 
 _USER_AGENT_SPLIT_RE = re.compile(r"[;/\s\(\)]+")
 _VERSION_TOKEN_RE = re.compile(r"v?\d+(?:\.\d+)*", re.IGNORECASE)
@@ -699,6 +711,81 @@ class UserOperation(BaseOperation):
 
         return user
 
+    async def _ensure_time_not_extended(
+        self, db: AsyncSession, admin: AdminDetails, db_user: User, modified_user: UserModify
+    ) -> None:
+        """
+        Reject edits that would give an existing user more time when the admin's role lacks
+        ``features.can_extend_time``. Data-only edits, reductions and unchanged values pass.
+        Covers plain modify, modify-with-template and bulk apply-template (all go through
+        ``_prepare_modified_user``); ``bulk_modify_expire`` enforces the same rule separately.
+        """
+        if can_extend_time(admin):
+            return
+
+        fields = modified_user.model_fields_set
+        now = dt.now(UTC)
+        current_expire = fix_datetime_timezone(db_user.expire) if db_user.expire else None
+        current_duration = db_user.on_hold_expire_duration or 0
+        current_timeout = fix_datetime_timezone(db_user.on_hold_timeout) if db_user.on_hold_timeout else None
+        # A user whose time budget is an on-hold reservation rather than an expire date.
+        has_reservation = (
+            db_user.expire is None
+            and current_duration > 0
+            and db_user.status in (UserStatus.on_hold, UserStatus.disabled)
+        )
+        requested_status = getattr(modified_user.status, "value", modified_user.status)
+
+        async def deny() -> None:
+            await self.raise_error(message=TIME_EXTENSION_FORBIDDEN_MESSAGE, code=403, db=db)
+
+        # 1. expire: later than now, or unlimited when the user had a deadline.
+        if "expire" in fields:
+            new_expire = modified_user.expire
+            if new_expire == 0:
+                # 0 clears the deadline (explicit None is a no-op in the CRUD layer).
+                if current_expire is not None:
+                    await deny()
+            elif new_expire is not None:
+                new_expire_dt = fix_datetime_timezone(new_expire)
+                if current_expire is not None:
+                    if new_expire_dt > current_expire + _TIME_EXTENSION_TOLERANCE:
+                        await deny()
+                # Manually starting a reservation: may not exceed what the reservation would give.
+                # A user with no deadline at all only loses time from a finite expire.
+                elif has_reservation and new_expire_dt > now + td(seconds=current_duration) + _TIME_EXTENSION_TOLERANCE:
+                    await deny()
+
+        # 2. on_hold -> active without a finite expire would make the user unlimited.
+        if (
+            requested_status == UserStatus.active.value
+            and db_user.status == UserStatus.on_hold
+            and _is_unlimited_time(modified_user.expire)
+        ):
+            await deny()
+
+        # 3. New on-hold reservation for a user that does not hold one.
+        if requested_status == UserStatus.on_hold.value and not has_reservation:
+            await deny()
+
+        # 4. Longer on-hold reservation.
+        if "on_hold_expire_duration" in fields and has_reservation:
+            new_duration = modified_user.on_hold_expire_duration
+            if new_duration is not None and new_duration != 0 and new_duration > current_duration:
+                await deny()
+
+        # 5. Later on-hold timeout on an existing reservation. The validator maps 0 to None and the
+        # CRUD layer ignores None, so only a datetime can change the timeout; a timeout on a user
+        # that had none (unlimited) only reduces time.
+        if "on_hold_timeout" in fields and has_reservation:
+            new_timeout = modified_user.on_hold_timeout
+            if (
+                new_timeout is not None
+                and current_timeout is not None
+                and fix_datetime_timezone(new_timeout) > current_timeout + _TIME_EXTENSION_TOLERANCE
+            ):
+                await deny()
+
     async def _prepare_modified_user(
         self,
         db: AsyncSession,
@@ -708,6 +795,10 @@ class UserOperation(BaseOperation):
         *,
         skip_role_limits: bool = False,
     ):
+        # Time-extension guard applies to every modify path, including template flows
+        # that skip the numeric role limits.
+        await self._ensure_time_not_extended(db, admin, db_user, modified_user)
+
         modified_fields = modified_user.model_fields_set
         hwid_limit_was_changed = "hwid_limit" in modified_fields
         effective_hwid_conf = None
@@ -1917,7 +2008,9 @@ class UserOperation(BaseOperation):
 
         return self._build_bulk_action_response(users)
 
-    async def bulk_modify_expire(self, db: AsyncSession, bulk_model: BulkUser):
+    async def bulk_modify_expire(self, db: AsyncSession, bulk_model: BulkUser, admin: AdminDetails | None = None):
+        if admin is not None and bulk_model.amount > 0 and not can_extend_time(admin):
+            await self.raise_error(message=TIME_EXTENSION_FORBIDDEN_MESSAGE, code=403, db=db)
         if bulk_model.dry_run:
             n = await count_bulk_expire_targets(db, bulk_model)
             return BulkOperationDryRunResponse(affected_users=n)

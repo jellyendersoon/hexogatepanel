@@ -139,7 +139,7 @@ export const LIMIT_KEYS = [
   'on_hold_timeout_days_max',
 ] as const
 
-export const FEATURE_KEYS: Array<keyof RoleFeatures> = ['can_use_reset_strategy', 'can_use_next_plan']
+export const FEATURE_KEYS: Array<keyof RoleFeatures> = ['can_use_reset_strategy', 'can_use_next_plan', 'can_extend_time']
 
 const VALID_PERMISSION_ACTIONS = PERMISSION_GROUPS.reduce<Record<string, Set<string>>>((acc, group) => {
   for (const item of group.actions) {
@@ -287,6 +287,7 @@ const hasValue = (_keyValue: [string, number | null | undefined]) => {
 const featuresSchema = z.object({
   can_use_reset_strategy: z.boolean(),
   can_use_next_plan: z.boolean(),
+  can_extend_time: z.boolean(),
 })
 
 const accessSchema = z.object({
@@ -333,6 +334,7 @@ export type AdminRoleFormValues = z.infer<typeof adminRoleFormSchema>
 export const defaultAdminRoleFeatures = (): AdminRoleFormValues['features'] => ({
   can_use_reset_strategy: true,
   can_use_next_plan: true,
+  can_extend_time: true,
 })
 
 export const defaultAdminRoleAccess = (): AdminRoleFormValues['access'] => ({
@@ -389,6 +391,7 @@ export const adminRoleFormFromResponse = (role: AdminRoleResponse): AdminRoleFor
   features: {
     can_use_reset_strategy: role.features?.can_use_reset_strategy ?? true,
     can_use_next_plan: role.features?.can_use_next_plan ?? true,
+    can_extend_time: role.features?.can_extend_time ?? true,
   },
   access: {
     require_template: role.access?.require_template ?? false,
