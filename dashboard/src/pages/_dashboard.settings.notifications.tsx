@@ -9,7 +9,7 @@ import { z } from 'zod'
 import { type ControllerRenderProps, type Path, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
-import { useSettingsContext } from './_dashboard.settings'
+import { useSettingsContext } from './settings-context'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import {

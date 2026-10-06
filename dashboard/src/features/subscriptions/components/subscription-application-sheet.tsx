@@ -1,4 +1,5 @@
-import { isValidIconUrl, languageOptions, platformOptions, PlatformIcon } from '@/features/subscriptions/components/subscription-application-shared'
+import { PlatformIcon } from '@/features/subscriptions/components/subscription-application-shared'
+import { isValidIconUrl, languageOptions, platformOptions } from '@/features/subscriptions/components/subscription-application-options'
 import { subscriptionApplicationSchema, type SubscriptionApplicationFormData, type SubscriptionFormData } from '@/features/subscriptions/components/subscription-settings-schema'
 import { Button } from '@/components/ui/button'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'

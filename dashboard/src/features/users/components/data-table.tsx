@@ -11,6 +11,7 @@ import { StatusBadge } from './status-badge'
 import UsageSliderCompact from '@/components/common/usage-slider-compact'
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useLatest } from '@/hooks/use-latest'
 
 interface DataTableProps<TData extends UserResponse, TValue> {
   columns: ColumnDef<TData, TValue>[]
@@ -215,10 +216,11 @@ export const DataTable = memo(
 
     const table = useReactTable(tableConfig)
 
+    const onSelectionChangeRef = useLatest(onSelectionChange)
     useEffect(() => {
       setRowSelection({})
-      onSelectionChange?.([])
-    }, [resetSelectionKey])
+      onSelectionChangeRef.current?.([])
+    }, [resetSelectionKey, onSelectionChangeRef])
 
     const handleRowToggle = useCallback((rowId: number) => {
       setExpandedRow(prev => (prev === rowId ? null : rowId))

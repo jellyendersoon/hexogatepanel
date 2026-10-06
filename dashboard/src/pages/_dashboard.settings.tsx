@@ -4,39 +4,18 @@ import { cn } from '@/lib/utils'
 import { getGetGeneralSettingsQueryKey, getGetSettingsQueryKey, useGetSettings, useModifySettings, type SettingsSchema } from '@/service/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { Bell, Database, Fingerprint, ListTodo, LucideIcon, Palette, Send, Settings as SettingsIcon, Webhook } from 'lucide-react'
-import { createContext, useCallback, useContext, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { hasPermission } from '@/utils/rbac'
+import { SettingsContext, type SettingsContextType, type SettingsUpdateInput } from '@/pages/settings-context'
 
 interface Tab {
   id: string
   label: string
   icon: LucideIcon
   url: string
-}
-
-// Settings payload accepted by updateSettings: either plain settings or already wrapped as { data }
-type SettingsUpdateInput = SettingsSchema & { data?: SettingsSchema }
-
-// Create context for settings
-interface SettingsContextType {
-  settings: SettingsSchema
-  isLoading: boolean
-  error: unknown
-  updateSettings: (data: SettingsUpdateInput) => Promise<void>
-  isSaving: boolean
-}
-
-const SettingsContext = createContext<SettingsContextType | undefined>(undefined)
-
-export const useSettingsContext = () => {
-  const context = useContext(SettingsContext)
-  if (!context) {
-    throw new Error('useSettingsContext must be used within SettingsProvider')
-  }
-  return context!
 }
 
 const allTabs: Tab[] = [

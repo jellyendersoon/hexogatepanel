@@ -14,6 +14,7 @@ import { AdminRoleResponse, getGetRolesQueryKey, getGetRolesSimpleQueryKey, useD
 
 import { isProtectedRole, isReadOnlyRole } from '@/features/admin-roles/forms/admin-role-form'
 import { getErrorMessage } from '@/utils/error-utils'
+import { escapeHtml } from '@/utils/escape-html'
 
 interface AdminRoleActionsMenuProps {
   role: AdminRoleResponse
@@ -94,7 +95,10 @@ export default function AdminRoleActionsMenu({ role, onEdit, onDuplicate, classN
           <AlertDialogHeader>
             <AlertDialogTitle>{t('adminRoles.deleteConfirmation', { defaultValue: 'Delete role' })}</AlertDialogTitle>
             <AlertDialogDescription>
-              <span dir={dir} dangerouslySetInnerHTML={{ __html: t('adminRoles.deleteConfirm', { name: role.name, defaultValue: 'Are you sure you want to delete role <b>{{name}}</b>?' }) }} />
+              <span
+                dir={dir}
+                dangerouslySetInnerHTML={{ __html: t('adminRoles.deleteConfirm', { name: escapeHtml(role.name), defaultValue: 'Are you sure you want to delete role <b>{{name}}</b>?' }) }}
+              />
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

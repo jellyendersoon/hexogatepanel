@@ -15,7 +15,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { useSettingsContext } from './_dashboard.settings'
+import { useSettingsContext } from './settings-context'
 
 // general settings validation schema
 const generalSettingsSchema = z.object({
@@ -31,16 +31,18 @@ export default function General() {
   const [isReconnectAllDialogOpen, setIsReconnectAllDialogOpen] = useState(false)
   const reconnectAllNodeMutation = useReconnectAllNode()
 
+  const hasGeneralSettings = !!generalSettings
+  const generalDefaultMethod = generalSettings?.default_method
   const generalFormValues = useMemo<GeneralSettingsFormInput>(
     () =>
-      generalSettings
+      hasGeneralSettings
         ? {
-            default_method: generalSettings.default_method || DEFAULT_SHADOWSOCKS_METHOD,
+            default_method: generalDefaultMethod || DEFAULT_SHADOWSOCKS_METHOD,
           }
         : {
             default_method: '',
           },
-    [generalSettings?.default_method],
+    [hasGeneralSettings, generalDefaultMethod],
   )
 
   const form = useForm<GeneralSettingsFormInput>({

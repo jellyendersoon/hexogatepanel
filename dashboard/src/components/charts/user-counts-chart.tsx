@@ -34,7 +34,8 @@ import ChartBrush from './chart-brush'
 import DenseChartAreaHint from './dense-chart-area-hint'
 import { EmptyState } from './empty-state'
 import PeriodSelector from './period-selector'
-import TimeSelector, { TRAFFIC_TIME_SELECTOR_SHORTCUTS } from './time-selector'
+import TimeSelector from './time-selector'
+import { TRAFFIC_TIME_SELECTOR_SHORTCUTS } from './time-selector-shortcuts'
 import { TimeRangeSelector } from '@/components/common/time-range-selector'
 
 type CountDataPoint = {

@@ -154,7 +154,17 @@ const getOpenModalUsers = (): UserResponse[] =>
     .map(([userId]) => actionButtonsUserStore.get(userId))
     .filter((user): user is UserResponse => Boolean(user))
 
-const getGlobalModalStateSnapshot = () => actionButtonsGlobalStateVersion
+let openModalUsersSnapshot: UserResponse[] = []
+let openModalUsersSnapshotVersion = -1
+
+/** Stable per store version so `useSyncExternalStore` only re-renders the host when the open-modal set changes. */
+const getOpenModalUsersSnapshot = (): UserResponse[] => {
+  if (openModalUsersSnapshotVersion !== actionButtonsGlobalStateVersion) {
+    openModalUsersSnapshot = getOpenModalUsers()
+    openModalUsersSnapshotVersion = actionButtonsGlobalStateVersion
+  }
+  return openModalUsersSnapshot
+}
 
 const updateModalState = (userId: number, updater: (prev: ActionButtonsModalState) => ActionButtonsModalState) => {
   const current = actionButtonsModalStateStore.get(userId)
@@ -240,7 +250,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
       ensureModalState(user)
       updateModalState(user.id, prev => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }))
     },
-    [user, user.id],
+    [user],
   )
 
   const {
@@ -911,8 +921,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
 }
 
 export const ActionButtonsModalHost: FC = () => {
-  const modalStateVersion = useSyncExternalStore(subscribeGlobalModalState, getGlobalModalStateSnapshot, getGlobalModalStateSnapshot)
-  const usersWithOpenModals = useMemo(() => getOpenModalUsers(), [modalStateVersion])
+  const usersWithOpenModals = useSyncExternalStore(subscribeGlobalModalState, getOpenModalUsersSnapshot, getOpenModalUsersSnapshot)
 
   if (usersWithOpenModals.length === 0) return null
 

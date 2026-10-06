@@ -187,7 +187,7 @@ export default function UserOnlineStatsModal({ isOpen, onOpenChange, nodeId, nod
         },
       },
     }),
-    [isOpen, nodeId, specificUsername],
+    [isOpen],
   )
 
   const userIPsQueryOptions = useMemo(

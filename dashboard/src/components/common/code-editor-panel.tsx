@@ -1,6 +1,7 @@
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { Button } from '@/components/ui/button'
 import { DEFAULT_MONACO_CODE_EDITOR_OPTIONS } from '@/components/common/code-editor-defaults'
+import { relayoutCodeEditorInstance } from '@/components/common/code-editor-relayout'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { cn } from '@/lib/utils'
@@ -42,13 +43,6 @@ export type CodeEditorPanelProps = {
   /** Extra class on outer wrapper (border host). */
   className?: string
   footer?: ReactNode
-}
-
-export function relayoutCodeEditorInstance(editor: unknown) {
-  if (!editor || typeof editor !== 'object') return
-  const e = editor as { layout?: () => void; resize?: () => void }
-  if (typeof e.layout === 'function') e.layout()
-  if (typeof e.resize === 'function') e.resize()
 }
 
 /**

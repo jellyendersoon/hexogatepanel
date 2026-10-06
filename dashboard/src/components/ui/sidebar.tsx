@@ -15,8 +15,6 @@ import { cn } from '@/lib/utils'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useTranslation } from 'react-i18next'
 
-export { SidebarContext, useSidebar } from '@/components/ui/sidebar-context'
-
 const SIDEBAR_COOKIE_NAME = 'sidebar:state'
 const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
 const SIDEBAR_LOCALSTORAGE_KEY = 'sidebar:state'

@@ -9,14 +9,16 @@ import { Separator } from '@/components/ui/separator'
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import { isBooleanParityField, XrayParityFormControl } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { XrayParityFormControl } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { isBooleanParityField } from '@/features/core-editor/components/shared/xray-parity-field'
 import { OutboundSpecialProtocolSettings } from '@/features/core-editor/components/xray/outbound-special-protocol-settings'
 import { TcpHeaderObfuscationForm } from '@/features/core-editor/components/shared/tcp-header-obfuscation-form'
 import { CoreEditorDataTable } from '@/features/core-editor/components/shared/core-editor-data-table'
 import { CoreEditorFormDialog } from '@/features/core-editor/components/shared/core-editor-form-dialog'
 import { JsonCodeEditorPanel } from '@/features/core-editor/components/shared/json-code-editor-panel'
 import { OutboundLatencyTestDialog } from '@/features/core-editor/components/xray/outbound-latency-test-dialog'
-import { pruneSockoptObject, XrayStreamSockoptFields } from '@/features/core-editor/components/shared/xray-stream-sockopt-editor'
+import { XrayStreamSockoptFields } from '@/features/core-editor/components/shared/xray-stream-sockopt-editor'
+import { pruneSockoptObject } from '@/features/core-editor/components/shared/xray-stream-sockopt'
 import { XrayStreamFinalmaskFields } from '@/features/core-editor/components/shared/xray-stream-finalmask-editor'
 import { inferParityFieldMode, outboundScalarParityFieldPrefersFullGridWidth, outboundSettingToString, parseOutboundSettingValue } from '@/features/core-editor/kit/xray-parity-value'
 import { useCoreEditorStore } from '@/features/core-editor/state/core-editor-store'
@@ -559,7 +561,7 @@ export function XrayOutboundsSection({ headerAddPulse, headerAddEpoch }: XrayOut
   /** Bumps when outbound settings shape changes without row identity changing (edit: protocol switch, URI import). */
   const [settingsFormSeed, setSettingsFormSeed] = useState(0)
 
-  const outbounds = profile?.outbounds ?? []
+  const outbounds = useMemo(() => profile?.outbounds ?? [], [profile?.outbounds])
   const hasOutbounds = outbounds.length > 0
 
   const ob = useMemo(() => {

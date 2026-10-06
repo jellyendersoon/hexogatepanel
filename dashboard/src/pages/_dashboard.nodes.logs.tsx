@@ -16,6 +16,7 @@ import { TerminalLine } from '@/features/nodes/components/terminal-line'
 import { LineCountFilter } from '@/features/nodes/components/line-count-filter'
 import { SinceLogsFilter, type TimeFilter } from '@/features/nodes/components/since-logs-filter'
 import { StatusLogsFilter } from '@/features/nodes/components/status-logs-filter'
+import { priorities } from '@/features/nodes/components/log-priorities'
 import { appendTrim, parseLogs, type LogLine } from '@/utils/logsUtils'
 import { EventSource } from 'eventsource'
 
@@ -34,25 +35,6 @@ const SINCE_DURATION_MS: Record<Exclude<TimeFilter, 'all'>, number> = {
   '12h': 12 * 60 * 60 * 1000,
   '24h': 24 * 60 * 60 * 1000,
 }
-
-export const priorities = [
-  {
-    label: 'nodes.logs.info',
-    value: 'info',
-  },
-  {
-    label: 'nodes.logs.warning',
-    value: 'warning',
-  },
-  {
-    label: 'nodes.logs.debug',
-    value: 'debug',
-  },
-  {
-    label: 'nodes.logs.error',
-    value: 'error',
-  },
-]
 
 export default function NodeLogs() {
   const { t } = useTranslation()
@@ -74,7 +56,7 @@ export default function NodeLogs() {
   const eventSourceRef = useRef<EventSource | null>(null)
 
   const { data: nodesResponse } = useGetNodesSimple({ all: true })
-  const nodes = nodesResponse?.nodes || []
+  const nodes = useMemo(() => nodesResponse?.nodes || [], [nodesResponse?.nodes])
 
   // Filter to only show connected nodes
   const connectedNodes = useMemo(() => nodes.filter(node => node.status === 'connected'), [nodes])

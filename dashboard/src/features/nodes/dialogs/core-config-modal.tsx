@@ -32,13 +32,40 @@ import { generateKeyPair } from '@stablelib/x25519'
 import { debounce } from 'es-toolkit'
 import { Sparkles, Pencil, Cpu } from 'lucide-react'
 import type { editor } from 'monaco-editor'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import type { FieldErrors, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import type { CoreBackendType, CoreConfigFormValues } from '@/features/nodes/forms/core-config-form'
 import { VlessAdvancedGenerationModal, type VlessKeyVariant } from '@/features/core-editor/components/shared/vless-advanced-generation-modal'
 import { XrayInboundTagPicker } from '@/features/core-editor/components/shared/xray-inbound-tag-selectors'
+
+// Styles injected for the Monaco context menu on desktop (see effect in CoreConfigModal)
+const MONACO_MOBILE_MENU_STYLES = `
+    .monaco-editor-mobile .monaco-menu {
+        background-color: var(--background) !important;
+    }
+
+    .monaco-editor-mobile .monaco-menu .action-item {
+        background-color: var(--background) !important;
+    }
+
+    .monaco-editor-mobile .monaco-menu .action-item:hover {
+        background-color: var(--muted) !important;
+    }
+
+    .monaco-editor-mobile .monaco-menu .action-item.disabled {
+        opacity: 0.5;
+    }
+
+    .monaco-editor-mobile .monaco-menu .action-item .action-label {
+        color: var(--foreground) !important;
+    }
+
+    .monaco-editor-mobile .monaco-menu .action-item:hover .action-label {
+        color: var(--foreground) !important;
+    }
+    `
 
 interface CoreConfigModalProps {
   isDialogOpen: boolean
@@ -172,37 +199,39 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
   )
 
   // Debounce config changes to improve performance
-  const debouncedConfigChange = useCallback(
-    debounce((value: string) => {
-      try {
-        const parsedConfig: unknown = JSON.parse(value)
-        const config = isRecord(parsedConfig) ? parsedConfig : {}
-        const selectedBackendType = (form.getValues('type') ?? 'xray') as CoreBackendType
-        if (selectedBackendType === 'wg') {
-          const interfaceName = typeof config.interface_name === 'string' ? config.interface_name.trim() : ''
-          setInboundTags(interfaceName ? [interfaceName] : [])
-        } else if (config.inbounds && Array.isArray(config.inbounds)) {
-          const tags = config.inbounds
-            .filter((inbound: unknown): inbound is { tag: string } => isRecord(inbound) && typeof inbound.tag === 'string' && inbound.tag.trim() !== '')
-            .map(inbound => inbound.tag)
-          setInboundTags(tags)
-        } else {
+  const debouncedConfigChange = useMemo(
+    () =>
+      debounce((value: string) => {
+        try {
+          const parsedConfig: unknown = JSON.parse(value)
+          const config = isRecord(parsedConfig) ? parsedConfig : {}
+          const selectedBackendType = (form.getValues('type') ?? 'xray') as CoreBackendType
+          if (selectedBackendType === 'wg') {
+            const interfaceName = typeof config.interface_name === 'string' ? config.interface_name.trim() : ''
+            setInboundTags(interfaceName ? [interfaceName] : [])
+          } else if (config.inbounds && Array.isArray(config.inbounds)) {
+            const tags = config.inbounds
+              .filter((inbound: unknown): inbound is { tag: string } => isRecord(inbound) && typeof inbound.tag === 'string' && inbound.tag.trim() !== '')
+              .map(inbound => inbound.tag)
+            setInboundTags(tags)
+          } else {
+            setInboundTags([])
+          }
+        } catch {
           setInboundTags([])
         }
-      } catch {
-        setInboundTags([])
-      }
-    }, 300),
+      }, 300),
     [form],
   )
 
   // Extract inbound tags from config JSON whenever config changes
+  const watchedConfig = form.watch('config')
   useEffect(() => {
     const configValue = form.getValues().config
     if (configValue) {
       debouncedConfigChange(configValue)
     }
-  }, [form.watch('config'), backendType, debouncedConfigChange])
+  }, [watchedConfig, backendType, debouncedConfigChange, form])
 
   const generatePrivateAndPublicKey = async () => {
     try {
@@ -586,38 +615,11 @@ export default function CoreConfigModal({ isDialogOpen, onOpenChange, form, edit
     }
   }
 
-  // Add this CSS somewhere in your styles (you might need to create a new CSS file or add to existing one)
-  const styles = `
-    .monaco-editor-mobile .monaco-menu {
-        background-color: var(--background) !important;
-    }
-
-    .monaco-editor-mobile .monaco-menu .action-item {
-        background-color: var(--background) !important;
-    }
-
-    .monaco-editor-mobile .monaco-menu .action-item:hover {
-        background-color: var(--muted) !important;
-    }
-
-    .monaco-editor-mobile .monaco-menu .action-item.disabled {
-        opacity: 0.5;
-    }
-
-    .monaco-editor-mobile .monaco-menu .action-item .action-label {
-        color: var(--foreground) !important;
-    }
-
-    .monaco-editor-mobile .monaco-menu .action-item:hover .action-label {
-        color: var(--foreground) !important;
-    }
-    `
-
   // Add this useEffect to inject the styles
   useEffect(() => {
     if (isMobile) return
     const styleElement = document.createElement('style')
-    styleElement.textContent = styles
+    styleElement.textContent = MONACO_MOBILE_MENU_STYLES
     document.head.appendChild(styleElement)
     return () => {
       document.head.removeChild(styleElement)

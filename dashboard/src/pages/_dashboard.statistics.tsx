@@ -4,7 +4,7 @@ import { Separator } from '@/components/ui/separator'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { useGetSystemResourceStats, useGetSystemUsersStats, useGetNodesSimple, NodeSimple, NodeStatus } from '@/service/api'
 import { cn } from '@/lib/utils'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Card, CardContent } from '@/components/ui/card'
@@ -29,7 +29,7 @@ const Statistics = () => {
   )
 
   // Extract nodes array from response
-  const nodesData = nodesResponse?.nodes || []
+  const nodesData = useMemo(() => nodesResponse?.nodes || [], [nodesResponse?.nodes])
 
   useEffect(() => {
     if (canViewSystemStats || selectedServer !== 'master') return

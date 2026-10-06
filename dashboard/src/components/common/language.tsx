@@ -1,7 +1,7 @@
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { SidebarContext } from '@/components/ui/sidebar'
+import { SidebarContext } from '@/components/ui/sidebar-context'
 import { LanguagesIcon } from 'lucide-react'
 import { useContext } from 'react'
 import { useTranslation } from 'react-i18next'

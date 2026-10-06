@@ -277,7 +277,7 @@ export const Filters = ({ filters, onFilterChange, refetch, autoRefetch, advance
         offset: 0,
       })
     }
-  }, [debouncedSearch, onFilterChange])
+  }, [debouncedSearch, onFilterChange, setSearch])
 
   // Handle input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

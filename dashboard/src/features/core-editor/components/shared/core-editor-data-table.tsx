@@ -118,7 +118,7 @@ export function CoreEditorDataTable<TData>({
   toolbarActions,
   getRowActions,
 }: CoreEditorDataTableProps<TData>) {
-  const { t, i18n } = useTranslation()
+  const { t } = useTranslation()
   const dir = useDirDetection()
   const [viewMode, setViewMode] = usePersistedViewMode(CORE_EDITOR_VIEW_MODE_STORAGE_KEY, DEFAULT_CORE_EDITOR_VIEW_MODE)
   const [searchQuery, setSearchQuery] = useState('')
@@ -190,12 +190,13 @@ export function CoreEditorDataTable<TData>({
   )
 
   const table = useReactTable(tableConfig)
+  // TanStack memoizes these per `columns` identity; callers rebuild `columns` from `t`, so they also change on locale switch.
+  const headerGroup = table.getHeaderGroups()[0]
+  const visibleLeaves = table.getVisibleLeafColumns()
 
   const listColumnsSansMenu = useMemo((): ListColumn<TData>[] => {
-    const headerGroup = table.getHeaderGroups()[0]
     if (!headerGroup) return []
 
-    const visibleLeaves = table.getVisibleLeafColumns()
     /** Match {@link useNodeListColumns}: keep # + first summary column on the row; rest + chevron expand on mobile. */
     const primaryMobileIds = new Set<string>()
     if (visibleLeaves.some(c => c.id === 'index')) {
@@ -234,8 +235,8 @@ export function CoreEditorDataTable<TData>({
         },
       }
     })
-    // Headers are rendered once into React nodes here; `table`/`displayData` stay the same on locale change.
-  }, [table, displayData, i18n.language])
+    // Headers are rendered once into React nodes here; `headerGroup`/`visibleLeaves` change when `columns` does (incl. locale change).
+  }, [table, displayData, headerGroup, visibleLeaves])
 
   const listColumns = useMemo((): ListColumn<TData>[] => {
     return [

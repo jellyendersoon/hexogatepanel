@@ -1,4 +1,4 @@
-import type { ValidationListItem } from '@/features/core-editor/components/shared/validation-summary'
+import type { ValidationListItem } from '@/features/core-editor/components/shared/validation-list'
 import { validateProfileForPersist } from '@/features/core-editor/kit/xray-adapter'
 import { useCoreEditorStore } from '@/features/core-editor/state/core-editor-store'
 import { useMemo } from 'react'

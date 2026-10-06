@@ -1,13 +1,12 @@
 import { Suspense } from 'react'
-import { useAdmin } from '@/hooks/use-admin'
 import { getCurrentAdmin, type AdminDetails } from '@/service/api'
-import { hasPermission } from '@/utils/rbac'
-import { createHashRouter, Navigate, RouteObject } from 'react-router'
+import { createHashRouter, RouteObject } from 'react-router'
 import { LoadingSpinner } from '@/components/common/loading-spinner'
 import { RouteErrorPage } from '@/components/layout/error-page'
 import { TabbedRouteSuspenseFallback } from '@/components/layout/tabbed-route-suspense-fallback'
 import { lazyWithChunkRecovery } from '@/utils/chunk-recovery'
 import { isAuthenticationError } from '@/utils/error-utils'
+import { SettingsIndex, TemplatesIndex } from '@/app/router-index-redirects'
 // Replace direct imports with lazy imports for route-level components
 const CoresLayout = lazyWithChunkRecovery(() => import('@/pages/_dashboard.nodes.cores'))
 const CoresIndex = lazyWithChunkRecovery(() => import('@/pages/_dashboard.nodes.cores._index'))
@@ -44,23 +43,6 @@ const UserTemplates = lazyWithChunkRecovery(() => import('../pages/_dashboard.te
 const ClientTemplates = lazyWithChunkRecovery(() => import('../pages/_dashboard.templates.client'))
 const Users = lazyWithChunkRecovery(() => import('../pages/_dashboard.users'))
 const Login = lazyWithChunkRecovery(() => import('../pages/login'))
-
-// Component to handle default settings routing based on user permissions
-function SettingsIndex() {
-  const { admin } = useAdmin()
-  const canUpdateSettings = hasPermission(admin, 'settings', 'update')
-  const canSeeGeneral = hasPermission(admin, 'settings', 'read_general') && canUpdateSettings
-  const defaultPath = canSeeGeneral ? '/settings/general' : '/settings/theme'
-
-  return <Navigate to={defaultPath} replace />
-}
-
-function TemplatesIndex() {
-  const { admin } = useAdmin()
-  const defaultPath = hasPermission(admin, 'templates', 'read') ? '/templates/user' : hasPermission(admin, 'client_templates', 'read') ? '/templates/client' : '/settings/theme'
-
-  return <Navigate to={defaultPath} replace />
-}
 
 const fetchAdminLoader = async (): Promise<AdminDetails> => {
   try {

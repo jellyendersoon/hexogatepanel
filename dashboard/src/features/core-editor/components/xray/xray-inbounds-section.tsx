@@ -16,9 +16,11 @@ import { CoreEditorDataTable } from '@/features/core-editor/components/shared/co
 import { CoreEditorFormDialog } from '@/features/core-editor/components/shared/core-editor-form-dialog'
 import { TcpHeaderObfuscationForm } from '@/features/core-editor/components/shared/tcp-header-obfuscation-form'
 import { VlessAdvancedGenerationModal } from '@/features/core-editor/components/shared/vless-advanced-generation-modal'
-import { isBooleanParityField, isJsonRawMessageField, transportParityFieldLabel, XrayParityFormControl } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { XrayParityFormControl } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { isBooleanParityField, isJsonRawMessageField, transportParityFieldLabel } from '@/features/core-editor/components/shared/xray-parity-field'
 import { XrayStreamFinalmaskInboundAccordion } from '@/features/core-editor/components/shared/xray-stream-finalmask-editor'
-import { pruneSockoptObject, XrayStreamSockoptInboundAccordion } from '@/features/core-editor/components/shared/xray-stream-sockopt-editor'
+import { XrayStreamSockoptInboundAccordion } from '@/features/core-editor/components/shared/xray-stream-sockopt-editor'
+import { pruneSockoptObject } from '@/features/core-editor/components/shared/xray-stream-sockopt'
 import { InboundFallbacksEditor } from '@/features/core-editor/components/xray/inbound-fallbacks-editor'
 import { RealityScanDialog } from '@/features/core-editor/components/xray/reality-scan-dialog'
 import { useSectionHeaderAddPulseEffect, type SectionHeaderAddPulse } from '@/features/core-editor/hooks/use-section-header-add-pulse'
@@ -971,6 +973,9 @@ interface XrayInboundsSectionProps {
   headerAddEpoch?: number
 }
 
+/** Form sync writes that must not mark the inbound form dirty or trigger validation. */
+const INBOUND_FORM_SYNC_OPTS = { shouldValidate: false, shouldDirty: false } as const
+
 export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInboundsSectionProps) {
   const { t } = useTranslation()
   const dir = useDirDetection()
@@ -1019,6 +1024,57 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
     if (draftInbound) return draftInbound
     return profile.inbounds[selected]
   }, [profile, draftInbound, selected])
+
+  const patchInbound = useCallback(
+    (patch: Partial<Inbound>) => {
+      if (!inbound || inbound.protocol === 'unmanaged') return
+      const base = { ...inbound } as Record<string, unknown>
+      if (inbound.protocol === 'tunnel' || inbound.protocol === 'dokodemo-door') {
+        delete base.settings
+      }
+      for (const [key, val] of Object.entries(patch)) {
+        if (key === 'encryption' || key === 'decryption') continue
+        if (key === 'flow') continue
+        if (key === 'fallbacks') continue
+        if (val === undefined) delete base[key]
+        else base[key] = val
+      }
+      if ('encryption' in patch) {
+        const v = patch.encryption
+        if (typeof v === 'string' && v.trim() === '') delete base.encryption
+        else if (v !== undefined) base.encryption = v
+      }
+      if ('decryption' in patch) {
+        const v = patch.decryption
+        if (typeof v === 'string' && v.trim() === '') delete base.decryption
+        else if (v !== undefined) base.decryption = v
+      }
+      if ('flow' in (patch as Record<string, unknown>)) {
+        const v = (patch as Record<string, unknown>).flow
+        if (typeof v === 'string' && v.trim() === '') delete base.flow
+        else if (v !== undefined) base.flow = v
+      }
+      if ('listen' in patch) {
+        if (!shouldPersistInboundListen(patch.listen as string | undefined)) delete base.listen
+      }
+      if ('fallbacks' in patch) {
+        const fb = patch.fallbacks as Fallback[] | undefined
+        if (fb === undefined || (Array.isArray(fb) && fb.length === 0)) delete base.fallbacks
+        else base.fallbacks = fb
+      }
+      if (base.protocol === 'tunnel' || base.protocol === 'dokodemo-door') {
+        base.network = normalizeTunnelNetworkForKit(base.network)
+      }
+      if (base.protocol === 'shadowsocks' && base.network !== undefined) {
+        base.network = normalizeTunnelNetworkForKit(base.network)
+      }
+      const merged = base as Inbound
+      if (draftInbound !== null) setDraftInbound(merged)
+      else updateXrayProfile(p => replaceInbound(p, selected, merged))
+    },
+    [inbound, draftInbound, selected, updateXrayProfile],
+  )
+  patchInboundRef.current = patchInbound
 
   const visibility = useMemo(() => (inbound ? getInboundFieldVisibility(inbound) : null), [inbound])
   const caps = useMemo(() => getInboundFormCapabilities(), [])
@@ -1088,8 +1144,6 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
     reValidateMode: 'onChange',
   })
 
-  const syncOpts = { shouldValidate: false, shouldDirty: false } as const
-
   /** `reValidateMode: 'onChange'` only runs after `isSubmitted`; we use `trigger()` on save, not `handleSubmit`, so re-run REALITY checks when those fields change. */
   const revalidateRealityInboundForm = useCallback(() => {
     if (form.getValues('security') !== 'reality') return
@@ -1099,16 +1153,16 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
   const syncTunnelFormFieldsFromInbound = useCallback(
     (nextIb: Inbound) => {
       if (!isTunnelInboundProtocol(nextIb.protocol)) {
-        form.setValue('tunnelRewriteAddress', '', syncOpts)
-        form.setValue('tunnelRewritePort', '', syncOpts)
-        form.setValue('tunnelAllowedNetwork', 'tcp,udp', syncOpts)
-        form.setValue('tunnelFollowRedirect', 'true', syncOpts)
+        form.setValue('tunnelRewriteAddress', '', INBOUND_FORM_SYNC_OPTS)
+        form.setValue('tunnelRewritePort', '', INBOUND_FORM_SYNC_OPTS)
+        form.setValue('tunnelAllowedNetwork', 'tcp,udp', INBOUND_FORM_SYNC_OPTS)
+        form.setValue('tunnelFollowRedirect', 'true', INBOUND_FORM_SYNC_OPTS)
         return
       }
-      form.setValue('tunnelRewriteAddress', tunnelAddressForForm(nextIb), syncOpts)
-      form.setValue('tunnelRewritePort', tunnelTargetPortForForm(nextIb), syncOpts)
-      form.setValue('tunnelAllowedNetwork', tunnelNetworkSelectValue(nextIb), syncOpts)
-      form.setValue('tunnelFollowRedirect', tunnelFollowRedirectForForm(nextIb), syncOpts)
+      form.setValue('tunnelRewriteAddress', tunnelAddressForForm(nextIb), INBOUND_FORM_SYNC_OPTS)
+      form.setValue('tunnelRewritePort', tunnelTargetPortForForm(nextIb), INBOUND_FORM_SYNC_OPTS)
+      form.setValue('tunnelAllowedNetwork', tunnelNetworkSelectValue(nextIb), INBOUND_FORM_SYNC_OPTS)
+      form.setValue('tunnelFollowRedirect', tunnelFollowRedirectForForm(nextIb), INBOUND_FORM_SYNC_OPTS)
     },
     [form],
   )
@@ -1116,12 +1170,12 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
   const syncTunFormFieldsFromInbound = useCallback(
     (nextIb: Inbound) => {
       if (nextIb.protocol !== 'tun') {
-        form.setValue('tunName', '', syncOpts)
-        form.setValue('tunMtu', '', syncOpts)
+        form.setValue('tunName', '', INBOUND_FORM_SYNC_OPTS)
+        form.setValue('tunMtu', '', INBOUND_FORM_SYNC_OPTS)
         return
       }
-      form.setValue('tunName', typeof (nextIb as { name?: unknown }).name === 'string' ? String((nextIb as { name?: unknown }).name) : '', syncOpts)
-      form.setValue('tunMtu', typeof (nextIb as { mtu?: unknown }).mtu === 'number' ? String((nextIb as { mtu?: number }).mtu) : '', syncOpts)
+      form.setValue('tunName', typeof (nextIb as { name?: unknown }).name === 'string' ? String((nextIb as { name?: unknown }).name) : '', INBOUND_FORM_SYNC_OPTS)
+      form.setValue('tunMtu', typeof (nextIb as { mtu?: unknown }).mtu === 'number' ? String((nextIb as { mtu?: number }).mtu) : '', INBOUND_FORM_SYNC_OPTS)
     },
     [form],
   )
@@ -1129,12 +1183,12 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
   const syncWireguardFormFieldsFromInbound = useCallback(
     (nextIb: Inbound) => {
       if (nextIb.protocol !== 'wireguard') {
-        form.setValue('wgSecretKey', '', syncOpts)
-        form.setValue('wgMtu', '', syncOpts)
+        form.setValue('wgSecretKey', '', INBOUND_FORM_SYNC_OPTS)
+        form.setValue('wgMtu', '', INBOUND_FORM_SYNC_OPTS)
         return
       }
-      form.setValue('wgSecretKey', typeof (nextIb as { secretKey?: unknown }).secretKey === 'string' ? String((nextIb as { secretKey?: unknown }).secretKey) : '', syncOpts)
-      form.setValue('wgMtu', typeof (nextIb as { mtu?: unknown }).mtu === 'number' ? String((nextIb as { mtu?: number }).mtu) : '', syncOpts)
+      form.setValue('wgSecretKey', typeof (nextIb as { secretKey?: unknown }).secretKey === 'string' ? String((nextIb as { secretKey?: unknown }).secretKey) : '', INBOUND_FORM_SYNC_OPTS)
+      form.setValue('wgMtu', typeof (nextIb as { mtu?: unknown }).mtu === 'number' ? String((nextIb as { mtu?: number }).mtu) : '', INBOUND_FORM_SYNC_OPTS)
     },
     [form],
   )
@@ -1293,9 +1347,10 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
       tag = tag.replace(',', tagSeparator)
 
       form.setValue('tag', tag)
-      patchInbound({ tag })
+      // Through the ref: `patchInbound` is rebuilt whenever the inbound changes, and this patch changes the inbound.
+      patchInboundRef.current?.({ tag })
     }
-  }, [dialogMode, isTagAutoGenerated, watchedProtocol, watchedPort, watchedTransport, watchedSecurity, watchedShadowsocksNetwork])
+  }, [dialogMode, isTagAutoGenerated, watchedProtocol, watchedPort, watchedTransport, watchedSecurity, watchedShadowsocksNetwork, form])
 
   const columns = useMemo<ColumnDef<Inbound, unknown>[]>(
     () => [
@@ -1505,7 +1560,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
       cur.type = t
       patchInbound({ transport: cur as Transport } as Partial<Inbound>)
     },
-    [inbound],
+    [inbound, patchInbound],
   )
 
   const updateXhttpMeta = useCallback(
@@ -1910,55 +1965,6 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
     return <XrayStreamFinalmaskInboundAccordion accordionItemClassName={INBOUND_SECURITY_SUBACCORDION_ITEM_CLASS} value={finalmaskValue} onChange={patchInboundFinalmask} t={t} />
   }
 
-  const patchInbound = (patch: Partial<Inbound>) => {
-    if (!inbound || inbound.protocol === 'unmanaged') return
-    const base = { ...inbound } as Record<string, unknown>
-    if (inbound.protocol === 'tunnel' || inbound.protocol === 'dokodemo-door') {
-      delete base.settings
-    }
-    for (const [key, val] of Object.entries(patch)) {
-      if (key === 'encryption' || key === 'decryption') continue
-      if (key === 'flow') continue
-      if (key === 'fallbacks') continue
-      if (val === undefined) delete base[key]
-      else base[key] = val
-    }
-    if ('encryption' in patch) {
-      const v = patch.encryption
-      if (typeof v === 'string' && v.trim() === '') delete base.encryption
-      else if (v !== undefined) base.encryption = v
-    }
-    if ('decryption' in patch) {
-      const v = patch.decryption
-      if (typeof v === 'string' && v.trim() === '') delete base.decryption
-      else if (v !== undefined) base.decryption = v
-    }
-    if ('flow' in (patch as Record<string, unknown>)) {
-      const v = (patch as Record<string, unknown>).flow
-      if (typeof v === 'string' && v.trim() === '') delete base.flow
-      else if (v !== undefined) base.flow = v
-    }
-    if ('listen' in patch) {
-      if (!shouldPersistInboundListen(patch.listen as string | undefined)) delete base.listen
-    }
-    if ('fallbacks' in patch) {
-      const fb = patch.fallbacks as Fallback[] | undefined
-      if (fb === undefined || (Array.isArray(fb) && fb.length === 0)) delete base.fallbacks
-      else base.fallbacks = fb
-    }
-    if (base.protocol === 'tunnel' || base.protocol === 'dokodemo-door') {
-      base.network = normalizeTunnelNetworkForKit(base.network)
-    }
-    if (base.protocol === 'shadowsocks' && base.network !== undefined) {
-      base.network = normalizeTunnelNetworkForKit(base.network)
-    }
-    const merged = base as Inbound
-    if (draftInbound !== null) setDraftInbound(merged)
-    else updateXrayProfile(p => replaceInbound(p, selected, merged))
-  }
-
-  patchInboundRef.current = patchInbound
-
   useEffect(() => {
     if (!detailOpen || inbound?.protocol !== 'vless') return
     if (
@@ -2028,7 +2034,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
 
       patchInbound(next as Partial<Inbound>)
     },
-    [inbound],
+    [inbound, patchInbound],
   )
 
   const persistTunnelPortMapRows = useCallback(
@@ -2047,7 +2053,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
         portMap: Object.keys(portMap).length > 0 ? portMap : undefined,
       } as Partial<Inbound>)
     },
-    [inbound],
+    [inbound, patchInbound],
   )
 
   const commitTunnelBlankPortMapSlot = useCallback(
@@ -2107,7 +2113,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
         streamAdvanced: nextStreamAdvanced,
       } as Partial<Inbound>)
     },
-    [inbound],
+    [inbound, patchInbound],
   )
   const hysteriaMasqueradeType = form.watch('hysteriaMasqueradeType')
   const sniffingEnabledValue = form.watch('sniffingEnabled')
@@ -2388,7 +2394,7 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
     if (typeof securityType !== 'string') return
     for (const key of getInboundSecurityFieldOrder(caps, securityType)) {
       const def = getInboundSecurityFieldDefinition(caps, securityType, key)
-      if (def) form.setValue(securityFieldName(key), outboundSettingToString(security?.[key], def), syncOpts)
+      if (def) form.setValue(securityFieldName(key), outboundSettingToString(security?.[key], def), INBOUND_FORM_SYNC_OPTS)
     }
   }
 
@@ -2408,13 +2414,13 @@ export function XrayInboundsSection({ headerAddPulse, headerAddEpoch }: XrayInbo
             const currentValue = form.getValues(fieldName)
             // In add flow, keep user's in-progress value only when explicitly set.
             if (!currentValue || typeof currentValue !== 'string' || currentValue.trim() === '') {
-              form.setValue(fieldName, '', syncOpts)
+              form.setValue(fieldName, '', INBOUND_FORM_SYNC_OPTS)
             }
           } else {
-            form.setValue(transportFieldName(key), outboundSettingToString(transportValue, def), syncOpts)
+            form.setValue(transportFieldName(key), outboundSettingToString(transportValue, def), INBOUND_FORM_SYNC_OPTS)
           }
         } else {
-          form.setValue(transportFieldName(key), outboundSettingToString(transportValue, def), syncOpts)
+          form.setValue(transportFieldName(key), outboundSettingToString(transportValue, def), INBOUND_FORM_SYNC_OPTS)
         }
       }
     }

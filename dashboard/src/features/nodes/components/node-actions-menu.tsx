@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { Button } from '@/components/ui/button'
@@ -11,6 +11,7 @@ import useDirDetection from '@/hooks/use-dir-detection'
 import UserOnlineStatsDialog from '@/features/users/dialogs/user-online-stats-modal'
 import UpdateCoreDialog from '@/features/nodes/dialogs/update-core-modal'
 import UpdateGeofilesDialog from '@/features/nodes/dialogs/update-geofiles-modal'
+import { escapeHtml } from '@/utils/escape-html'
 
 interface NodeActionsMenuProps {
   node: NodeResponse
@@ -118,7 +119,17 @@ const getOpenDialogNodes = (): NodeResponse[] =>
     .map(([nodeId]) => nodeActionsNodeStore.get(nodeId))
     .filter((node): node is NodeResponse => Boolean(node))
 
-const getGlobalNodeActionsMenuStateSnapshot = () => nodeActionsGlobalStateVersion
+let openDialogNodesSnapshot: NodeResponse[] = []
+let openDialogNodesSnapshotVersion = -1
+
+/** Stable per store version so `useSyncExternalStore` only re-renders the host when the open-dialog set changes. */
+const getOpenDialogNodesSnapshot = (): NodeResponse[] => {
+  if (openDialogNodesSnapshotVersion !== nodeActionsGlobalStateVersion) {
+    openDialogNodesSnapshot = getOpenDialogNodes()
+    openDialogNodesSnapshotVersion = nodeActionsGlobalStateVersion
+  }
+  return openDialogNodesSnapshot
+}
 
 const updateNodeActionsMenuState = (nodeId: number, updater: (prev: NodeActionsMenuState) => NodeActionsMenuState) => {
   const current = nodeActionsMenuStateStore.get(nodeId)
@@ -168,7 +179,7 @@ const DeleteAlertDialog = ({ node, isOpen, onClose, onConfirm }: { node: NodeRes
         <AlertDialogHeader>
           <AlertDialogTitle>{t('nodes.deleteNode')}</AlertDialogTitle>
           <AlertDialogDescription>
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('deleteNode.prompt', { name: node.name }) }} />
+            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('deleteNode.prompt', { name: escapeHtml(node.name) }) }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -192,7 +203,10 @@ const ResetUsageAlertDialog = ({ node, isOpen, onClose, onConfirm, isLoading }: 
         <AlertDialogHeader>
           <AlertDialogTitle>{t('nodeModal.resetUsageTitle', { defaultValue: 'Reset Node Usage' })}</AlertDialogTitle>
           <AlertDialogDescription>
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('nodeModal.resetUsagePrompt', { name: node.name, defaultValue: `Are you sure you want to reset usage for node «${node.name}»?` }) }} />
+            <span
+              dir={dir}
+              dangerouslySetInnerHTML={{ __html: t('nodeModal.resetUsagePrompt', { name: escapeHtml(node.name), defaultValue: `Are you sure you want to reset usage for node «${node.name}»?` }) }}
+            />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -244,7 +258,7 @@ export default function NodeActionsMenu({
       ensureNodeActionsMenuState(node)
       updateNodeActionsMenuState(node.id, prev => (typeof updater === 'function' ? updater(prev) : { ...prev, ...updater }))
     },
-    [node, node.id],
+    [node],
   )
 
   const { isDeleteDialogOpen, isResetUsageDialogOpen, showOnlineStats, showUpdateCoreDialog, showUpdateGeofilesDialog } = menuState
@@ -545,8 +559,7 @@ export default function NodeActionsMenu({
 }
 
 export const NodeActionsMenuModalHost = () => {
-  const modalStateVersion = useSyncExternalStore(subscribeGlobalNodeActionsMenuState, getGlobalNodeActionsMenuStateSnapshot, getGlobalNodeActionsMenuStateSnapshot)
-  const nodesWithOpenDialogs = useMemo(() => getOpenDialogNodes(), [modalStateVersion])
+  const nodesWithOpenDialogs = useSyncExternalStore(subscribeGlobalNodeActionsMenuState, getOpenDialogNodesSnapshot, getOpenDialogNodesSnapshot)
 
   if (nodesWithOpenDialogs.length === 0) return null
 

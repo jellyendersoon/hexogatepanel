@@ -6,26 +6,10 @@ import { OnlineBadge } from './online-badge'
 import { StatusBadge } from './status-badge'
 import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select'
 import UsageSliderCompact from '@/components/common/usage-slider-compact'
-import { cn } from '@/lib/utils'
-import useDirDetection from '@/hooks/use-dir-detection'
 import { dateUtils } from '@/utils/dateFormatter'
 import dayjs from '@/lib/dayjs'
 import { Checkbox } from '@/components/ui/checkbox'
-
-function DataUsageHeader({ t, handleSort, filters }: { t: (key: string) => string; handleSort: (column: string, fromDropdown?: boolean) => void; filters: { sort: string } }) {
-  const isRTL = useDirDetection() === 'rtl'
-  return (
-    <button className="flex w-full items-center gap-1 px-0 py-3" onClick={() => handleSort('used_traffic')}>
-      <div className={cn('text-xs capitalize', isRTL && 'w-full md:w-auto')}>
-        <span className={cn('inline-block w-full md:hidden', isRTL && 'text-end')}>{t('dataUsage')}</span>
-        <span className="hidden md:block">{t('dataUsage')}</span>
-      </div>
-      {filters.sort && (filters.sort === 'used_traffic' || filters.sort === '-used_traffic') && (
-        <ChevronDown size={16} className={`transition-transform duration-300 ${filters.sort === 'used_traffic' ? 'rotate-180' : ''} ${filters.sort === '-used_traffic' ? 'rotate-0' : ''} `} />
-      )}
-    </button>
-  )
-}
+import { DataUsageHeader } from './data-usage-header'
 
 export const setupColumns = ({
   t,

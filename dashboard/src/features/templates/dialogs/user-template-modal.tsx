@@ -1,6 +1,7 @@
 import GroupsSelector from '@/components/common/groups-selector'
 import { DecimalInput } from '@/components/common/decimal-input'
-import { TimeUnitSelect, TIME_UNIT_SECONDS, type TimeUnit } from '@/components/common/time-unit-select'
+import { TimeUnitSelect } from '@/components/common/time-unit-select'
+import { TIME_UNIT_SECONDS, type TimeUnit } from '@/components/common/time-unit'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'

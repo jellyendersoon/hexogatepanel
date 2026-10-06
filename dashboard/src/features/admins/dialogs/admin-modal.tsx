@@ -11,7 +11,8 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
-import { CustomVariablesPopover, normalizeCustomVariableKey, VariablesPopover } from '@/components/ui/variables-popover'
+import { CustomVariablesPopover, VariablesPopover } from '@/components/ui/variables-popover'
+import { normalizeCustomVariableKey } from '@/components/ui/custom-variables'
 import { useAdmin } from '@/hooks/use-admin'
 import useDynamicErrorHandler from '@/hooks/use-dynamic-errors.ts'
 import { useCreateAdmin, useGetRolesSimple, useModifyAdminById } from '@/service/api'
@@ -66,6 +67,7 @@ const normalizeDataLimit = (value: AdminFormValuesInput['data_limit']): number =
   return normalized && normalized > 0 ? normalized : 0
 }
 const ONE_GB_IN_BYTES = 1024 * 1024 * 1024
+const NOTIFICATION_KEYS = ['create', 'modify', 'delete', 'status_change', 'reset_data_usage', 'data_reset_by_next', 'subscription_revoked'] as const
 
 const nextCustomVariableKey = (variables: NonNullable<AdminFormValuesInput['custom_variables']>) => {
   let index = variables.length + 1
@@ -124,7 +126,6 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
   // Watch notification enable fields
   const watchedNotificationEnable = useWatch({ control: form.control, name: 'notification_enable' })
   const watchedPermissionOverrides = useWatch({ control: form.control, name: 'permission_overrides' })
-  const NOTIFICATION_KEYS = ['create', 'modify', 'delete', 'status_change', 'reset_data_usage', 'data_reset_by_next', 'subscription_revoked'] as const
   const notificationEnabledCount = useMemo(() => NOTIFICATION_KEYS.reduce((sum, key) => sum + (watchedNotificationEnable?.[key] ? 1 : 0), 0), [watchedNotificationEnable])
   const allNotificationsEnabled = notificationEnabledCount === NOTIFICATION_KEYS.length
   const permissionOverridesCount = useMemo(

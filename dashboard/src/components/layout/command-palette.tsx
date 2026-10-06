@@ -2,7 +2,7 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import { useCommandPaletteStore, type CommandCreateTarget } from '@/hooks/use-command-palette-store'
 import { useAdmin } from '@/hooks/use-admin'
 import useDirDetection from '@/hooks/use-dir-detection'
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { canReadResourcePage, hasPermission, isOwner } from '@/utils/rbac'
 import { selectCoreEditorHasActualChanges } from '@/features/core-editor/kit/core-editor-change-state'
 import { useCoreEditorStore } from '@/features/core-editor/state/core-editor-store'

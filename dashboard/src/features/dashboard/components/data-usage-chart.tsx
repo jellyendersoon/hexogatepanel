@@ -170,15 +170,17 @@ const DataUsageChart = ({ adminUsername }: { adminUsername?: string }) => {
     },
   })
 
-  let statsArr: UserUsageStat[] = []
-  if (data?.stats) {
-    if (typeof data.stats === 'object' && !Array.isArray(data.stats)) {
-      const statsObj = data.stats as { [key: string]: UserUsageStat[] }
-      statsArr = statsObj['-1'] || statsObj[Object.keys(statsObj)[0]] || []
-    } else if (Array.isArray(data.stats)) {
-      statsArr = data.stats
+  const statsArr = useMemo((): UserUsageStat[] => {
+    if (data?.stats) {
+      if (typeof data.stats === 'object' && !Array.isArray(data.stats)) {
+        const statsObj = data.stats as { [key: string]: UserUsageStat[] }
+        return statsObj['-1'] || statsObj[Object.keys(statsObj)[0]] || []
+      } else if (Array.isArray(data.stats)) {
+        return data.stats
+      }
     }
-  }
+    return []
+  }, [data?.stats])
 
   const chartData = useMemo(
     () =>

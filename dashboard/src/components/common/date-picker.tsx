@@ -1,7 +1,7 @@
 'use client'
 
 import { addDays } from 'date-fns'
-import { useState, useEffect, useCallback, ChangeEvent, KeyboardEvent, MouseEvent } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef, ChangeEvent, KeyboardEvent, MouseEvent } from 'react'
 import { Calendar as CalendarIcon, X } from 'lucide-react'
 import { DateRange } from 'react-day-picker'
 import { cn } from '@/lib/utils'
@@ -13,10 +13,11 @@ import { useTranslation } from 'react-i18next'
 import { Calendar as PersianCalendar } from '@/components/ui/persian-calendar'
 import { formatDateByLocale, formatDateShort, isDateDisabled, isPersianLocaleLanguage, serializeDatePickerValue } from '@/utils/datePickerUtils'
 import { parseDateInput } from '@/utils/dateTimeParsing'
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { DATE_PICKER_PREFERENCE_KEY, getDatePickerPreference, type DatePickerPreference } from '@/utils/userPreferenceStorage'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useLatest } from '@/hooks/use-latest'
 
 export type DatePickerMode = 'single' | 'range'
 
@@ -180,7 +181,7 @@ export function DatePicker({
   const { t, i18n } = useTranslation()
   const dir = useDirDetection()
   const isRTL = dir === 'rtl'
-  const handleSingleDateChange = onDateChange ?? (() => undefined)
+  const handleSingleDateChange = useMemo(() => onDateChange ?? (() => undefined), [onDateChange])
   const [datePreference, setDatePreference] = useState<DatePickerPreference>('locale')
   const isPersianCalendar = datePreference === 'persian' || (datePreference === 'locale' && isPersianLocaleLanguage(i18n.resolvedLanguage ?? i18n.language))
   const isMobile = useIsMobile()
@@ -191,12 +192,15 @@ export function DatePicker({
 
   // Use controlled or internal state for open
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen
-  const setIsOpen = (open: boolean) => {
-    if (controlledOpen === undefined) {
-      setInternalOpen(open)
-    }
-    onOpenChange?.(open)
-  }
+  const setIsOpen = useCallback(
+    (open: boolean) => {
+      if (controlledOpen === undefined) {
+        setInternalOpen(open)
+      }
+      onOpenChange?.(open)
+    },
+    [controlledOpen, onOpenChange],
+  )
 
   // Sync internal state with props
   useEffect(() => {
@@ -211,11 +215,15 @@ export function DatePicker({
     }
   }, [range])
 
+  // Propagate the initial range up once on mount (reads the mount-time values only)
+  const onRangeChangeRef = useLatest(onRangeChange)
+  const mountRangeRef = useRef(mode === 'range' ? internalRange : undefined)
   useEffect(() => {
-    if (mode === 'range' && internalRange && onRangeChange) {
-      onRangeChange(internalRange)
+    const mountRange = mountRangeRef.current
+    if (mountRange) {
+      onRangeChangeRef.current?.(mountRange)
     }
-  }, [])
+  }, [onRangeChangeRef])
 
   useEffect(() => {
     const storedPreference = getDatePickerPreference()
@@ -268,7 +276,7 @@ export function DatePicker({
         setIsOpen(false)
       }, 0)
     },
-    [handleSingleDateChange, onFieldChange, fieldName, useUtcTimestamp, minDate, internalDate],
+    [handleSingleDateChange, onFieldChange, fieldName, useUtcTimestamp, minDate, internalDate, setIsOpen],
   )
 
   const handleDateSelectWrapper = useCallback(
@@ -311,7 +319,7 @@ export function DatePicker({
         setIsOpen(false)
       }
     },
-    [onRangeChange],
+    [onRangeChange, setIsOpen],
   )
 
   const formatDate = useCallback(

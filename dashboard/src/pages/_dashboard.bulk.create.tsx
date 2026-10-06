@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
@@ -59,7 +59,7 @@ export default function BulkCreateUsersPage() {
   const { data: templatesData, isLoading: templatesLoading } = useGetUserTemplates({ limit: 100, offset: 0 })
   const createMutation = useBulkCreateUsersFromTemplate()
 
-  const templates = templatesData || []
+  const templates = useMemo(() => templatesData || [], [templatesData])
   const selectedTemplate = templates.find(t => t.id === selectedTemplateId)
   const unlimitedLabel = t('unlimited', { defaultValue: 'Unlimited' })
 

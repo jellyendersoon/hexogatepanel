@@ -1,6 +1,6 @@
 import { Footer } from '@/components/layout/footer'
 import { Language } from '@/components/common/language'
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { ThemeToggle } from '@/components/common/theme-toggle'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'

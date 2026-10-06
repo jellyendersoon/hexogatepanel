@@ -1,4 +1,4 @@
-import { useTheme, type ColorTheme } from '@/app/providers/theme-provider'
+import { useTheme, type ColorTheme } from '@/app/providers/theme-context'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { accentThemes, baseColorOrder, baseSwatches, colorThemeOrder, radiusPresets, themeStylePresets, type BaseColor, type ThemeStyle } from '@/constants/color-themes'

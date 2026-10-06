@@ -142,7 +142,7 @@ export default function Cores({ cores, onDuplicateCore, onDeleteCore, canCreate 
     }
   }
 
-  const coresList = cores || coresData?.cores || []
+  const coresList = useMemo(() => cores || coresData?.cores || [], [cores, coresData?.cores])
 
   const filteredCores = useMemo(() => {
     if (!searchQuery.trim()) return coresList

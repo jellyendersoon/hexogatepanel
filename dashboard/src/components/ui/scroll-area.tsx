@@ -11,7 +11,7 @@ const ScrollArea = React.forwardRef<React.ElementRef<typeof ScrollAreaPrimitive.
   React.useEffect(() => {
     if (i18n.dir() === 'rtl') setIsRTL(true)
     else setIsRTL(false)
-  }, [i18n.language])
+  }, [i18n, i18n.language])
 
   return (
     <ScrollAreaPrimitive.Root ref={ref} className={cn('relative overflow-hidden', className)} {...props}>

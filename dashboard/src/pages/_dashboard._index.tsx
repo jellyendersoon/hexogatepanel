@@ -10,7 +10,7 @@ import { useClipboard } from '@/hooks/use-clipboard'
 import type { AdminDetails, UserResponse } from '@/service/api'
 import { useGetSystemResourceStats, useGetSystemUsersStats } from '@/service/api'
 import { Bookmark } from 'lucide-react'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -43,11 +43,11 @@ const Dashboard = () => {
   const queryClient = useQueryClient()
   const { copy } = useClipboard()
 
-  const refreshAllUserData = () => {
+  const refreshAllUserData = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['getUsers'] })
     queryClient.invalidateQueries({ queryKey: ['getUsersUsage'] })
     queryClient.invalidateQueries({ queryKey: ['/api/users/'] })
-  }
+  }, [queryClient])
 
   const handleCreateUserSuccess = async (user: UserResponse) => {
     if (user.subscription_url) {
@@ -58,11 +58,11 @@ const Dashboard = () => {
     refreshAllUserData()
   }
 
-  const handleCreateUser = () => {
+  const handleCreateUser = useCallback(() => {
     if (!canCreateUsers) return
     userForm.reset()
     setUserModalOpen(true)
-  }
+  }, [canCreateUsers, userForm])
 
   const handleOpenQuickActions = () => {
     setCommandPaletteOpen(true)
@@ -82,7 +82,7 @@ const Dashboard = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [handleCreateUser, refreshAllUserData])
 
   const systemUsersStatsParams = canReadAllUsers && selectedAdmin && selectedAdmin.username !== 'Total' ? { admin_username: selectedAdmin.username } : undefined
 

@@ -13,8 +13,9 @@ export function useDebouncedSearch(initialValue: string = '', delay: number = 30
   )
 
   useEffect(() => {
+    const debouncedSetter = debouncedSearchRef.current
     return () => {
-      debouncedSearchRef.current.cancel()
+      debouncedSetter.cancel()
     }
   }, [])
 

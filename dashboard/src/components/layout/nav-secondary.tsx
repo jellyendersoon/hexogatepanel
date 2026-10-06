@@ -1,4 +1,5 @@
-import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
+import { SidebarGroup, SidebarGroupContent, SidebarGroupLabel, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar-context'
 import { type LucideIcon } from 'lucide-react'
 import * as React from 'react'
 import { useTranslation } from 'react-i18next'

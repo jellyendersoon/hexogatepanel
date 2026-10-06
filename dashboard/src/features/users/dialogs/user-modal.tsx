@@ -1,7 +1,8 @@
 import { DatePicker, type DatePickerAlign, type DatePickerSide } from '@/components/common/date-picker'
 import { DecimalInput } from '@/components/common/decimal-input'
 import GroupsSelector from '@/components/common/groups-selector'
-import { TimeUnitSelect, TIME_UNIT_SECONDS, type TimeUnit } from '@/components/common/time-unit-select'
+import { TimeUnitSelect } from '@/components/common/time-unit-select'
+import { TIME_UNIT_SECONDS, type TimeUnit } from '@/components/common/time-unit'
 import UsageModal from '@/features/users/dialogs/usage-modal'
 import UserAllIPsModal from '@/features/users/dialogs/user-all-ips-modal'
 import { UserHwidsModal } from '@/features/users/dialogs/user-hwids-modal'
@@ -68,6 +69,7 @@ import {
   UserRoundPlus,
 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
+import { useLatest } from '@/hooks/use-latest'
 import { type ErrorOption, type FieldPath, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
@@ -82,6 +84,39 @@ interface UserModalProps {
   editingUserId?: number
   editingUserData?: UserResponse | null // The user data object when editing
   onSuccessCallback?: (user: UserResponse) => void
+}
+
+// Helper for cryptographically secure random integer
+function getRandomInt(max: number): number {
+  const array = new Uint32Array(1)
+  window.crypto.getRandomValues(array)
+  return array[0] % max
+}
+
+// Random password generator for proxy credentials
+function generatePassword(length: number = 24): string {
+  const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+  const numbers = '0123456789'
+  const special = '_'
+  let password = ''
+
+  // Ensure at least one underscore
+  password += special
+
+  // Fill the rest with letters and numbers
+  for (let i = 1; i < length; i++) {
+    const charSet = getRandomInt(10) < 7 ? letters : numbers // 70% letters, 30% numbers
+    const randomIndex = getRandomInt(charSet.length)
+    password += charSet[randomIndex]
+  }
+
+  // Shuffle the password to make it more random
+  const arr = password.split('')
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = getRandomInt(i + 1)
+    ;[arr[i], arr[j]] = [arr[j], arr[i]]
+  }
+  return arr.join('')
 }
 
 // Add template validation schema
@@ -365,20 +400,14 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
   // Check if template is selected (template_id exists and is not null/undefined)
   const hasTemplateSelected = !!nextPlanUserTemplateId
 
-  const hasNextPlanData = React.useMemo(() => {
-    const nextPlan = form.getValues('next_plan')
-
-    if (!nextPlan || nextPlan === null || nextPlan === undefined) {
-      return false
-    }
-
-    return (
-      (nextPlan.user_template_id !== undefined && nextPlan.user_template_id !== null) ||
-      (nextPlan.expire !== undefined && nextPlan.expire !== null) ||
-      (nextPlan.data_limit !== undefined && nextPlan.data_limit !== null) ||
-      (nextPlan.add_remaining_traffic !== undefined && nextPlan.add_remaining_traffic !== null)
-    )
-  }, [form, nextPlanUserTemplateId, nextPlanExpire, nextPlanDataLimit, nextPlanAddRemainingTraffic])
+  const hasNextPlanData = React.useMemo(
+    () =>
+      (nextPlanUserTemplateId !== undefined && nextPlanUserTemplateId !== null) ||
+      (nextPlanExpire !== undefined && nextPlanExpire !== null) ||
+      (nextPlanDataLimit !== undefined && nextPlanDataLimit !== null) ||
+      (nextPlanAddRemainingTraffic !== undefined && nextPlanAddRemainingTraffic !== null),
+    [nextPlanUserTemplateId, nextPlanExpire, nextPlanDataLimit, nextPlanAddRemainingTraffic],
+  )
 
   useEffect(() => {
     if (!isDialogOpen) {
@@ -450,6 +479,154 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
     [form, onOpenChange, editingUser, nextPlanEnabled, requireTemplateForCreate],
   )
 
+  // Helper to clear group selection
+  const clearGroups = React.useCallback(() => form.setValue('group_ids', []), [form])
+  // Helper to clear template selection
+  const clearTemplate = () => setSelectedTemplateId(null)
+
+  // Error keys here come from zod issue paths / template schemas and are not always statically known form paths.
+  const setFieldError = React.useCallback((name: string, error: ErrorOption) => form.setError(name as FieldPath<UserFormValues>, error), [form])
+
+  // Update validateAllFields function
+  const validateAllFields = React.useCallback(
+    (currentValues: Record<string, unknown>, touchedFields: Record<string, boolean>, isSubmit: boolean = false) => {
+      try {
+        if (requireTemplateForCreate && !selectedTemplateId) {
+          form.clearErrors()
+          setFieldError('user_template_id', {
+            type: 'manual',
+            message: t('validation.required', { field: t('userDialog.selectTemplate', { defaultValue: 'Select Template' }) }),
+          })
+          return false
+        }
+
+        // Special case for template mode
+        if (selectedTemplateId) {
+          // In template mode, only validate username
+          form.clearErrors()
+          if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
+            form.setError('username', {
+              type: 'manual',
+              message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
+            })
+            return false
+          }
+          return true
+        }
+
+        // Check for required fields in non-template mode
+        if (isSubmit) {
+          // Username validation
+          if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
+            form.setError('username', {
+              type: 'manual',
+              message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
+            })
+            return false
+          }
+
+          // Groups validation (required for non-template mode)
+          if (!currentValues.group_ids || !Array.isArray(currentValues.group_ids) || currentValues.group_ids.length === 0) {
+            form.setError('group_ids', {
+              type: 'manual',
+              message: t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) }),
+            })
+            return false
+          }
+
+          // Status validation
+          if (!currentValues.status) {
+            form.setError('status', {
+              type: 'manual',
+              message: t('validation.required', { field: t('status', { defaultValue: 'Status' }) }),
+            })
+            return false
+          }
+        }
+
+        // Special case for Next Plan enabled - if Next Plan is enabled and no other fields are touched,
+        // consider the form valid (Next Plan fields are optional)
+        if (nextPlanEnabled && editingUser && !isSubmit) {
+          const hasTouchedNonNextPlanFields = Object.keys(touchedFields).some(key => key !== 'next_plan' && !key.startsWith('next_plan.') && touchedFields[key])
+          if (!hasTouchedNonNextPlanFields) {
+            form.clearErrors()
+            return true
+          }
+        }
+
+        // Only validate fields that have been touched
+        const fieldsToValidate = isSubmit
+          ? currentValues
+          : Object.keys(touchedFields).reduce(
+              (acc, key) => {
+                if (touchedFields[key]) {
+                  acc[key] = currentValues[key]
+                }
+                return acc
+              },
+              {} as Record<string, unknown>,
+            )
+
+        // If no fields are touched, clear errors and return true
+        if (!isSubmit && Object.keys(fieldsToValidate).length === 0) {
+          form.clearErrors()
+          return true
+        }
+
+        // Clear all previous errors before setting new ones
+        form.clearErrors()
+
+        // Select the appropriate schema based on template selection
+        const schema = selectedTemplateId ? (editingUser ? templateModifySchema : templateUserSchema) : editingUser ? userEditSchema : userCreateSchema
+
+        // Validate only touched fields using the selected schema
+        if (isSubmit) {
+          schema.parse(fieldsToValidate)
+        } else {
+          // ZodEffects from .superRefine() has no .partial(); use base object schemas for touched-field validation
+          if (selectedTemplateId) {
+            ;(editingUser ? templateModifySchema : templateUserSchema).partial().parse(fieldsToValidate)
+          } else {
+            ;(editingUser ? userEditObjectSchema : userCreateObjectSchema).partial().parse(fieldsToValidate)
+          }
+        }
+
+        return true
+      } catch (error) {
+        // Handle validation errors from schema.partial().parse
+        if (error instanceof z.ZodError) {
+          // Clear all previous errors again just in case
+          form.clearErrors()
+
+          // Set new errors only for touched fields
+          error.errors.forEach(err => {
+            const fieldName = String(err.path[0] ?? '')
+            if (fieldName && (isSubmit || touchedFields[fieldName])) {
+              let message = err.message
+              if (fieldName === 'group_ids' && message.includes('Required')) {
+                // Check for required message for groups
+                message = t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) })
+              } else if (fieldName === 'username' && message.includes('too short')) {
+                message = t('validation.required', { field: t('username', { defaultValue: 'Username' }) })
+              }
+              if (fieldName === 'group_ids') {
+                message = t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) })
+              } else if (fieldName === 'on_hold_expire_duration' && message === 'validation.required') {
+                message = t('validation.required', { field: t('templates.expire') })
+              }
+              setFieldError(fieldName, {
+                type: 'manual',
+                message,
+              })
+            }
+          })
+        }
+        return false
+      }
+    },
+    [requireTemplateForCreate, selectedTemplateId, form, setFieldError, t, nextPlanEnabled, editingUser],
+  )
+
   const handleFieldChange = React.useCallback(
     (fieldName: string, value: unknown) => {
       setTouchedFields(prev => ({ ...prev, [fieldName]: true }))
@@ -460,7 +637,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       const isValid = validateAllFields(currentValues, { ...touchedFields, [fieldName]: true })
       setIsFormValid(isValid)
     },
-    [form, touchedFields],
+    [form, touchedFields, validateAllFields],
   )
 
   // Add handleFieldBlur function
@@ -473,7 +650,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         setIsFormValid(isValid)
       }
     },
-    [form, touchedFields],
+    [form, touchedFields, validateAllFields],
   )
 
   // Get the expire value from the form
@@ -548,13 +725,16 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
     refetchOnMount: true,
   })
 
-  const syncUserCacheFromApiResponse = (user: UserResponse, options?: { allowInsert?: boolean; notifySuccessCallback?: boolean }) => {
-    upsertUserInUsersCache(queryClient, user, { allowInsert: options?.allowInsert ?? false })
-    invalidateUserMetricsQueries(queryClient)
-    if (options?.notifySuccessCallback) {
-      onSuccessCallback?.(user)
-    }
-  }
+  const syncUserCacheFromApiResponse = React.useCallback(
+    (user: UserResponse, options?: { allowInsert?: boolean; notifySuccessCallback?: boolean }) => {
+      upsertUserInUsersCache(queryClient, user, { allowInsert: options?.allowInsert ?? false })
+      invalidateUserMetricsQueries(queryClient)
+      if (options?.notifySuccessCallback) {
+        onSuccessCallback?.(user)
+      }
+    },
+    [queryClient, onSuccessCallback],
+  )
 
   const createUserMutation = useCreateUser({
     mutation: {
@@ -578,6 +758,11 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       onSuccess: data => syncUserCacheFromApiResponse(data, { allowInsert: true, notifySuccessCallback: true }),
     },
   })
+  // react-query mutation objects are recreated every render; `mutateAsync` is stable, so callbacks depend on these.
+  const { mutateAsync: createUserAsync } = createUserMutation
+  const { mutateAsync: modifyUserAsync } = modifyUserMutation
+  const { mutateAsync: createUserFromTemplateAsync } = createUserFromTemplateMutation
+  const { mutateAsync: modifyUserWithTemplateAsync } = modifyUserWithTemplateMutation
   const resetUserDataUsageMutation = useResetUserDataUsageById({
     mutation: {
       onSuccess: updatedUser => {
@@ -704,8 +889,11 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
     }
   }, [canUseNextPlan, nextPlanEnabled, form, handleFieldChange])
 
+  // This effect syncs the switch from the data; it must not re-run just because the switch flipped.
+  const nextPlanEnabledRef = useLatest(nextPlanEnabled)
   useEffect(() => {
     if (!isDialogOpen || !editingUser || !canUseNextPlan) return
+    const nextPlanEnabled = nextPlanEnabledRef.current
 
     // Check both form values and editingUserData prop for next_plan
     const nextPlanFromForm = form.getValues('next_plan')
@@ -743,152 +931,8 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
     nextPlanDataLimit,
     nextPlanAddRemainingTraffic,
     editingUserData,
+    nextPlanEnabledRef,
   ])
-
-  // Helper to clear group selection
-  const clearGroups = () => form.setValue('group_ids', [])
-  // Helper to clear template selection
-  const clearTemplate = () => setSelectedTemplateId(null)
-
-  // Error keys here come from zod issue paths / template schemas and are not always statically known form paths.
-  const setFieldError = (name: string, error: ErrorOption) => form.setError(name as FieldPath<UserFormValues>, error)
-
-  // Update validateAllFields function
-  const validateAllFields = (currentValues: Record<string, unknown>, touchedFields: Record<string, boolean>, isSubmit: boolean = false) => {
-    try {
-      if (requireTemplateForCreate && !selectedTemplateId) {
-        form.clearErrors()
-        setFieldError('user_template_id', {
-          type: 'manual',
-          message: t('validation.required', { field: t('userDialog.selectTemplate', { defaultValue: 'Select Template' }) }),
-        })
-        return false
-      }
-
-      // Special case for template mode
-      if (selectedTemplateId) {
-        // In template mode, only validate username
-        form.clearErrors()
-        if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
-          form.setError('username', {
-            type: 'manual',
-            message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
-          })
-          return false
-        }
-        return true
-      }
-
-      // Check for required fields in non-template mode
-      if (isSubmit) {
-        // Username validation
-        if (typeof currentValues.username !== 'string' || currentValues.username.length < 3) {
-          form.setError('username', {
-            type: 'manual',
-            message: t('validation.required', { field: t('username', { defaultValue: 'Username' }) }),
-          })
-          return false
-        }
-
-        // Groups validation (required for non-template mode)
-        if (!currentValues.group_ids || !Array.isArray(currentValues.group_ids) || currentValues.group_ids.length === 0) {
-          form.setError('group_ids', {
-            type: 'manual',
-            message: t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) }),
-          })
-          return false
-        }
-
-        // Status validation
-        if (!currentValues.status) {
-          form.setError('status', {
-            type: 'manual',
-            message: t('validation.required', { field: t('status', { defaultValue: 'Status' }) }),
-          })
-          return false
-        }
-      }
-
-      // Special case for Next Plan enabled - if Next Plan is enabled and no other fields are touched,
-      // consider the form valid (Next Plan fields are optional)
-      if (nextPlanEnabled && editingUser && !isSubmit) {
-        const hasTouchedNonNextPlanFields = Object.keys(touchedFields).some(key => key !== 'next_plan' && !key.startsWith('next_plan.') && touchedFields[key])
-        if (!hasTouchedNonNextPlanFields) {
-          form.clearErrors()
-          return true
-        }
-      }
-
-      // Only validate fields that have been touched
-      const fieldsToValidate = isSubmit
-        ? currentValues
-        : Object.keys(touchedFields).reduce(
-            (acc, key) => {
-              if (touchedFields[key]) {
-                acc[key] = currentValues[key]
-              }
-              return acc
-            },
-            {} as Record<string, unknown>,
-          )
-
-      // If no fields are touched, clear errors and return true
-      if (!isSubmit && Object.keys(fieldsToValidate).length === 0) {
-        form.clearErrors()
-        return true
-      }
-
-      // Clear all previous errors before setting new ones
-      form.clearErrors()
-
-      // Select the appropriate schema based on template selection
-      const schema = selectedTemplateId ? (editingUser ? templateModifySchema : templateUserSchema) : editingUser ? userEditSchema : userCreateSchema
-
-      // Validate only touched fields using the selected schema
-      if (isSubmit) {
-        schema.parse(fieldsToValidate)
-      } else {
-        // ZodEffects from .superRefine() has no .partial(); use base object schemas for touched-field validation
-        if (selectedTemplateId) {
-          ;(editingUser ? templateModifySchema : templateUserSchema).partial().parse(fieldsToValidate)
-        } else {
-          ;(editingUser ? userEditObjectSchema : userCreateObjectSchema).partial().parse(fieldsToValidate)
-        }
-      }
-
-      return true
-    } catch (error) {
-      // Handle validation errors from schema.partial().parse
-      if (error instanceof z.ZodError) {
-        // Clear all previous errors again just in case
-        form.clearErrors()
-
-        // Set new errors only for touched fields
-        error.errors.forEach(err => {
-          const fieldName = String(err.path[0] ?? '')
-          if (fieldName && (isSubmit || touchedFields[fieldName])) {
-            let message = err.message
-            if (fieldName === 'group_ids' && message.includes('Required')) {
-              // Check for required message for groups
-              message = t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) })
-            } else if (fieldName === 'username' && message.includes('too short')) {
-              message = t('validation.required', { field: t('username', { defaultValue: 'Username' }) })
-            }
-            if (fieldName === 'group_ids') {
-              message = t('validation.required', { field: t('groups', { defaultValue: 'Groups' }) })
-            } else if (fieldName === 'on_hold_expire_duration' && message === 'validation.required') {
-              message = t('validation.required', { field: t('templates.expire') })
-            }
-            setFieldError(fieldName, {
-              type: 'manual',
-              message,
-            })
-          }
-        })
-      }
-      return false
-    }
-  }
 
   // Update template selection handlers to use number type
   const handleTemplateSelect = React.useCallback(
@@ -908,7 +952,72 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       const isValid = validateAllFields(currentValues, touchedFields)
       setIsFormValid(isValid)
     },
-    [form, selectedTemplateId, touchedFields, handleFieldChange],
+    [form, selectedTemplateId, touchedFields, handleFieldChange, clearGroups, validateAllFields],
+  )
+
+  const hasMeaningfulProxyValue = React.useCallback((value: unknown): boolean => {
+    if (Array.isArray(value)) {
+      return value.some(item => hasMeaningfulProxyValue(item))
+    }
+    if (value && typeof value === 'object') {
+      return Object.values(value).some(item => hasMeaningfulProxyValue(item))
+    }
+    return value !== undefined && value !== null && value !== ''
+  }, [])
+
+  const cleanProxySettings = React.useCallback(
+    <T extends object>(proxySettings: T | null | undefined): T | undefined => {
+      if (!proxySettings) return undefined
+
+      const cleanedSettings = Object.entries(proxySettings).reduce(
+        (acc, [protocol, settings]) => {
+          if (!settings || typeof settings !== 'object') {
+            return acc
+          }
+
+          const cleanedProtocolSettings = Object.entries(settings as Record<string, unknown>).reduce(
+            (protocolAcc, [key, value]) => {
+              if (Array.isArray(value)) {
+                const cleanedList = value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(item => hasMeaningfulProxyValue(item))
+
+                if (cleanedList.length > 0) {
+                  protocolAcc[key] = cleanedList
+                }
+                return protocolAcc
+              }
+
+              if (typeof value === 'string') {
+                const trimmedValue = value.trim()
+                if (trimmedValue) {
+                  protocolAcc[key] = trimmedValue
+                }
+                return protocolAcc
+              }
+
+              if (value !== undefined && value !== null) {
+                protocolAcc[key] = value
+              }
+
+              return protocolAcc
+            },
+            {} as Record<string, unknown>,
+          )
+
+          if (protocol === 'shadowsocks' && !cleanedProtocolSettings.method) {
+            delete cleanedProtocolSettings.method
+          }
+
+          if (Object.keys(cleanedProtocolSettings).length > 0) {
+            acc[protocol] = cleanedProtocolSettings
+          }
+          return acc
+        },
+        {} as Record<string, Record<string, unknown>>,
+      )
+
+      return Object.keys(cleanedSettings).length > 0 ? (cleanedSettings as T) : undefined
+    },
+    [hasMeaningfulProxyValue],
   )
 
   // Update the template mutation calls
@@ -926,7 +1035,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       setLoading(true)
       try {
         if (editingUser && editingUserId) {
-          await modifyUserWithTemplateMutation.mutateAsync({
+          await modifyUserWithTemplateAsync({
             userId: editingUserId,
             data: {
               user_template_id: selectedTemplateId,
@@ -940,7 +1049,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
             }),
           )
         } else {
-          await createUserFromTemplateMutation.mutateAsync({
+          await createUserFromTemplateAsync({
             data: {
               user_template_id: selectedTemplateId,
               username: values.username,
@@ -966,7 +1075,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         setLoading(false)
       }
     },
-    [editingUser, selectedTemplateId, form, onOpenChange, t],
+    [editingUser, editingUserId, selectedTemplateId, form, onOpenChange, t, modifyUserWithTemplateAsync, createUserFromTemplateAsync, handleError],
   )
 
   const onSubmit = React.useCallback(
@@ -1125,7 +1234,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
               if (!touchedFields.status) {
                 delete sendValues.status
               }
-              await modifyUserMutation.mutateAsync({
+              await modifyUserAsync({
                 userId: editingUserId,
                 data: sendValues,
               })
@@ -1154,7 +1263,7 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
               ...sendValues,
               status: (sendValues.status === 'active' ? 'active' : sendValues.status) as 'active' | 'on_hold',
             }
-            await createUserMutation.mutateAsync({
+            await createUserAsync({
               data: createData,
             })
             toast.success(
@@ -1181,15 +1290,29 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
         setLoading(false)
       }
     },
-    [canUseNextPlan, canUseResetStrategy, editingUser, editingUserId, form, handleTemplateMutation, onOpenChange, requireTemplateForCreate, selectedTemplateId, status, t, touchedFields],
+    [
+      canUseNextPlan,
+      canUseResetStrategy,
+      editingUser,
+      editingUserId,
+      editingUserData?.status,
+      form,
+      handleTemplateMutation,
+      onOpenChange,
+      requireTemplateForCreate,
+      selectedTemplateId,
+      status,
+      t,
+      touchedFields,
+      validateAllFields,
+      cleanProxySettings,
+      nextPlanEnabled,
+      modifyUserAsync,
+      createUserAsync,
+      syncUserCacheFromApiResponse,
+      handleError,
+    ],
   )
-
-  // Helper for cryptographically secure random integer
-  function getRandomInt(max: number): number {
-    const array = new Uint32Array(1)
-    window.crypto.getRandomValues(array)
-    return array[0] % max
-  }
 
   function generateUsername() {
     // Generate random 8-char string with only alphanumeric characters (no special chars)
@@ -1199,32 +1322,6 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       result += chars.charAt(Math.floor(Math.random() * chars.length))
     }
     return result
-  }
-
-  // Add this function after the generateUsername function
-  function generatePassword(length: number = 24): string {
-    const letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
-    const numbers = '0123456789'
-    const special = '_'
-    let password = ''
-
-    // Ensure at least one underscore
-    password += special
-
-    // Fill the rest with letters and numbers
-    for (let i = 1; i < length; i++) {
-      const charSet = getRandomInt(10) < 7 ? letters : numbers // 70% letters, 30% numbers
-      const randomIndex = getRandomInt(charSet.length)
-      password += charSet[randomIndex]
-    }
-
-    // Shuffle the password to make it more random
-    const arr = password.split('')
-    for (let i = arr.length - 1; i > 0; i--) {
-      const j = getRandomInt(i + 1)
-      ;[arr[i], arr[j]] = [arr[j], arr[i]]
-    }
-    return arr.join('')
   }
 
   const generateAllProxySettings = React.useCallback(() => {
@@ -1262,71 +1359,6 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       handleFieldChange('proxy_settings.wireguard.public_key', publicKey)
     },
     [form, handleFieldChange],
-  )
-
-  const hasMeaningfulProxyValue = React.useCallback((value: unknown): boolean => {
-    if (Array.isArray(value)) {
-      return value.some(item => hasMeaningfulProxyValue(item))
-    }
-    if (value && typeof value === 'object') {
-      return Object.values(value).some(item => hasMeaningfulProxyValue(item))
-    }
-    return value !== undefined && value !== null && value !== ''
-  }, [])
-
-  const cleanProxySettings = React.useCallback(
-    <T extends object>(proxySettings: T | null | undefined): T | undefined => {
-      if (!proxySettings) return undefined
-
-      const cleanedSettings = Object.entries(proxySettings).reduce(
-        (acc, [protocol, settings]) => {
-          if (!settings || typeof settings !== 'object') {
-            return acc
-          }
-
-          const cleanedProtocolSettings = Object.entries(settings as Record<string, unknown>).reduce(
-            (protocolAcc, [key, value]) => {
-              if (Array.isArray(value)) {
-                const cleanedList = value.map(item => (typeof item === 'string' ? item.trim() : item)).filter(item => hasMeaningfulProxyValue(item))
-
-                if (cleanedList.length > 0) {
-                  protocolAcc[key] = cleanedList
-                }
-                return protocolAcc
-              }
-
-              if (typeof value === 'string') {
-                const trimmedValue = value.trim()
-                if (trimmedValue) {
-                  protocolAcc[key] = trimmedValue
-                }
-                return protocolAcc
-              }
-
-              if (value !== undefined && value !== null) {
-                protocolAcc[key] = value
-              }
-
-              return protocolAcc
-            },
-            {} as Record<string, unknown>,
-          )
-
-          if (protocol === 'shadowsocks' && !cleanedProtocolSettings.method) {
-            delete cleanedProtocolSettings.method
-          }
-
-          if (Object.keys(cleanedProtocolSettings).length > 0) {
-            acc[protocol] = cleanedProtocolSettings
-          }
-          return acc
-        },
-        {} as Record<string, Record<string, unknown>>,
-      )
-
-      return Object.keys(cleanedSettings).length > 0 ? (cleanedSettings as T) : undefined
-    },
-    [hasMeaningfulProxyValue],
   )
 
   // Regenerate all proxy credentials (VMess, VLESS, Trojan, Shadowsocks, Hysteria, WireGuard)

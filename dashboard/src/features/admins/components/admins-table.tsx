@@ -16,7 +16,7 @@ import {
 import { DataTable } from './data-table'
 import { setupColumns } from './columns'
 import { Filters } from './filters'
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useState, useRef, useCallback, useMemo } from 'react'
 import { PaginationControls } from './filters'
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import useDirDetection from '@/hooks/use-dir-detection'
@@ -30,6 +30,7 @@ import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-a
 import { Power, PowerOff, RefreshCw, Trash2, UserCheck, UserMinus, UserX } from 'lucide-react'
 import { hasPermission, hasScopeAll } from '@/utils/rbac'
 import { formatErrorDetail } from '@/utils/error-utils'
+import { escapeHtml } from '@/utils/escape-html'
 
 const getApiErrorDescription = (error: unknown): string | undefined => {
   if (typeof error !== 'object' || error === null) return undefined
@@ -77,7 +78,7 @@ const DeleteAlertDialog = ({ admin, isOpen, onClose, onConfirm }: { admin: Admin
         <AlertDialogHeader>
           <AlertDialogTitle>{t('admins.deleteAdmin')}</AlertDialogTitle>
           <AlertDialogDescription>
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('deleteAdmin.prompt', { name: admin.username }) }} />
+            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('deleteAdmin.prompt', { name: escapeHtml(admin.username) }) }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -106,7 +107,7 @@ const ToggleAdminStatusModal = ({ admin, isOpen, onClose, onConfirm }: { admin: 
               dir={dir}
               dangerouslySetInnerHTML={{
                 __html: t(isDisabled ? 'admin.enablePrompt' : 'admin.disablePrompt', {
-                  name: admin.username,
+                  name: escapeHtml(admin.username),
                   defaultValue: isDisabled ? 'Are you sure you want to enable admin <b>{{name}}</b>?' : 'Are you sure you want to disable admin <b>{{name}}</b>?',
                 }),
               }}
@@ -132,7 +133,7 @@ const ResetUsersUsageConfirmationDialog = ({ adminUsername, isOpen, onClose, onC
         <AlertDialogHeader>
           <AlertDialogTitle>{t('admins.resetUsersUsage')}</AlertDialogTitle>
           <AlertDialogDescription className="flex items-center gap-2">
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('resetUsersUsage.prompt', { name: adminUsername }) }} />
+            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('resetUsersUsage.prompt', { name: escapeHtml(adminUsername) }) }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -154,7 +155,7 @@ const RemoveAllUsersConfirmationDialog = ({ adminUsername, isOpen, onClose, onCo
         <AlertDialogHeader>
           <AlertDialogTitle>{t('admins.removeAllUsers')}</AlertDialogTitle>
           <AlertDialogDescription className="flex items-center gap-2">
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('removeAllUsers.prompt', { name: adminUsername }) }} />
+            <span dir={dir} dangerouslySetInnerHTML={{ __html: t('removeAllUsers.prompt', { name: escapeHtml(adminUsername) }) }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -193,7 +194,7 @@ const BulkUsersStatusConfirmationDialog = ({
         <AlertDialogHeader>
           <AlertDialogTitle>{t(titleKey)}</AlertDialogTitle>
           <AlertDialogDescription className="flex items-center gap-2">
-            <span dir={dir} dangerouslySetInnerHTML={{ __html: t(promptKey, { name: adminUsername }) }} />
+            <span dir={dir} dangerouslySetInnerHTML={{ __html: t(promptKey, { name: escapeHtml(adminUsername) }) }} />
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -258,7 +259,7 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
     },
   })
 
-  const adminsData = adminsResponse?.admins || []
+  const adminsData = useMemo(() => adminsResponse?.admins || [], [adminsResponse?.admins])
   const selectedAdmins = adminsData.filter(admin => selectedAdminUsernames.includes(admin.username))
   const selectedEnableEligibleAdmins = selectedAdmins.filter(admin => getAdminStatus(admin) === 'disabled')
   const selectedDisableEligibleAdmins = selectedAdmins.filter(admin => getAdminStatus(admin) !== 'disabled')

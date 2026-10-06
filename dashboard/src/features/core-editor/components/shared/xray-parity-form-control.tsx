@@ -12,6 +12,14 @@ import { TcpHeaderObfuscationForm } from '@/features/core-editor/components/shar
 import type { XrayGeneratedFormField } from '@pasarguard/xray-config-kit'
 import { inferParityFieldMode, stringifyJsonFormRecord, TLS_CURVE_PREFERENCE_OPTIONS, type ParityFieldMode } from '@/features/core-editor/kit/xray-parity-value'
 import { cn } from '@/lib/utils'
+import {
+  isBooleanParityField,
+  isJsonRawMessageField,
+  isStringMapField,
+  isWebhookField,
+  normalizeXrayParityFieldKey,
+  transportParityFieldLabel,
+} from '@/features/core-editor/components/shared/xray-parity-field'
 import { Plus, Trash2, X } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
@@ -32,25 +40,6 @@ export interface XrayParityFormControlProps {
   profileTagOptions?: XrayProfileTagOptions
   /** Optional input placeholder (plain text; not i18n). Used for scalar inputs, string lists, and JSON textarea fallback. */
   placeholder?: string
-}
-
-/** Normalizes Go/JSON field names for `coreEditor.transportFields.<key>` labels. */
-export function normalizeXrayParityFieldKey(field: XrayGeneratedFormField): string {
-  return String(field.go || field.json || '')
-    .replace(/[^a-zA-Z0-9]/g, '')
-    .toLowerCase()
-}
-
-/** Product / protocol names spelled the same in every locale — omit from JSON, render as plain text. */
-const TRANSPORT_FIELD_LOCALE_INVARIANT_LABELS: Readonly<Record<string, string>> = {
-  spiderx: 'Spider X',
-}
-
-export function transportParityFieldLabel(field: XrayGeneratedFormField, t: (key: string, o?: { defaultValue?: string }) => string): string {
-  const key = normalizeXrayParityFieldKey(field)
-  const invariant = TRANSPORT_FIELD_LOCALE_INVARIANT_LABELS[key]
-  if (invariant !== undefined) return invariant
-  return t(`coreEditor.transportFields.${key}`, { defaultValue: field.go || field.json || '' })
 }
 
 function normalizeFieldName(field: XrayGeneratedFormField): string {
@@ -136,26 +125,6 @@ function selectOptionsForField(field: XrayGeneratedFormField): string[] | null {
   }
 
   return null
-}
-
-export function isBooleanParityField(field: XrayGeneratedFormField): boolean {
-  const key = normalizeFieldName(field)
-  return field.type === 'bool' || key === 'xpaddingobfsmode'
-}
-
-export function isStringMapField(field: XrayGeneratedFormField): boolean {
-  const key = normalizeFieldName(field)
-  return key === 'requestheaders' || key === 'responseheaders' || key === 'headers' || key === 'attributes'
-}
-
-export function isWebhookField(field: XrayGeneratedFormField): boolean {
-  const key = normalizeFieldName(field)
-  return key === 'webhook'
-}
-
-export function isJsonRawMessageField(field: XrayGeneratedFormField): boolean {
-  const key = normalizeFieldName(field)
-  return key === 'obfuscationheaders' || key === 'headerconfig'
 }
 
 function parseStringMapEntries(value: string): Array<{ key: string; value: string }> | null {

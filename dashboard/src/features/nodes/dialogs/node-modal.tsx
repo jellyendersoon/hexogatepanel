@@ -14,9 +14,10 @@ import { CoresSimpleResponse, DataLimitResetStrategy, getNode, NodeConnectionTyp
 import { formatBytes, gbToBytes } from '@/utils/formatByte'
 import { queryClient } from '@/utils/query-client'
 import { Loader2, RefreshCw, Settings, Server, Pencil } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { type ControllerRenderProps, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
+import { useLatest } from '@/hooks/use-latest'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
 import { LoaderButton } from '@/components/ui/loader-button'
@@ -108,6 +109,8 @@ function KeepAliveField({ field, form }: { field: ControllerRenderProps<NodeForm
 function ResetTimeField({ field, form }: { field: ControllerRenderProps<NodeFormValues, 'reset_time'>; form: UseFormReturn<NodeFormValues> }) {
   const { t } = useTranslation()
   const resetStrategy = form.watch('data_limit_reset_strategy')
+  // `field` is a fresh object every render; `onChange` is stable (react-hook-form memoizes it per field name)
+  const { value: fieldValue, onChange: fieldOnChange } = field
 
   const decodeResetTime = (value: number | null | undefined, strategy: string | null | undefined): { day?: number; time: Date | null } => {
     if (value === null || value === undefined || value === -1 || !strategy || strategy === DataLimitResetStrategy.no_reset) {
@@ -232,11 +235,11 @@ function ResetTimeField({ field, form }: { field: ControllerRenderProps<NodeForm
       newValue = encodeResetTime(selectedDay, selectedTime, resetStrategy)
     }
 
-    if (newValue !== null && newValue !== field.value) {
+    if (newValue !== null && newValue !== fieldValue) {
       isUpdatingFromFieldRef.current = true
-      field.onChange(newValue)
+      fieldOnChange(newValue)
     }
-  }, [useIntervalBased, selectedDay, selectedTime, resetStrategy, field.value])
+  }, [useIntervalBased, selectedDay, selectedTime, resetStrategy, fieldValue, fieldOnChange])
 
   const getDayOptions = () => {
     switch (resetStrategy) {
@@ -398,6 +401,10 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
 
   const currentNode = node || initialNodeData
   const lastSyncedNodeRef = useRef<NodeResponse | null>(null)
+  // `t` changes identity on language switch; the node-fetch effect must not re-run (and reset the form) because of it.
+  const tRef = useLatest(t)
+  // Defined below (needs refetchNode etc.); effects above the definition call it through this ref.
+  const checkNodeStatusRef = useRef<() => Promise<void>>(async () => undefined)
 
   useEffect(() => {
     if (isDialogOpen) {
@@ -464,6 +471,11 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
     lastSyncedNodeRef.current = node
   }, [node, isDialogOpen, editingNode, editingNodeId, form, cores])
 
+  const watchedName = form.watch('name')
+  const watchedAddress = form.watch('address')
+  const watchedPort = form.watch('port')
+  const watchedApiKey = form.watch('api_key')
+
   useEffect(() => {
     const values = form.getValues()
     const timer = setTimeout(() => {
@@ -471,22 +483,25 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
     }, 1000)
 
     return () => clearTimeout(timer)
-  }, [form.watch('name'), form.watch('address'), form.watch('port'), form.watch('api_key')])
+  }, [watchedName, watchedAddress, watchedPort, watchedApiKey, form])
 
+  // Auto status check runs only when the debounced values change; it reads the latest gate values/handler via refs.
+  const autoCheckGateRef = useLatest({ isDialogOpen, autoCheck, editingNode })
   useEffect(() => {
+    const { isDialogOpen, autoCheck, editingNode } = autoCheckGateRef.current
     if (!isDialogOpen || !autoCheck || editingNode || !debouncedValues) return
 
     const { name, address, port, api_key } = debouncedValues
     if (name && address && port && api_key) {
-      checkNodeStatus()
+      checkNodeStatusRef.current()
     }
-  }, [debouncedValues])
+  }, [debouncedValues, autoCheckGateRef, checkNodeStatusRef])
 
   useEffect(() => {
     if (editingNode && isDialogOpen && editingNodeId) {
-      checkNodeStatus()
+      checkNodeStatusRef.current()
     }
-  }, [editingNode, isDialogOpen, editingNodeId])
+  }, [editingNode, isDialogOpen, editingNodeId, checkNodeStatusRef])
   useEffect(() => {
     if (editingNode && editingNodeId) {
       if (initialNodeData) {
@@ -547,7 +562,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
             lastSyncedNodeRef.current = nodeData
           } catch (error) {
             console.error('Error fetching node data:', error)
-            toast.error(t('nodes.fetchFailed'))
+            toast.error(tRef.current('nodes.fetchFailed'))
           } finally {
             setIsFetchingNodeData(false)
           }
@@ -576,7 +591,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
         proxy_url: '',
       })
     }
-  }, [editingNode, editingNodeId, isDialogOpen, cores, initialNodeData, form])
+  }, [editingNode, editingNodeId, isDialogOpen, cores, initialNodeData, form, tRef])
 
   useEffect(() => {
     if (isDialogOpen && cores?.[0]?.id) {
@@ -596,7 +611,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
     }
   }, [isDialogOpen, form])
 
-  const checkNodeStatus = async () => {
+  const checkNodeStatus = useCallback(async () => {
     const values = form.getValues()
 
     if (!values.name || !values.address || !values.port) {
@@ -619,7 +634,9 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
     } finally {
       setStatusChecking(false)
     }
-  }
+  }, [form, editingNode, editingNodeId, refetchNode, t])
+  checkNodeStatusRef.current = checkNodeStatus
+
   useEffect(() => {
     if (currentNode?.status === 'error') {
       setErrorDetails(currentNode.message || 'Node has an error')

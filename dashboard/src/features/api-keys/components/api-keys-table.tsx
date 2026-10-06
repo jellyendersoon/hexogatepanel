@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { cn } from '@/lib/utils'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { APIKeyResponse, RolePermissions, useGetAdminsSimple } from '@/service/api'
-import { countEnabledPermissions } from '@/features/admin-roles/components/permission-editor'
+import { countEnabledPermissions } from '@/features/admin-roles/components/permission-count'
 import { RolePermissionFormMap } from '@/features/admin-roles/forms/admin-role-form'
 import { AdminStatusBadge } from '@/features/admins/components/admin-status-badge'
 import { dateUtils } from '@/utils/dateFormatter'

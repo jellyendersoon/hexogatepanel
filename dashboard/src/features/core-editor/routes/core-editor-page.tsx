@@ -7,7 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CoreEditorLayout } from '@/features/core-editor/components/shell/core-editor-layout'
 import { CoreSectionTabsPlaceholder } from '@/features/core-editor/components/shell/core-section-sidebar'
-import { ValidationSummary, type ValidationListItem } from '@/features/core-editor/components/shared/validation-summary'
+import { ValidationSummary } from '@/features/core-editor/components/shared/validation-summary'
+import type { ValidationListItem } from '@/features/core-editor/components/shared/validation-list'
 import type { SectionHeaderAddPulse } from '@/features/core-editor/hooks/use-section-header-add-pulse'
 import { useXrayPersistValidationItems } from '@/features/core-editor/hooks/use-xray-persist-validation-items'
 import { WireGuardCoreEditor } from '@/features/core-editor/components/wg/wireguard-core-editor'
@@ -364,24 +365,7 @@ export default function CoreEditorPage() {
     } finally {
       setSaving(false)
     }
-  }, [
-    coreName,
-    kind,
-    wgDraft,
-    xrayProfile,
-    preSaveIssues.length,
-    isNew,
-    validId,
-    numericId,
-    fallbacksInboundTags,
-    excludeInboundTags,
-    restartNodes,
-    createMutation,
-    modifyMutation,
-    markClean,
-    navigate,
-    t,
-  ])
+  }, [coreName, kind, wgDraft, xrayProfile, isNew, validId, numericId, fallbacksInboundTags, excludeInboundTags, restartNodes, createMutation, modifyMutation, markClean, navigate, t])
 
   const nameRequiredMessage = t('coreConfigModal.nameRequired', { defaultValue: 'Core name is required' })
   const showNameRequired = nameSubmitAttempted && coreName.trim() === ''

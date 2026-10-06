@@ -1,12 +1,56 @@
 import { useCallback, useEffect, useRef, useMemo, useState, memo } from 'react'
 import { useLocation } from 'react-router'
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import LoadingBar from 'react-top-loading-bar'
 
 const shouldIgnoreRoute = (pathname: string): boolean => {
   const IGNORED_ROUTE_PATTERNS = [/^\/settings\/(general|notifications|subscriptions|telegram|webhook|cleanup|theme)$/, /^\/nodes\/(cores|logs)$/]
 
   return IGNORED_ROUTE_PATTERNS.some(pattern => pattern.test(pathname))
+}
+
+function resolvePrimaryColor(color: string | undefined, resolvedTheme: string | undefined): string {
+  if (color) return color
+
+  const root = document.documentElement
+  const primaryColorValue = getComputedStyle(root).getPropertyValue('--primary').trim()
+
+  if (primaryColorValue) {
+    const hslValues = primaryColorValue.split(' ').map(v => parseFloat(v))
+    if (hslValues.length === 3) {
+      const [h, s, l] = hslValues
+      const hNorm = h / 360
+      const sNorm = s / 100
+      const lNorm = l / 100
+
+      const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm
+      const x = c * (1 - Math.abs(((hNorm * 6) % 2) - 1))
+      const m = lNorm - c / 2
+
+      let r, g, b
+      if (hNorm < 1 / 6) {
+        ;[r, g, b] = [c, x, 0]
+      } else if (hNorm < 2 / 6) {
+        ;[r, g, b] = [x, c, 0]
+      } else if (hNorm < 3 / 6) {
+        ;[r, g, b] = [0, c, x]
+      } else if (hNorm < 4 / 6) {
+        ;[r, g, b] = [0, x, c]
+      } else if (hNorm < 5 / 6) {
+        ;[r, g, b] = [x, 0, c]
+      } else {
+        ;[r, g, b] = [c, 0, x]
+      }
+
+      const rFinal = Math.round((r + m) * 255)
+      const gFinal = Math.round((g + m) * 255)
+      const bFinal = Math.round((b + m) * 255)
+
+      return `rgb(${rFinal}, ${gFinal}, ${bFinal})`
+    }
+  }
+
+  return resolvedTheme === 'dark' ? '#3b82f6' : '#2563eb'
 }
 
 declare global {
@@ -106,48 +150,12 @@ function TopLoadingBar({ height = 3, color, shadow = false, className = '' }: To
     }, 800)
   }, [clearTimers, complete])
 
-  const primaryColor = useMemo(() => {
-    if (color) return color
+  const [primaryColor, setPrimaryColor] = useState(() => resolvePrimaryColor(color, resolvedTheme))
 
-    const root = document.documentElement
-    const primaryColorValue = getComputedStyle(root).getPropertyValue('--primary').trim()
-
-    if (primaryColorValue) {
-      const hslValues = primaryColorValue.split(' ').map(v => parseFloat(v))
-      if (hslValues.length === 3) {
-        const [h, s, l] = hslValues
-        const hNorm = h / 360
-        const sNorm = s / 100
-        const lNorm = l / 100
-
-        const c = (1 - Math.abs(2 * lNorm - 1)) * sNorm
-        const x = c * (1 - Math.abs(((hNorm * 6) % 2) - 1))
-        const m = lNorm - c / 2
-
-        let r, g, b
-        if (hNorm < 1 / 6) {
-          ;[r, g, b] = [c, x, 0]
-        } else if (hNorm < 2 / 6) {
-          ;[r, g, b] = [x, c, 0]
-        } else if (hNorm < 3 / 6) {
-          ;[r, g, b] = [0, c, x]
-        } else if (hNorm < 4 / 6) {
-          ;[r, g, b] = [0, x, c]
-        } else if (hNorm < 5 / 6) {
-          ;[r, g, b] = [x, 0, c]
-        } else {
-          ;[r, g, b] = [c, 0, x]
-        }
-
-        const rFinal = Math.round((r + m) * 255)
-        const gFinal = Math.round((g + m) * 255)
-        const bFinal = Math.round((b + m) * 255)
-
-        return `rgb(${rFinal}, ${gFinal}, ${bFinal})`
-      }
-    }
-
-    return resolvedTheme === 'dark' ? '#3b82f6' : '#2563eb'
+  // Re-read the CSS variable after the theme/color-theme has been applied to the document
+  // (themeKey/colorThemeKey/colorTheme/customization are intentional extra triggers).
+  useEffect(() => {
+    setPrimaryColor(resolvePrimaryColor(color, resolvedTheme))
   }, [color, resolvedTheme, themeKey, colorThemeKey, colorTheme, customization])
 
   useEffect(() => {

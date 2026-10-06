@@ -8,60 +8,8 @@ import { cn } from '@/lib/utils'
 import { ListTree, Plus, Trash2 } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-
-export type FallbackEditorRow = {
-  id: string
-  name: string
-  alpn: string
-  path: string
-  dest: string
-  xver: 0 | 1 | 2
-}
-
-function newRow(): FallbackEditorRow {
-  return {
-    id: globalThis.crypto?.randomUUID?.() ?? `r-${Math.random().toString(36).slice(2)}`,
-    name: '',
-    alpn: '',
-    path: '',
-    dest: '',
-    xver: 0,
-  }
-}
-
-function fallbackPathIsInvalid(path: string): boolean {
-  const trimmed = path.trim()
-  return trimmed !== '' && !trimmed.startsWith('/')
-}
-
-export function fallbacksToEditorRows(fallbacks: readonly Fallback[] | undefined): FallbackEditorRow[] {
-  if (!fallbacks?.length) return [newRow()]
-  return fallbacks.map((fb, i) => ({
-    id: `fb-${i}-${String(fb.dest)}`,
-    name: fb.name ?? '',
-    alpn: fb.alpn ?? '',
-    path: fb.path ?? '',
-    dest: typeof fb.dest === 'number' ? String(fb.dest) : String(fb.dest ?? ''),
-    xver: fb.xver === 1 || fb.xver === 2 ? fb.xver : 0,
-  }))
-}
-
-export function editorRowsToFallbacks(rows: FallbackEditorRow[]): Fallback[] | undefined {
-  const out: Fallback[] = []
-  for (const r of rows) {
-    const d = r.dest.trim()
-    if (d === '') continue
-    const dest: string | number = /^\d+$/.test(d) ? Number(d) : d
-    out.push({
-      dest,
-      ...(r.name.trim() ? { name: r.name.trim() } : {}),
-      ...(r.alpn.trim() ? { alpn: r.alpn.trim() } : {}),
-      ...(r.path.trim() && !fallbackPathIsInvalid(r.path) ? { path: r.path.trim() } : {}),
-      ...(r.xver === 1 || r.xver === 2 ? { xver: r.xver } : {}),
-    })
-  }
-  return out.length > 0 ? out : undefined
-}
+import { editorRowsToFallbacks, fallbackPathIsInvalid, fallbacksToEditorRows, newFallbackEditorRow, type FallbackEditorRow } from './inbound-fallbacks'
+import { useLatest } from '@/hooks/use-latest'
 
 /** Same chrome as DNS rules / Freedom sub-accordions in outbound settings. */
 const FALLBACKS_ACCORDION_ITEM_CLASS = 'rounded-sm border px-4 [&_[data-state=closed]]:no-underline [&_[data-state=open]]:no-underline'
@@ -78,10 +26,12 @@ export function InboundFallbacksEditor({ className, fallbacks, onPersist }: Inbo
   const [rows, setRows] = useState<FallbackEditorRow[]>(() => fallbacksToEditorRows(fallbacks))
   const rowsRef = useRef(rows)
   rowsRef.current = rows
+  const fallbacksRef = useLatest(fallbacks)
 
+  // Re-sync rows only when the serialized fallbacks change (not on every new array identity)
   useEffect(() => {
-    setRows(fallbacksToEditorRows(fallbacks))
-  }, [fbKey])
+    setRows(fallbacksToEditorRows(fallbacksRef.current))
+  }, [fbKey, fallbacksRef])
 
   const commit = (next: FallbackEditorRow[]) => {
     setRows(next)
@@ -93,11 +43,11 @@ export function InboundFallbacksEditor({ className, fallbacks, onPersist }: Inbo
     commit(next)
   }
 
-  const addRow = () => commit([...rowsRef.current, newRow()])
+  const addRow = () => commit([...rowsRef.current, newFallbackEditorRow()])
 
   const removeRow = (id: string) => {
     const filtered = rowsRef.current.filter(r => r.id !== id)
-    commit(filtered.length > 0 ? filtered : [newRow()])
+    commit(filtered.length > 0 ? filtered : [newFallbackEditorRow()])
   }
 
   return (

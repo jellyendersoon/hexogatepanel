@@ -1,4 +1,4 @@
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { DEFAULT_MONACO_CODE_EDITOR_OPTIONS } from '@/components/common/code-editor-defaults'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'

@@ -5,7 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Badge } from '@/components/ui/badge'
 import { APIKeyResponse, AdminBase, RolePermissions } from '@/service/api'
 import { dateUtils } from '@/utils/dateFormatter'
-import { countEnabledPermissions } from '@/features/admin-roles/components/permission-editor'
+import { countEnabledPermissions } from '@/features/admin-roles/components/permission-count'
 import { RolePermissionFormMap } from '@/features/admin-roles/forms/admin-role-form'
 import { AdminStatusBadge } from '@/features/admins/components/admin-status-badge'
 import type { TFunction } from 'i18next'

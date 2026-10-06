@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useWebSocket } from 'react-use-websocket/dist/lib/use-websocket'
 import debounce from 'lodash.debounce'
 import { getAuthToken } from '@/utils/authStorage'
@@ -31,15 +31,16 @@ const Logs = ({ className }: { className?: string }) => {
   const [selectedNode] = useState<string>('')
   const logsDiv = useRef<HTMLDivElement | null>(null)
 
-  const updateLogs = useCallback(
-    debounce(() => {
-      if (logsDiv.current) {
-        logsDiv.current.scrollTo({
-          top: logsDiv.current.scrollHeight,
-          behavior: 'smooth',
-        })
-      }
-    }, 300),
+  const updateLogs = useMemo(
+    () =>
+      debounce(() => {
+        if (logsDiv.current) {
+          logsDiv.current.scrollTo({
+            top: logsDiv.current.scrollHeight,
+            behavior: 'smooth',
+          })
+        }
+      }, 300),
     [],
   )
 

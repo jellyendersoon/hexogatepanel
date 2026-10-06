@@ -9,7 +9,7 @@ import { useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { z } from 'zod'
-import { useSettingsContext } from './_dashboard.settings'
+import { useSettingsContext } from './settings-context'
 
 const hwidSettingsSchema = z
   .object({

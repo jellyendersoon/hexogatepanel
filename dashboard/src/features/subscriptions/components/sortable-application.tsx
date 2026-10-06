@@ -1,6 +1,7 @@
 import { SubscriptionApplicationSheet } from '@/features/subscriptions/components/subscription-application-sheet'
 import type { SubscriptionFormData } from '@/features/subscriptions/components/subscription-settings-schema'
-import { platformOptions, PlatformIcon } from '@/features/subscriptions/components/subscription-application-shared'
+import { PlatformIcon } from '@/features/subscriptions/components/subscription-application-shared'
+import { platformOptions } from '@/features/subscriptions/components/subscription-application-options'
 import { Button } from '@/components/ui/button'
 import { FormField } from '@/components/ui/form'
 import { useSortable } from '@dnd-kit/sortable'

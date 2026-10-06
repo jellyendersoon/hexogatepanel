@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Webhook, Globe, Plus, Trash2, Clock, RotateCw, Target } from 'lucide-react'
-import { useSettingsContext } from './_dashboard.settings'
+import { useSettingsContext } from './settings-context'
 import type { SettingsSchema } from '@/service/api'
 import { toast } from 'sonner'
 

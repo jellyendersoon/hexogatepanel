@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
-import { XrayParityFormControl, isBooleanParityField, type XrayProfileTagOptions } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { XrayParityFormControl, type XrayProfileTagOptions } from '@/features/core-editor/components/shared/xray-parity-form-control'
+import { isBooleanParityField } from '@/features/core-editor/components/shared/xray-parity-field'
 import { CoreEditorDataTable } from '@/features/core-editor/components/shared/core-editor-data-table'
 import { CoreEditorFormDialog } from '@/features/core-editor/components/shared/core-editor-form-dialog'
 import { useSectionHeaderAddPulseEffect, type SectionHeaderAddPulse } from '@/features/core-editor/hooks/use-section-header-add-pulse'
@@ -261,7 +262,7 @@ export function XrayBalancersSection({ headerAddPulse, headerAddEpoch }: XrayBal
   const [observationTab, setObservationTab] = useState<ObservationTab>('observatory')
   const [observationDialogOpen, setObservationDialogOpen] = useState(false)
   const [observationDraft, setObservationDraft] = useState<ObservationDraft | null>(null)
-  const balancers = profile?.routing?.balancers ?? []
+  const balancers = useMemo(() => profile?.routing?.balancers ?? [], [profile?.routing?.balancers])
 
   const b = useMemo(() => {
     if (draftBalancer) return draftBalancer

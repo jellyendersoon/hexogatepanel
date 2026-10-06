@@ -25,7 +25,7 @@ import { useEffect, useState } from 'react'
 import { FieldErrors, useFieldArray, useForm } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
-import { useSettingsContext } from './_dashboard.settings'
+import { useSettingsContext } from './settings-context'
 
 export default function SubscriptionSettings() {
   const { t } = useTranslation()

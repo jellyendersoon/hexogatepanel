@@ -1,5 +1,5 @@
 import { accentThemes, baseColors } from '@/constants/color-themes'
-import { useTheme } from '@/app/providers/theme-provider'
+import { useTheme } from '@/app/providers/theme-context'
 import { useTranslation } from 'react-i18next'
 
 export function ThemePreview() {

@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar'
 import { Button } from '@/components/ui/button'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
-import { useSidebar } from '@/components/ui/sidebar'
+import { useSidebar } from '@/components/ui/sidebar-context'
 import { type AdminDetails } from '@/service/api'
 import { ChevronsUpDown, LogOut, UserRoundKey, UsersIcon, UserCircle, ChartPie, ChartNoAxesColumn, UserRound } from 'lucide-react'
 import { useTranslation } from 'react-i18next'

@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import { createClientTemplate, useRemoveClientTemplate, ClientTemplateResponse } from '@/service/api'
 import { queryClient } from '@/utils/query-client'
+import { escapeHtml } from '@/utils/escape-html'
 
 interface ClientTemplateActionsMenuProps {
   template: ClientTemplateResponse
@@ -33,7 +34,7 @@ const DeleteAlertDialog = ({ template, isOpen, onClose, onConfirm }: { template:
               dir={dir}
               dangerouslySetInnerHTML={{
                 __html: t('clientTemplates.deletePrompt', {
-                  name: template.name,
+                  name: escapeHtml(template.name),
                   defaultValue: `Are you sure you want to delete <b>{{name}}</b>? This action cannot be undone.`,
                 }),
               }}

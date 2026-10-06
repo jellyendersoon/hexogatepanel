@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 
 async function copyToClipboard(text: string): Promise<boolean> {
   // Try modern clipboard API first (required for iOS)
@@ -36,13 +36,16 @@ async function copyToClipboard(text: string): Promise<boolean> {
 export function useClipboard({ timeout = 1500 } = {}) {
   const [error, setError] = useState<Error | null>(null)
   const [copied, setCopied] = useState(false)
-  const [copyTimeout, setCopyTimeout] = useState<number | null>(null)
+  const copyTimeoutRef = useRef<number | null>(null)
 
-  const handleCopyResult = (value: boolean) => {
-    window.clearTimeout(copyTimeout!)
-    setCopyTimeout(window.setTimeout(() => setCopied(false), timeout))
-    setCopied(value)
-  }
+  const handleCopyResult = useCallback(
+    (value: boolean) => {
+      if (copyTimeoutRef.current !== null) window.clearTimeout(copyTimeoutRef.current)
+      copyTimeoutRef.current = window.setTimeout(() => setCopied(false), timeout)
+      setCopied(value)
+    },
+    [timeout],
+  )
 
   const copy = useCallback(
     async (text: string) => {
@@ -63,13 +66,13 @@ export function useClipboard({ timeout = 1500 } = {}) {
         return false
       }
     },
-    [timeout],
+    [handleCopyResult],
   )
 
   const reset = () => {
     setCopied(false)
     setError(null)
-    window.clearTimeout(copyTimeout!)
+    if (copyTimeoutRef.current !== null) window.clearTimeout(copyTimeoutRef.current)
   }
 
   return { copy, reset, error, copied }

@@ -4,23 +4,8 @@ import PageTransition from '@/components/layout/page-transition'
 import RouteGuard from '@/components/layout/route-guard'
 import { TopLoadingBar } from '@/components/layout/top-loading-bar'
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar'
-import { getCurrentAdmin, type AdminDetails } from '@/service/api'
-import { isAuthenticationError } from '@/utils/error-utils'
 import { Outlet } from 'react-router'
 import { CommandPalette } from '@/components/layout/command-palette'
-
-export const clientLoader = async (): Promise<AdminDetails> => {
-  try {
-    const response = await getCurrentAdmin()
-    return response
-  } catch (error) {
-    if (isAuthenticationError(error)) {
-      throw Response.redirect('/login')
-    }
-
-    throw error
-  }
-}
 
 export default function DashboardLayout() {
   return (

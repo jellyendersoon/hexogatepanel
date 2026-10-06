@@ -7,7 +7,7 @@ import useDirDetection from '@/hooks/use-dir-detection'
 import { cn } from '@/lib/utils'
 import { debounce } from 'es-toolkit'
 import { ArrowUpDown, Calendar, ChartPie, ChevronDown, RefreshCw, SearchIcon, User, X } from 'lucide-react'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { LoaderCircle } from 'lucide-react'
 
@@ -67,13 +67,14 @@ export function Filters<T extends BaseFilters>({ filters, onFilterChange, handle
   onFilterChangeRef.current = onFilterChange
 
   // Debounced search function
-  const setSearchField = useCallback(
-    debounce((value: string) => {
-      onFilterChangeRef.current({
-        username: value || undefined,
-        offset: 0, // Reset to first page when search is updated
-      } as Partial<T>)
-    }, 300),
+  const setSearchField = useMemo(
+    () =>
+      debounce((value: string) => {
+        onFilterChangeRef.current({
+          username: value || undefined,
+          offset: 0, // Reset to first page when search is updated
+        } as Partial<T>)
+      }, 300),
     [],
   )
 
