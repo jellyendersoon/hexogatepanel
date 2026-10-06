@@ -1,4 +1,4 @@
-import { AlertDialog, AlertDialogAction,AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
+import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
@@ -613,8 +613,14 @@ export function XrayDnsSection({ headerAddPulse, headerAddEpoch }: XrayDnsSectio
         onOpenChange={handleServerDialogOpenChange}
         initialData={dialogMode === 'add' ? entryToForm(initialDraftRef.current) : entryToForm(profile?.dns?.servers?.[selectedServerIdx] ?? null)}
         getCurrentData={() => serverForm.getValues()}
-        discardTitle={dialogMode === 'add' ? t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard new DNS server?' }) : t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard changes?' })}
-        discardDescription={dialogMode === 'add' ? t('coreEditor.dns.discardDraftDescription', { defaultValue: 'This server is not in the list yet. Closing without adding will discard your changes.' }) : t('coreEditor.dns.discardDraftDescription', { defaultValue: 'Your modifications will be lost if you close now.' })}
+        discardTitle={
+          dialogMode === 'add' ? t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard new DNS server?' }) : t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard changes?' })
+        }
+        discardDescription={
+          dialogMode === 'add'
+            ? t('coreEditor.dns.discardDraftDescription', { defaultValue: 'This server is not in the list yet. Closing without adding will discard your changes.' })
+            : t('coreEditor.dns.discardDraftDescription', { defaultValue: 'Your modifications will be lost if you close now.' })
+        }
         discardActionLabel={t('coreEditor.dns.discardDraftAction', { defaultValue: 'Discard' })}
         leadingIcon={dialogMode === 'add' ? <Plus className="h-5 w-5 shrink-0" /> : <Pencil className="h-5 w-5 shrink-0" />}
         title={dialogMode === 'add' ? t('coreEditor.dns.dialogAddServer', { defaultValue: 'Add DNS server' }) : t('coreEditor.dns.dialogEditServer', { defaultValue: 'Edit DNS server' })}
@@ -772,8 +778,14 @@ export function XrayDnsSection({ headerAddPulse, headerAddEpoch }: XrayDnsSectio
         onOpenChange={setHostDialogOpen}
         initialData={hostInitialDraftRef.current}
         getCurrentData={() => hostForm.getValues()}
-        discardTitle={hostDialogMode === 'add' ? t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard new host?' }) : t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard changes?' })}
-        discardDescription={hostDialogMode === 'add' ? t('coreEditor.dns.discardDraftDescription', { defaultValue: 'This host mapping is not saved yet. Closing without adding will discard your changes.' }) : t('coreEditor.dns.discardDraftDescription', { defaultValue: 'Your modifications to this host mapping will be lost if you close now.' })}
+        discardTitle={
+          hostDialogMode === 'add' ? t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard new host?' }) : t('coreEditor.dns.discardDraftTitle', { defaultValue: 'Discard changes?' })
+        }
+        discardDescription={
+          hostDialogMode === 'add'
+            ? t('coreEditor.dns.discardDraftDescription', { defaultValue: 'This host mapping is not saved yet. Closing without adding will discard your changes.' })
+            : t('coreEditor.dns.discardDraftDescription', { defaultValue: 'Your modifications to this host mapping will be lost if you close now.' })
+        }
         discardActionLabel={t('coreEditor.dns.discardDraftAction', { defaultValue: 'Discard' })}
         leadingIcon={hostDialogMode === 'add' ? <Plus className="h-5 w-5 shrink-0" /> : <Pencil className="h-5 w-5 shrink-0" />}
         title={hostDialogMode === 'add' ? t('coreEditor.dns.dialogAddHost', { defaultValue: 'Add host mapping' }) : t('coreEditor.dns.dialogEditHost', { defaultValue: 'Edit host mapping' })}
@@ -827,7 +839,6 @@ export function XrayDnsSection({ headerAddPulse, headerAddEpoch }: XrayDnsSectio
         </Form>
       </CoreEditorFormDialog>
 
-      
       <AlertDialog open={blockAddWhileDraftOpen} onOpenChange={setBlockAddWhileDraftOpen}>
         <AlertDialogContent dir={dir}>
           <AlertDialogHeader>

@@ -22,18 +22,7 @@ export const DEFAULT_THEME_CUSTOMIZATION: ThemeCustomization = {
   style: 'vega',
 }
 
-const BACKGROUND_TOKENS = new Set([
-  '--background',
-  '--card',
-  '--muted',
-  '--secondary',
-  '--accent',
-  '--popover',
-  '--input',
-  '--sidebar-background',
-  '--scrollbar-track',
-  '--background-custom',
-])
+const BACKGROUND_TOKENS = new Set(['--background', '--card', '--muted', '--secondary', '--accent', '--popover', '--input', '--sidebar-background', '--scrollbar-track', '--background-custom'])
 
 const NEUTRAL_HUES: Record<Exclude<ThemeNeutral, 'default'>, number> = {
   cool: 220,

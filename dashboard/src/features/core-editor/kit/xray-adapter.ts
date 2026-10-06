@@ -397,12 +397,7 @@ export function importRawToProfile(raw: unknown): { profile: Profile; issues: Is
   const withRealityXver = patchRealityInboundXverFromRaw(withVlessEncryption, raw)
   const withInboundSockopt = preserveInboundSockoptFromRaw(withRealityXver, raw)
   const withInboundStreamSettings = preserveInboundStreamSettingsFromRaw(withInboundSockopt, raw)
-  const profile = stripHysteriaInboundAuth(
-    preserveUnmodeledTopLevelSections(
-      withInboundStreamSettings,
-      raw,
-    ),
-  )
+  const profile = stripHysteriaInboundAuth(preserveUnmodeledTopLevelSections(withInboundStreamSettings, raw))
 
   return { profile, issues: [...imported.issues] }
 }

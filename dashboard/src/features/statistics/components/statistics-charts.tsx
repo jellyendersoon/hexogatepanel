@@ -135,11 +135,7 @@ export default function StatisticsCharts({ data, usersData, isLoading, error, se
 
       {/* Charts Section */}
       <div className="space-y-8">
-        {canViewNodeStats && (
-          <div className="transform-gpu">
-            {actualSelectedServer === 'master' ? <AllNodesStackedBarChart /> : <CostumeBarChart nodeId={selectedNodeId} />}
-          </div>
-        )}
+        {canViewNodeStats && <div className="transform-gpu">{actualSelectedServer === 'master' ? <AllNodesStackedBarChart /> : <CostumeBarChart nodeId={selectedNodeId} />}</div>}
         <div className="transform-gpu">
           <UserCountsChart nodeId={selectedNodeId} isSudo={canViewNodeStats} nodesData={nodesData} />
         </div>

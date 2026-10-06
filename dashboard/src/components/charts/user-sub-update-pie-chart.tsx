@@ -15,12 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import UserSubUpdateStatsModal from '@/features/users/dialogs/user-sub-update-stats-modal'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useChartViewType } from '@/hooks/use-chart-view-type'
-import {
-  Period,
-  type GetUsersSubUpdateChartParams,
-  type UserSubscriptionUpdateChartSegment,
-  useGetUsersSubUpdateChart,
-} from '@/service/api'
+import { Period, type GetUsersSubUpdateChartParams, type UserSubscriptionUpdateChartSegment, useGetUsersSubUpdateChart } from '@/service/api'
 import {
   CHART_PERIOD_OVERRIDE_AUTO,
   type ChartPeriodOverride,
@@ -441,10 +436,7 @@ function UserSubUpdatePieChart({ username, adminId }: UserSubUpdatePieChartProps
     [activePeriod, customRange, selectedTime, showCustomRange, timeSeriesData.length, windowWidth, periodOverride],
   )
 
-  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(
-    () => getChartRenderFlags(timeSeriesData.length, series.length),
-    [timeSeriesData.length, series.length],
-  )
+  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(() => getChartRenderFlags(timeSeriesData.length, series.length), [timeSeriesData.length, series.length])
   const brushWindow = useMemo(() => getChartBrushWindow(timeSeriesData.length, series.length), [series.length, timeSeriesData.length])
 
   const hasPieData = segments.some(segment => segment.count > 0)
@@ -511,269 +503,265 @@ function UserSubUpdatePieChart({ username, adminId }: UserSubUpdatePieChartProps
   return (
     <>
       <Card>
-      <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 xl:flex-row">
-        <div className="flex flex-1 flex-col gap-2 border-b px-4 py-3 xl:px-6 xl:py-4">
-          <div className="flex min-w-0 flex-col justify-center gap-1 pt-2">
-            <CardTitle className="mb-0.5 flex min-w-0 items-center gap-2">
-              <Users className="text-muted-foreground h-4 w-4 shrink-0" />
-              <span className="truncate">{t('statistics.subscriptionDistribution')}</span>
-            </CardTitle>
-            <CardDescription className="text-pretty">{t('statistics.subscriptionDistributionDescription')}</CardDescription>
-            <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
-              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>
-                {t('statistics.subscriptionDistributionRetentionNote', {
-                  limit: 10,
-                  env: 'USER_SUBSCRIPTION_CLIENTS_LIMIT',
-                  defaultValue:
-                    'By default only the latest {{limit}} subscription updates are kept per user. Change this with {{env}} in your environment.',
-                })}
-              </span>
-            </p>
-          </div>
-          <div className="flex w-full min-w-0 flex-col gap-2">
-            <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
-              <TimeSelector selectedTime={selectedTime} setSelectedTime={handleTimeSelect} shortcuts={TRAFFIC_TIME_SELECTOR_SHORTCUTS} maxVisible={5} className="w-full sm:w-fit" />
-              <div className="flex w-full items-center gap-2 sm:w-auto">
-                <PeriodSelector value={periodOverride} onValueChange={setPeriodOverride} className="min-w-0 flex-1 sm:w-[7rem] sm:flex-none" />
-                <button
-                  type="button"
-                  aria-label={t('statistics.customRange', { defaultValue: 'Custom Range' })}
-                  className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${showCustomRange ? 'bg-muted' : ''}`}
-                  onClick={() => {
-                    const next = !showCustomRange
-                    setShowCustomRange(next)
-                    if (!next) {
-                      setCustomRange(undefined)
+        <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 xl:flex-row">
+          <div className="flex flex-1 flex-col gap-2 border-b px-4 py-3 xl:px-6 xl:py-4">
+            <div className="flex min-w-0 flex-col justify-center gap-1 pt-2">
+              <CardTitle className="mb-0.5 flex min-w-0 items-center gap-2">
+                <Users className="text-muted-foreground h-4 w-4 shrink-0" />
+                <span className="truncate">{t('statistics.subscriptionDistribution')}</span>
+              </CardTitle>
+              <CardDescription className="text-pretty">{t('statistics.subscriptionDistributionDescription')}</CardDescription>
+              <p className="text-muted-foreground flex items-start gap-1.5 text-xs">
+                <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                <span>
+                  {t('statistics.subscriptionDistributionRetentionNote', {
+                    limit: 10,
+                    env: 'USER_SUBSCRIPTION_CLIENTS_LIMIT',
+                    defaultValue: 'By default only the latest {{limit}} subscription updates are kept per user. Change this with {{env}} in your environment.',
+                  })}
+                </span>
+              </p>
+            </div>
+            <div className="flex w-full min-w-0 flex-col gap-2">
+              <div className="flex w-full min-w-0 flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center">
+                <TimeSelector selectedTime={selectedTime} setSelectedTime={handleTimeSelect} shortcuts={TRAFFIC_TIME_SELECTOR_SHORTCUTS} maxVisible={5} className="w-full sm:w-fit" />
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <PeriodSelector value={periodOverride} onValueChange={setPeriodOverride} className="min-w-0 flex-1 sm:w-[7rem] sm:flex-none" />
+                  <button
+                    type="button"
+                    aria-label={t('statistics.customRange', { defaultValue: 'Custom Range' })}
+                    className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-md border ${showCustomRange ? 'bg-muted' : ''}`}
+                    onClick={() => {
+                      const next = !showCustomRange
+                      setShowCustomRange(next)
+                      if (!next) {
+                        setCustomRange(undefined)
+                      }
+                    }}
+                  >
+                    <Calendar className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex w-full items-center gap-2">
+                <AdminFilterCombobox
+                  value={selectedAdmin}
+                  onValueChange={adminUsername => {
+                    setSelectedAdmin(adminUsername)
+                    if (adminUsername === 'all') {
+                      setSelectedAdminId(null)
                     }
                   }}
-                >
-                  <Calendar className="h-4 w-4" />
-                </button>
+                  onAdminSelect={admin => setSelectedAdminId(admin?.id ?? null)}
+                  className="min-w-0 flex-1 sm:w-[220px] sm:flex-none"
+                />
+                <div className="bg-muted/30 inline-flex h-8 shrink-0 items-center gap-1 rounded-md border p-1">
+                  <button
+                    type="button"
+                    aria-label={chartViewType === 'area' ? t('theme.chartViewArea', { defaultValue: 'Area chart' }) : t('statistics.barChart', { defaultValue: 'Bar chart' })}
+                    className={`inline-flex h-6 w-6 items-center justify-center rounded ${chartView === 'bar' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                    onClick={() => setChartView('bar')}
+                  >
+                    <BarChart3 className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={t('statistics.pieChart', { defaultValue: 'Pie chart' })}
+                    className={`inline-flex h-6 w-6 items-center justify-center rounded ${chartView === 'pie' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
+                    onClick={() => setChartView('pie')}
+                  >
+                    <PieChartIcon className="h-3.5 w-3.5" />
+                  </button>
+                </div>
               </div>
             </div>
-            <div className="flex w-full items-center gap-2">
-              <AdminFilterCombobox
-                value={selectedAdmin}
-                onValueChange={adminUsername => {
-                  setSelectedAdmin(adminUsername)
-                  if (adminUsername === 'all') {
-                    setSelectedAdminId(null)
-                  }
-                }}
-                onAdminSelect={admin => setSelectedAdminId(admin?.id ?? null)}
-                className="min-w-0 flex-1 sm:w-[220px] sm:flex-none"
-              />
-              <div className="bg-muted/30 inline-flex h-8 shrink-0 items-center gap-1 rounded-md border p-1">
-                <button
-                  type="button"
-                  aria-label={chartViewType === 'area' ? t('theme.chartViewArea', { defaultValue: 'Area chart' }) : t('statistics.barChart', { defaultValue: 'Bar chart' })}
-                  className={`inline-flex h-6 w-6 items-center justify-center rounded ${chartView === 'bar' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
-                  onClick={() => setChartView('bar')}
-                >
-                  <BarChart3 className="h-3.5 w-3.5" />
-                </button>
-                <button
-                  type="button"
-                  aria-label={t('statistics.pieChart', { defaultValue: 'Pie chart' })}
-                  className={`inline-flex h-6 w-6 items-center justify-center rounded ${chartView === 'pie' ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground'}`}
-                  onClick={() => setChartView('pie')}
-                >
-                  <PieChartIcon className="h-3.5 w-3.5" />
-                </button>
+            {showCustomRange && (
+              <div className="flex w-full">
+                <TimeRangeSelector onRangeChange={handleCustomRangeChange} initialRange={customRange} className="w-full" />
               </div>
-            </div>
+            )}
           </div>
-          {showCustomRange && (
-            <div className="flex w-full">
-              <TimeRangeSelector onRangeChange={handleCustomRangeChange} initialRange={customRange} className="w-full" />
-            </div>
-          )}
-        </div>
-        <div className="m-0 flex w-full flex-col justify-center gap-2 p-4 xl:w-auto xl:min-w-[180px] xl:border-l xl:p-5 xl:px-6">
-          <span className="text-muted-foreground text-sm">{t('statistics.subscriptionsDuringPeriod', { defaultValue: 'Updates During Period' })}</span>
-          {isLoading ? (
-            <div className="flex justify-center">
-              <Skeleton className="h-5 w-24" />
-            </div>
-          ) : (
-            <span dir="ltr" className="text-foreground flex items-center justify-center gap-2 text-lg">
-              <Users className="text-muted-foreground h-4 w-4" />
-              {periodTotal != null ? numberWithCommas(periodTotal) : <span className="text-muted-foreground">—</span>}
-            </span>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="pt-4 sm:pt-8">
-        {isLoading ? (
-          chartView === 'pie' ? (
-            <LoadingState />
-          ) : (
-            <div className="flex max-h-[400px] min-h-[200px] w-full items-center justify-center">
-              <Skeleton className="h-[300px] w-full" />
-            </div>
-          )
-        ) : error ? (
-          <EmptyState type="error" className="max-h-[400px] min-h-[200px]" />
-        ) : chartView === 'pie' && !hasPieData ? (
-          <EmptyState type="no-data" title={t('statistics.noDataInRange')} description={t('statistics.noDataInRangeDescription')} className="max-h-[400px] min-h-[200px]" />
-        ) : chartView === 'bar' && !hasBarData ? (
-          <EmptyState type="no-data" title={t('statistics.noDataInRange')} description={t('statistics.noDataInRangeDescription')} className="max-h-[400px] min-h-[200px]" />
-        ) : chartView === 'pie' ? (
-          <div className="flex flex-col items-center gap-6 lg:flex-row">
-            <div className="w-full lg:w-1/2">
-              <ChartContainer
-                config={chartConfig}
-                className="mx-auto h-[220px] max-h-[320px] w-[220px] max-w-[320px] sm:h-[280px] sm:w-[280px] lg:h-[320px] lg:w-[320px] [&_.recharts-text]:fill-transparent"
-              >
-                <PieChart>
-                  <ChartTooltip content={<PieTooltip />} />
-                  <Pie data={pieChartData} dataKey="updates" nameKey="agent" innerRadius="55%" outerRadius="95%" paddingAngle={piePaddingAngle} strokeWidth={pieStrokeWidth} isAnimationActive>
-                    {pieChartData.map(segment => (
-                      <Cell key={segment.segmentKey} fill={segment.fill} />
-                    ))}
-                  </Pie>
-                </PieChart>
-              </ChartContainer>
-            </div>
-            <div className={`flex w-full flex-1 flex-col gap-4 lg:w-1/2 ${dir === 'rtl' ? 'items-end' : 'items-start'}`}>
-              <div className="border-border/60 bg-muted/30 w-full max-w-xs rounded-lg border p-4">
-                <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{t('statistics.totalSubscriptions')}</p>
-                <p dir="ltr" className="text-foreground mt-2 text-3xl font-semibold">
-                  {numberWithCommas(total)}
-                </p>
+          <div className="m-0 flex w-full flex-col justify-center gap-2 p-4 xl:w-auto xl:min-w-[180px] xl:border-l xl:p-5 xl:px-6">
+            <span className="text-muted-foreground text-sm">{t('statistics.subscriptionsDuringPeriod', { defaultValue: 'Updates During Period' })}</span>
+            {isLoading ? (
+              <div className="flex justify-center">
+                <Skeleton className="h-5 w-24" />
               </div>
-              <div className="max-h-64 w-full overflow-y-auto">
-                <ul className="w-full space-y-3">
-                  {segments.map(segment => (
-                    <li key={segment.key} className={`border-border/40 flex max-w-full items-center justify-between gap-4 rounded-md border px-3 py-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                      <div className={`flex items-center gap-2 overflow-hidden ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <span className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
-                        <span className="text-foreground flex-1 truncate text-sm font-medium">{segment.name}</span>
-                      </div>
-                      <div className={`text-foreground flex items-baseline gap-3 text-sm font-semibold ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
-                        <span dir="ltr" className="font-mono">
-                          {numberWithCommas(segment.count)}
-                        </span>
-                        <span className="text-muted-foreground text-xs font-normal">{formatPercentage(segment.percentage)}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="mx-auto w-full">
-            <DenseChartAreaHint pointCount={timeSeriesData.length} />
-            <ChartContainer dir="ltr" config={chartConfig} className="h-[200px] w-full sm:h-[320px] lg:h-[400px]">
-              {chartViewType === 'area' ? (
-                <AreaChart {...(useAccessibilityLayer ? { accessibilityLayer: true } : {})} data={timeSeriesData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} onClick={handleChartPointClick}>
-                  <defs>
-                    {series.map(item => (
-                      <linearGradient key={item.key} id={`sub-update-area-gradient-${item.key}`} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor={item.color} stopOpacity={0.45} />
-                        <stop offset="100%" stopColor={item.color} stopOpacity={0.05} />
-                      </linearGradient>
-                    ))}
-                  </defs>
-                  <CartesianGrid direction="ltr" vertical={false} />
-                  <XAxis direction="ltr" dataKey="time" tickLine={false} tickMargin={10} axisLine={false} minTickGap={28} interval={xAxisInterval} />
-                  <YAxis
-                    direction="ltr"
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                    domain={[0, 'auto']}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9, fontWeight: 500 }}
-                    width={32}
-                    tickMargin={2}
-                  />
-                  <ChartTooltip cursor={false} content={props => <SeriesTooltip {...(props as TooltipProps<number, string>)} period={activePeriod} seriesByKey={seriesByKey} />} />
-                  {series.map(item => (
-                    <Area
-                      key={item.key}
-                      type={areaCurveType}
-                      dataKey={item.key}
-                      stackId="a"
-                      fill={`url(#sub-update-area-gradient-${item.key})`}
-                      stroke={item.color}
-                      strokeWidth={1.5}
-                      dot={false}
-                      activeDot={false}
-                      isAnimationActive={isAnimationActive}
-                      cursor="pointer"
-                    />
-                  ))}
-                  {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
-                </AreaChart>
-              ) : (
-                <BarChart {...(useAccessibilityLayer ? { accessibilityLayer: true } : {})} data={timeSeriesData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} onClick={handleChartPointClick}>
-                  <CartesianGrid direction="ltr" vertical={false} />
-                  <XAxis direction="ltr" dataKey="time" tickLine={false} tickMargin={10} axisLine={false} minTickGap={28} interval={xAxisInterval} />
-                  <YAxis
-                    direction="ltr"
-                    tickLine={false}
-                    axisLine={false}
-                    allowDecimals={false}
-                    tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9, fontWeight: 500 }}
-                    width={32}
-                    tickMargin={2}
-                  />
-                  <ChartTooltip cursor={false} content={props => <SeriesTooltip {...(props as TooltipProps<number, string>)} period={activePeriod} seriesByKey={seriesByKey} />} />
-                  {series.map(item => (
-                    <Bar key={item.key} dataKey={item.key} stackId="a" fill={item.color} radius={SQUARE_RADIUS} cursor="pointer" isAnimationActive={isAnimationActive}>
-                      {usePerBarRadius &&
-                        timeSeriesData.map(row => (
-                          <Cell key={`${item.key}-${row._period_start}`} {...getCellRadiusProps(getStackedBarRadius(row, item.key, series))} />
-                        ))}
-                    </Bar>
-                  ))}
-                  {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
-                </BarChart>
-              )}
-            </ChartContainer>
-            <div className="overflow-x-auto pt-3">
-              <div className="flex min-w-max items-center justify-center gap-4">
-                {series.map(item => (
-                  <div dir="ltr" key={item.key} className="flex items-center gap-1.5">
-                    <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
-                    <span className="text-xs whitespace-nowrap">{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
-      </CardContent>
-      {chartView === 'pie' && leadingSegment && hasPieData && (
-        <CardFooter className="flex-col gap-1.5 pt-4">
-          <div className="border-primary/20 from-primary/10 via-primary/5 flex items-center gap-2 rounded-lg border bg-gradient-to-r to-transparent px-3 py-2 text-xs">
-            <div className="text-primary flex items-center gap-1.5 font-semibold">
-              <TrendingUp className="h-3.5 w-3.5" />
-              <span>
-                {t('statistics.leadingClientMessage', {
-                  client: leadingSegment.name,
-                  percentage: leadingSegment.percentage > 0 && leadingSegment.percentage < 0.1 ? '<0.1' : leadingSegment.percentage.toFixed(1),
-                })}
+            ) : (
+              <span dir="ltr" className="text-foreground flex items-center justify-center gap-2 text-lg">
+                <Users className="text-muted-foreground h-4 w-4" />
+                {periodTotal != null ? numberWithCommas(periodTotal) : <span className="text-muted-foreground">—</span>}
               </span>
-            </div>
-            <div className="border-primary/30 ml-auto h-2.5 w-2.5 rounded-full border-2 shadow-sm" style={{ backgroundColor: leadingSegment.color }} />
+            )}
           </div>
-        </CardFooter>
-      )}
-    </Card>
+        </CardHeader>
+        <CardContent className="pt-4 sm:pt-8">
+          {isLoading ? (
+            chartView === 'pie' ? (
+              <LoadingState />
+            ) : (
+              <div className="flex max-h-[400px] min-h-[200px] w-full items-center justify-center">
+                <Skeleton className="h-[300px] w-full" />
+              </div>
+            )
+          ) : error ? (
+            <EmptyState type="error" className="max-h-[400px] min-h-[200px]" />
+          ) : chartView === 'pie' && !hasPieData ? (
+            <EmptyState type="no-data" title={t('statistics.noDataInRange')} description={t('statistics.noDataInRangeDescription')} className="max-h-[400px] min-h-[200px]" />
+          ) : chartView === 'bar' && !hasBarData ? (
+            <EmptyState type="no-data" title={t('statistics.noDataInRange')} description={t('statistics.noDataInRangeDescription')} className="max-h-[400px] min-h-[200px]" />
+          ) : chartView === 'pie' ? (
+            <div className="flex flex-col items-center gap-6 lg:flex-row">
+              <div className="w-full lg:w-1/2">
+                <ChartContainer
+                  config={chartConfig}
+                  className="mx-auto h-[220px] max-h-[320px] w-[220px] max-w-[320px] sm:h-[280px] sm:w-[280px] lg:h-[320px] lg:w-[320px] [&_.recharts-text]:fill-transparent"
+                >
+                  <PieChart>
+                    <ChartTooltip content={<PieTooltip />} />
+                    <Pie data={pieChartData} dataKey="updates" nameKey="agent" innerRadius="55%" outerRadius="95%" paddingAngle={piePaddingAngle} strokeWidth={pieStrokeWidth} isAnimationActive>
+                      {pieChartData.map(segment => (
+                        <Cell key={segment.segmentKey} fill={segment.fill} />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+              </div>
+              <div className={`flex w-full flex-1 flex-col gap-4 lg:w-1/2 ${dir === 'rtl' ? 'items-end' : 'items-start'}`}>
+                <div className="border-border/60 bg-muted/30 w-full max-w-xs rounded-lg border p-4">
+                  <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{t('statistics.totalSubscriptions')}</p>
+                  <p dir="ltr" className="text-foreground mt-2 text-3xl font-semibold">
+                    {numberWithCommas(total)}
+                  </p>
+                </div>
+                <div className="max-h-64 w-full overflow-y-auto">
+                  <ul className="w-full space-y-3">
+                    {segments.map(segment => (
+                      <li key={segment.key} className={`border-border/40 flex max-w-full items-center justify-between gap-4 rounded-md border px-3 py-2 ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                        <div className={`flex items-center gap-2 overflow-hidden ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                          <span className="h-3 w-3 rounded-full" style={{ backgroundColor: segment.color }} />
+                          <span className="text-foreground flex-1 truncate text-sm font-medium">{segment.name}</span>
+                        </div>
+                        <div className={`text-foreground flex items-baseline gap-3 text-sm font-semibold ${dir === 'rtl' ? 'flex-row-reverse' : ''}`}>
+                          <span dir="ltr" className="font-mono">
+                            {numberWithCommas(segment.count)}
+                          </span>
+                          <span className="text-muted-foreground text-xs font-normal">{formatPercentage(segment.percentage)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="mx-auto w-full">
+              <DenseChartAreaHint pointCount={timeSeriesData.length} />
+              <ChartContainer dir="ltr" config={chartConfig} className="h-[200px] w-full sm:h-[320px] lg:h-[400px]">
+                {chartViewType === 'area' ? (
+                  <AreaChart {...(useAccessibilityLayer ? { accessibilityLayer: true } : {})} data={timeSeriesData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} onClick={handleChartPointClick}>
+                    <defs>
+                      {series.map(item => (
+                        <linearGradient key={item.key} id={`sub-update-area-gradient-${item.key}`} x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor={item.color} stopOpacity={0.45} />
+                          <stop offset="100%" stopColor={item.color} stopOpacity={0.05} />
+                        </linearGradient>
+                      ))}
+                    </defs>
+                    <CartesianGrid direction="ltr" vertical={false} />
+                    <XAxis direction="ltr" dataKey="time" tickLine={false} tickMargin={10} axisLine={false} minTickGap={28} interval={xAxisInterval} />
+                    <YAxis
+                      direction="ltr"
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                      domain={[0, 'auto']}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9, fontWeight: 500 }}
+                      width={32}
+                      tickMargin={2}
+                    />
+                    <ChartTooltip cursor={false} content={props => <SeriesTooltip {...(props as TooltipProps<number, string>)} period={activePeriod} seriesByKey={seriesByKey} />} />
+                    {series.map(item => (
+                      <Area
+                        key={item.key}
+                        type={areaCurveType}
+                        dataKey={item.key}
+                        stackId="a"
+                        fill={`url(#sub-update-area-gradient-${item.key})`}
+                        stroke={item.color}
+                        strokeWidth={1.5}
+                        dot={false}
+                        activeDot={false}
+                        isAnimationActive={isAnimationActive}
+                        cursor="pointer"
+                      />
+                    ))}
+                    {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
+                  </AreaChart>
+                ) : (
+                  <BarChart {...(useAccessibilityLayer ? { accessibilityLayer: true } : {})} data={timeSeriesData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} onClick={handleChartPointClick}>
+                    <CartesianGrid direction="ltr" vertical={false} />
+                    <XAxis direction="ltr" dataKey="time" tickLine={false} tickMargin={10} axisLine={false} minTickGap={28} interval={xAxisInterval} />
+                    <YAxis
+                      direction="ltr"
+                      tickLine={false}
+                      axisLine={false}
+                      allowDecimals={false}
+                      tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 9, fontWeight: 500 }}
+                      width={32}
+                      tickMargin={2}
+                    />
+                    <ChartTooltip cursor={false} content={props => <SeriesTooltip {...(props as TooltipProps<number, string>)} period={activePeriod} seriesByKey={seriesByKey} />} />
+                    {series.map(item => (
+                      <Bar key={item.key} dataKey={item.key} stackId="a" fill={item.color} radius={SQUARE_RADIUS} cursor="pointer" isAnimationActive={isAnimationActive}>
+                        {usePerBarRadius && timeSeriesData.map(row => <Cell key={`${item.key}-${row._period_start}`} {...getCellRadiusProps(getStackedBarRadius(row, item.key, series))} />)}
+                      </Bar>
+                    ))}
+                    {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
+                  </BarChart>
+                )}
+              </ChartContainer>
+              <div className="overflow-x-auto pt-3">
+                <div className="flex min-w-max items-center justify-center gap-4">
+                  {series.map(item => (
+                    <div dir="ltr" key={item.key} className="flex items-center gap-1.5">
+                      <div className="h-2 w-2 shrink-0 rounded-[2px]" style={{ backgroundColor: item.color }} />
+                      <span className="text-xs whitespace-nowrap">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+        </CardContent>
+        {chartView === 'pie' && leadingSegment && hasPieData && (
+          <CardFooter className="flex-col gap-1.5 pt-4">
+            <div className="border-primary/20 from-primary/10 via-primary/5 flex items-center gap-2 rounded-lg border bg-gradient-to-r to-transparent px-3 py-2 text-xs">
+              <div className="text-primary flex items-center gap-1.5 font-semibold">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>
+                  {t('statistics.leadingClientMessage', {
+                    client: leadingSegment.name,
+                    percentage: leadingSegment.percentage > 0 && leadingSegment.percentage < 0.1 ? '<0.1' : leadingSegment.percentage.toFixed(1),
+                  })}
+                </span>
+              </div>
+              <div className="border-primary/30 ml-auto h-2.5 w-2.5 rounded-full border-2 shadow-sm" style={{ backgroundColor: leadingSegment.color }} />
+            </div>
+          </CardFooter>
+        )}
+      </Card>
 
-    <UserSubUpdateStatsModal
-      open={modalOpen}
-      onClose={() => setModalOpen(false)}
-      data={selectedData}
-      period={activePeriod}
-      series={series}
-      allChartData={timeSeriesData}
-      currentIndex={currentDataIndex}
-      onNavigate={handleModalNavigate}
-    />
+      <UserSubUpdateStatsModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
+        data={selectedData}
+        period={activePeriod}
+        series={series}
+        allChartData={timeSeriesData}
+        currentIndex={currentDataIndex}
+        onNavigate={handleModalNavigate}
+      />
     </>
   )
 }

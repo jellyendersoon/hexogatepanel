@@ -127,8 +127,8 @@ export const useNodeListColumns = ({
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <div className="inline-flex min-w-0 items-center gap-1.5">
-                        <Server className={'h-3.5 w-3.5 shrink-0 transition-colors text-muted-foreground'} />
-                        <span className={'truncate font-mono font-medium text-muted-foreground'}>{node.node_version}</span>
+                        <Server className={'text-muted-foreground h-3.5 w-3.5 shrink-0 transition-colors'} />
+                        <span className={'text-muted-foreground truncate font-mono font-medium'}>{node.node_version}</span>
                       </div>
                     </TooltipTrigger>
                     <TooltipContent side="top" className="max-w-xs">

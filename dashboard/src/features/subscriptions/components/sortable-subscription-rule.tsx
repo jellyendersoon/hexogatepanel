@@ -154,7 +154,7 @@ export function SortableSubscriptionRule({ index, onRemove, form, id }: Sortable
                             <SelectValue />
                           </SelectTrigger>
                         </FormControl>
-                        <SelectContent dir="ltr" className="scrollbar-thin z-[50]">
+                        <SelectContent dir="ltr" className="z-[50] scrollbar-thin">
                           {configFormatOptions.map(option => (
                             <SelectItem key={option.value} value={option.value}>
                               <div className="flex items-center gap-1.5">

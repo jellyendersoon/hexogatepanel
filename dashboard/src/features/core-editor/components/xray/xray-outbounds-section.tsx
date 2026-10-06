@@ -926,11 +926,7 @@ export function XrayOutboundsSection({ headerAddPulse, headerAddEpoch }: XrayOut
       <CoreEditorFormDialog
         isDialogOpen={detailOpen}
         onOpenChange={handleDetailOpenChange}
-        initialData={
-          dialogMode === 'add'
-            ? { outbound: initialDraftRef.current, uriDraft: '', tab: 'form', json: '' }
-            : { outbound: editOriginalOutbound, uriDraft: '', tab: 'form', json: '' }
-        }
+        initialData={dialogMode === 'add' ? { outbound: initialDraftRef.current, uriDraft: '', tab: 'form', json: '' } : { outbound: editOriginalOutbound, uriDraft: '', tab: 'form', json: '' }}
         getCurrentData={() => ({ outbound: draftOutbound ?? ob, uriDraft, tab: outboundDialogTab, json: outboundJsonText })}
         discardTitle={
           dialogMode === 'add' ? t('coreEditor.outbound.discardDraftTitle', { defaultValue: 'Discard new outbound?' }) : t('coreEditor.outbound.discardEditTitle', { defaultValue: 'Discard changes?' })

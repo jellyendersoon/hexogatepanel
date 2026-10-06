@@ -19,7 +19,8 @@ export function ThemePreview() {
           <div className="min-w-0">
             <p className="text-xs font-medium sm:text-sm">{t('theme.dashboardPreview')}</p>
             <p className="text-muted-foreground text-xs break-words">
-              {t('theme.currentTheme')}: {t(`theme.${customization.baseColor}`, { defaultValue: baseName })} / {t(`theme.${colorTheme}`, { defaultValue: accentName })} • {resolvedTheme === 'dark' ? t('theme.dark') : t('theme.light')}
+              {t('theme.currentTheme')}: {t(`theme.${customization.baseColor}`, { defaultValue: baseName })} / {t(`theme.${colorTheme}`, { defaultValue: accentName })} •{' '}
+              {resolvedTheme === 'dark' ? t('theme.dark') : t('theme.light')}
             </p>
           </div>
           <div className="flex gap-2">

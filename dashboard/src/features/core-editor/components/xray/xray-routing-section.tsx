@@ -538,8 +538,14 @@ export function XrayRoutingSection({ headerAddPulse, headerAddEpoch }: XrayRouti
         onOpenChange={handleDetailOpenChange}
         initialData={dialogMode === 'add' ? initialDraftRef.current : editOriginalRule}
         getCurrentData={() => draftRule ?? rule}
-        discardTitle={dialogMode === 'add' ? t('coreEditor.routing.discardDraftTitle', { defaultValue: 'Discard new rule?' }) : t('coreEditor.routing.discardEditTitle', { defaultValue: 'Discard changes?' })}
-        discardDescription={dialogMode === 'add' ? t('coreEditor.routing.discardDraftDescription', { defaultValue: 'This rule is not in the list yet. Closing without adding will discard your changes.' }) : t('coreEditor.routing.discardDraftDescription', { defaultValue: 'Your modifications to this rule will be lost if you close now.' })}
+        discardTitle={
+          dialogMode === 'add' ? t('coreEditor.routing.discardDraftTitle', { defaultValue: 'Discard new rule?' }) : t('coreEditor.routing.discardEditTitle', { defaultValue: 'Discard changes?' })
+        }
+        discardDescription={
+          dialogMode === 'add'
+            ? t('coreEditor.routing.discardDraftDescription', { defaultValue: 'This rule is not in the list yet. Closing without adding will discard your changes.' })
+            : t('coreEditor.routing.discardDraftDescription', { defaultValue: 'Your modifications to this rule will be lost if you close now.' })
+        }
         discardActionLabel={t('coreEditor.routing.discardDraftAction', { defaultValue: 'Discard' })}
         leadingIcon={dialogMode === 'add' ? <Plus className="h-5 w-5 shrink-0" /> : <Pencil className="h-5 w-5 shrink-0" />}
         title={dialogMode === 'add' ? t('coreEditor.routing.dialogTitleAdd', { defaultValue: 'Add routing rule' }) : t('coreEditor.routing.dialogTitleEdit', { defaultValue: 'Edit routing rule' })}
@@ -666,7 +672,6 @@ export function XrayRoutingSection({ headerAddPulse, headerAddEpoch }: XrayRouti
         )}
       </CoreEditorFormDialog>
 
-      
       <AlertDialog open={blockAddWhileDraftOpen} onOpenChange={setBlockAddWhileDraftOpen}>
         <AlertDialogContent dir={dir}>
           <AlertDialogHeader>

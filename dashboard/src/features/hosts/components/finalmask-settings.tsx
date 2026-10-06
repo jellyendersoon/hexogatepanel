@@ -1,4 +1,4 @@
-import { useFieldArray, type UseFormReturn } from 'react-hook-form'
+import { type FieldValues, useFieldArray, useFormContext, type UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { HostFormValues } from '../forms/host-form'
 import type { FinalMaskTcpLayer, FinalMaskTcpType, FinalMaskUdpType, XrayNoiseSettings } from '@/service/api'
@@ -39,6 +39,9 @@ function normalizeHostFragmentSettings(settings: Record<string, unknown> | undef
 
 export function FinalMaskSettings({ form }: FinalMaskSettingsProps) {
   const dir = useDirDetection()
+  // FinalMask carries a string index signature, so react-hook-form cannot derive array paths under
+  // final_mask_settings from HostFormValues; the layer editors work on the untyped form context instead.
+  const untypedForm = useFormContext()
 
   useEffect(() => {
     const tcp = form.getValues('final_mask_settings.tcp')
@@ -67,15 +70,15 @@ export function FinalMaskSettings({ form }: FinalMaskSettingsProps) {
       </TabsList>
 
       <TabsContent dir={dir} value="tcp">
-        <TcpLayersForm form={form} />
+        <TcpLayersForm form={untypedForm} />
       </TabsContent>
 
       <TabsContent dir={dir} value="udp">
-        <UdpLayersForm form={form} />
+        <UdpLayersForm form={untypedForm} />
       </TabsContent>
 
       <TabsContent dir={dir} value="quic">
-        <QuicParamsForm form={form} />
+        <QuicParamsForm form={untypedForm} />
       </TabsContent>
     </Tabs>
   )
@@ -84,7 +87,7 @@ export function FinalMaskSettings({ form }: FinalMaskSettingsProps) {
 // ==========================================
 // TCP Layers component
 // ==========================================
-function TcpLayersForm({ form }: { form: UseFormReturn<any> }) {
+function TcpLayersForm({ form }: { form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -193,9 +196,7 @@ function TcpLayersForm({ form }: { form: UseFormReturn<any> }) {
                 </div>
               )}
 
-              {type === 'xmc' && (
-                <XmcSettingsForm prefix={`final_mask_settings.tcp.${index}.settings`} form={form} />
-              )}
+              {type === 'xmc' && <XmcSettingsForm prefix={`final_mask_settings.tcp.${index}.settings`} form={form} />}
             </div>
           )
         })}
@@ -213,7 +214,7 @@ function TcpLayersForm({ form }: { form: UseFormReturn<any> }) {
 // ==========================================
 // UDP Layers component
 // ==========================================
-function UdpLayersForm({ form }: { form: UseFormReturn<any> }) {
+function UdpLayersForm({ form }: { form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   const { fields, append, remove } = useFieldArray({
     control: form.control,
@@ -617,7 +618,7 @@ function UdpLayersForm({ form }: { form: UseFormReturn<any> }) {
 // ==========================================
 // QUIC Params component
 // ==========================================
-function QuicParamsForm({ form }: { form: UseFormReturn<any> }) {
+function QuicParamsForm({ form }: { form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   return (
     <div className="space-y-4">
@@ -909,7 +910,7 @@ function QuicParamsForm({ form }: { form: UseFormReturn<any> }) {
 // ==========================================
 // Fragment Settings Form (FinalMask TCP)
 // ==========================================
-function FragmentSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<any> }) {
+function FragmentSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   return (
     <div className="bg-background space-y-3 rounded-md border p-3">
@@ -998,7 +999,7 @@ function FragmentSettingsForm({ prefix, form }: { prefix: string; form: UseFormR
 // ==========================================
 // Sudoku Settings Form
 // ==========================================
-function SudokuSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<any> }) {
+function SudokuSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   return (
     <div className="bg-background grid grid-cols-2 gap-3 rounded-md border p-3">
@@ -1106,10 +1107,10 @@ function SudokuSettingsForm({ prefix, form }: { prefix: string; form: UseFormRet
   )
 }
 
-function XmcSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<any> }) {
+function XmcSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn<FieldValues> }) {
   const { t } = useTranslation()
   return (
-    <div className="space-y-3 bg-background p-3 rounded-md border">
+    <div className="bg-background space-y-3 rounded-md border p-3">
       <div className="grid grid-cols-2 gap-3">
         <FormField
           control={form.control}
@@ -1168,7 +1169,7 @@ function XmcSettingsForm({ prefix, form }: { prefix: string; form: UseFormReturn
 }
 
 interface JsonArrayFieldProps {
-  form: UseFormReturn<any>
+  form: UseFormReturn<FieldValues>
   name: string
   label: string
 }
@@ -1263,7 +1264,7 @@ function JsonArrayEditor({ label, value, onChange }: { label: string; value: unk
 // Noise Settings array editor helper
 // ==========================================
 interface XrayNoiseSettingsListProps {
-  form: UseFormReturn<any>
+  form: UseFormReturn<FieldValues>
   name: string
   label: string
 }
@@ -1297,126 +1298,133 @@ function XrayNoiseSettingsList({ form, name, label }: XrayNoiseSettingsListProps
           const noiseType = form.watch(`${name}.${index}.type`)
           const isArrayType = noiseType === 'array'
           return (
-          <div key={field.id} className="bg-background space-y-2 rounded-md border p-2">
-            <div className="flex items-center gap-2">
-              <span className="text-muted-foreground w-5 shrink-0 text-center text-xs">{index + 1}</span>
-              <FormField
-                control={form.control}
-                name={`${name}.${index}.type`}
-                render={({ field: inputField }) => (
-                  <FormItem className="w-[100px] shrink-0">
-                    <Select
-                      onValueChange={val => {
-                        inputField.onChange(val)
-                        // Reset packet to appropriate default when type changes
-                        if (val === 'array') {
-                          form.setValue(`${name}.${index}.packet`, [])
-                        } else {
-                          const currentPacket = form.getValues(`${name}.${index}.packet`)
-                          if (Array.isArray(currentPacket)) {
-                            form.setValue(`${name}.${index}.packet`, '')
+            <div key={field.id} className="bg-background space-y-2 rounded-md border p-2">
+              <div className="flex items-center gap-2">
+                <span className="text-muted-foreground w-5 shrink-0 text-center text-xs">{index + 1}</span>
+                <FormField
+                  control={form.control}
+                  name={`${name}.${index}.type`}
+                  render={({ field: inputField }) => (
+                    <FormItem className="w-[100px] shrink-0">
+                      <Select
+                        onValueChange={val => {
+                          inputField.onChange(val)
+                          // Reset packet to appropriate default when type changes
+                          if (val === 'array') {
+                            form.setValue(`${name}.${index}.packet`, [])
+                          } else {
+                            const currentPacket = form.getValues(`${name}.${index}.packet`)
+                            if (Array.isArray(currentPacket)) {
+                              form.setValue(`${name}.${index}.packet`, '')
+                            }
                           }
-                        }
-                      }}
-                      value={inputField.value || 'array'}
-                    >
+                        }}
+                        value={inputField.value || 'array'}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-8 text-xs">
+                            <SelectValue placeholder={t('hostsDialog.noise.type')} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent side="top">
+                          <SelectItem value="array">array</SelectItem>
+                          <SelectItem value="str">str</SelectItem>
+                          <SelectItem value="hex">hex</SelectItem>
+                          <SelectItem value="base64">base64</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </FormItem>
+                  )}
+                />
+                <div className="ml-auto flex items-center gap-1">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="hover:bg-muted h-7 w-7 transition-colors"
+                    onClick={() => handleDuplicate(index)}
+                    title={t('hostsDialog.noise.duplicateNoise')}
+                  >
+                    <Copy className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-4 gap-2 pl-7">
+                <FormField
+                  control={form.control}
+                  name={`${name}.${index}.packet`}
+                  render={({ field: inputField }) => (
+                    <FormItem>
                       <FormControl>
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder={t('hostsDialog.noise.type')} />
-                        </SelectTrigger>
+                        {isArrayType ? (
+                          <StringArrayPopoverInput
+                            value={Array.isArray(inputField.value) ? inputField.value.map(String) : []}
+                            onChange={(next: string[]) =>
+                              inputField.onChange(
+                                next.map(v => {
+                                  const n = Number(v)
+                                  return isNaN(n) ? v : n
+                                }),
+                              )
+                            }
+                            placeholder={t('hostsDialog.noise.packet')}
+                            addPlaceholder={t('arrayInput.addPlaceholder')}
+                            addButtonLabel={t('arrayInput.addButton')}
+                            itemsLabel={t('arrayInput.items')}
+                            emptyMessage={t('arrayInput.noItems')}
+                            duplicateErrorMessage={t('arrayInput.duplicateError')}
+                            clickToEditTitle={t('arrayInput.clickToEdit')}
+                            editItemTitle={t('arrayInput.editItem')}
+                            removeItemTitle={t('arrayInput.removeItem')}
+                            saveEditTitle={t('arrayInput.saveEdit')}
+                            cancelEditTitle={t('arrayInput.cancelEdit')}
+                          />
+                        ) : (
+                          <Input placeholder={t('hostsDialog.noise.packet')} {...inputField} value={typeof inputField.value === 'string' ? inputField.value : ''} className="h-8 text-xs" />
+                        )}
                       </FormControl>
-                      <SelectContent side="top">
-                        <SelectItem value="array">array</SelectItem>
-                        <SelectItem value="str">str</SelectItem>
-                        <SelectItem value="hex">hex</SelectItem>
-                        <SelectItem value="base64">base64</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormItem>
-                )}
-              />
-              <div className="ml-auto flex items-center gap-1">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="hover:bg-muted h-7 w-7 transition-colors"
-                  onClick={() => handleDuplicate(index)}
-                  title={t('hostsDialog.noise.duplicateNoise')}
-                >
-                  <Copy className="h-3.5 w-3.5" />
-                </Button>
-                <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-7 w-7" onClick={() => remove(index)}>
-                  <Trash2 className="h-3.5 w-3.5" />
-                </Button>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`${name}.${index}.delay`}
+                  render={({ field: inputField }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder={t('hostsDialog.noise.delayPlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`${name}.${index}.rand`}
+                  render={({ field: inputField }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder={t('hostsDialog.finalmask.noiseRandPlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`${name}.${index}.randRange`}
+                  render={({ field: inputField }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input placeholder={t('hostsDialog.finalmask.noiseRandRangePlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
               </div>
             </div>
-
-            <div className="grid grid-cols-4 gap-2 pl-7">
-              <FormField
-                control={form.control}
-                name={`${name}.${index}.packet`}
-                render={({ field: inputField }) => (
-                  <FormItem>
-                    <FormControl>
-                      {isArrayType ? (
-                        <StringArrayPopoverInput
-                          value={Array.isArray(inputField.value) ? inputField.value.map(String) : []}
-                          onChange={(next: string[]) => inputField.onChange(next.map(v => { const n = Number(v); return isNaN(n) ? v : n }))}
-                          placeholder={t('hostsDialog.noise.packet')}
-                          addPlaceholder={t('arrayInput.addPlaceholder')}
-                          addButtonLabel={t('arrayInput.addButton')}
-                          itemsLabel={t('arrayInput.items')}
-                          emptyMessage={t('arrayInput.noItems')}
-                          duplicateErrorMessage={t('arrayInput.duplicateError')}
-                          clickToEditTitle={t('arrayInput.clickToEdit')}
-                          editItemTitle={t('arrayInput.editItem')}
-                          removeItemTitle={t('arrayInput.removeItem')}
-                          saveEditTitle={t('arrayInput.saveEdit')}
-                          cancelEditTitle={t('arrayInput.cancelEdit')}
-                        />
-                      ) : (
-                        <Input placeholder={t('hostsDialog.noise.packet')} {...inputField} value={typeof inputField.value === 'string' ? inputField.value : ''} className="h-8 text-xs" />
-                      )}
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`${name}.${index}.delay`}
-                render={({ field: inputField }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder={t('hostsDialog.noise.delayPlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`${name}.${index}.rand`}
-                render={({ field: inputField }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder={t('hostsDialog.finalmask.noiseRandPlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name={`${name}.${index}.randRange`}
-                render={({ field: inputField }) => (
-                  <FormItem>
-                    <FormControl>
-                      <Input placeholder={t('hostsDialog.finalmask.noiseRandRangePlaceholder')} {...inputField} value={inputField.value || ''} className="h-8 text-xs" />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
-          </div>
           )
         })}
         {fields.length === 0 && <div className="text-muted-foreground py-4 text-center text-xs">{t('hostsDialog.noise.noNoiseSettings', { defaultValue: 'No noise items' })}</div>}

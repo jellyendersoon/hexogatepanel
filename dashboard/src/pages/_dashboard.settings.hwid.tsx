@@ -171,9 +171,7 @@ export default function HwidSettings() {
                 render={({ field }) => (
                   <FormItem className="bg-card hover:bg-accent/50 flex flex-row items-center justify-between gap-4 space-y-0 rounded-md border p-3 transition-colors sm:p-4">
                     <div className="min-w-0 flex-1 space-y-1">
-                      <FormLabel className="cursor-pointer text-sm font-medium">
-                        {t('settings.hwid.manualSubscription.title', { defaultValue: 'Require HWID for manual subscriptions' })}
-                      </FormLabel>
+                      <FormLabel className="cursor-pointer text-sm font-medium">{t('settings.hwid.manualSubscription.title', { defaultValue: 'Require HWID for manual subscriptions' })}</FormLabel>
                       <FormDescription className="text-xs leading-relaxed sm:text-sm">
                         {t('settings.hwid.manualSubscription.description', {
                           defaultValue: 'Apply HWID policy to manual subscription formats and hide config links on the subscription page.',

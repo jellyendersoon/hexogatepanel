@@ -119,19 +119,17 @@ function SubnetCard({ row }: { row: WireGuardSubnetUsage }) {
               <span>{t('nodes.wireguard.usedCount', { value: formatNumber(row.used) })}</span>
             </span>
           </div>
-          <Progress value={percent} className="h-2 bg-muted" indicatorClassName={usageIndicatorClassName(percent)} />
+          <Progress value={percent} className="bg-muted h-2" indicatorClassName={usageIndicatorClassName(percent)} />
         </div>
 
         {row.free_ips.length > 0 && (
-          <div className="rounded-lg border bg-muted/20 p-2.5">
+          <div className="bg-muted/20 rounded-lg border p-2.5">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <div className="text-sm font-medium">
                   {t('nodes.wireguard.freeIps', { defaultValue: 'Free IPs' })} <span className="text-muted-foreground font-normal tabular-nums">({freeCountLabel})</span>
                 </div>
-                <div className="text-muted-foreground text-xs">
-                  {t('nodes.wireguard.freeIpsPreview', { count: previewFree.length })}
-                </div>
+                <div className="text-muted-foreground text-xs">{t('nodes.wireguard.freeIpsPreview', { count: previewFree.length })}</div>
               </div>
               <Button
                 type="button"
@@ -158,11 +156,7 @@ function SubnetCard({ row }: { row: WireGuardSubnetUsage }) {
           </div>
         )}
 
-        {row.free_ips.length === 0 && (
-          <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">
-            {t('nodes.wireguard.noFreeIps')}
-          </div>
-        )}
+        {row.free_ips.length === 0 && <div className="border-destructive/20 bg-destructive/10 text-destructive rounded-lg border px-3 py-2 text-sm">{t('nodes.wireguard.noFreeIps')}</div>}
       </div>
     </Card>
   )
@@ -201,7 +195,7 @@ function SubnetCardSkeleton({ index }: { index: number }) {
           <Skeleton className="h-2 w-full rounded-full" />
         </div>
 
-        <div className="rounded-lg border bg-muted/20 p-2.5">
+        <div className="bg-muted/20 rounded-lg border p-2.5">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1.5">
               <Skeleton className="h-4 w-32" />

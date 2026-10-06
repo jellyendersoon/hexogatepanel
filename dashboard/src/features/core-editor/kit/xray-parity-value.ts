@@ -176,7 +176,10 @@ function normParityFieldKey(field: XrayGeneratedFormField): string {
 export function coerceVerifyPeerCertByNameList(value: unknown): string[] | undefined {
   if (value == null) return undefined
   if (typeof value === 'string') {
-    const parts = value.split(/[\n,]+/).map(item => item.trim()).filter(Boolean)
+    const parts = value
+      .split(/[\n,]+/)
+      .map(item => item.trim())
+      .filter(Boolean)
     return parts.length > 0 ? parts : undefined
   }
   if (Array.isArray(value)) {

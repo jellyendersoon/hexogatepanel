@@ -35,9 +35,7 @@ export default function ApiKeyAdvanceSearchModal({ isDialogOpen, onOpenChange, f
             <Search className="h-5 w-5" />
             <span>{t('advanceSearch.title')}</span>
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            {t('advanceSearch.description', { defaultValue: 'Filter API keys by identifier and status.' })}
-          </DialogDescription>
+          <DialogDescription className="sr-only">{t('advanceSearch.description', { defaultValue: 'Filter API keys by identifier and status.' })}</DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -102,9 +100,7 @@ export default function ApiKeyAdvanceSearchModal({ isDialogOpen, onOpenChange, f
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
                 {t('cancel')}
               </Button>
-              <LoaderButton type="submit">
-                {t('apply')}
-              </LoaderButton>
+              <LoaderButton type="submit">{t('apply')}</LoaderButton>
             </DialogFooter>
           </form>
         </Form>

@@ -31,29 +31,27 @@ export const customVariableSchema = z.object({
 
 // No .default() here: defaults are supplied by the form so the schema's input and
 // output types stay identical, which the zod resolver typing requires.
-export const customVariablesSchema = z
-  .array(customVariableSchema)
-  .superRefine((variables, ctx) => {
-    const seen = new Set<string>()
-    for (const [index, variable] of variables.entries()) {
-      if (!variable.key) continue
-      if ((builtInVariableKeys as readonly string[]).includes(variable.key)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Custom variable conflicts with a built-in variable',
-          path: [index, 'key'],
-        })
-      }
-      if (seen.has(variable.key)) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          message: 'Duplicate custom variable',
-          path: [index, 'key'],
-        })
-      }
-      seen.add(variable.key)
+export const customVariablesSchema = z.array(customVariableSchema).superRefine((variables, ctx) => {
+  const seen = new Set<string>()
+  for (const [index, variable] of variables.entries()) {
+    if (!variable.key) continue
+    if ((builtInVariableKeys as readonly string[]).includes(variable.key)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom variable conflicts with a built-in variable',
+        path: [index, 'key'],
+      })
     }
-  })
+    if (seen.has(variable.key)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Duplicate custom variable',
+        path: [index, 'key'],
+      })
+    }
+    seen.add(variable.key)
+  }
+})
 
 export const normalizeCustomVariablesForPayload = (variables?: { key?: string; value?: string }[] | null) =>
   (variables || [])

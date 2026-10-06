@@ -73,7 +73,7 @@ export default function AdminStatisticsSection({ counts }: AdminsStatisticsProps
         <Card
           key={stat.label}
           dir={dir}
-          className={cn('group relative w-full overflow-hidden transition-colors hover:bg-accent/40')}
+          className={cn('group hover:bg-accent/40 relative w-full overflow-hidden transition-colors')}
           style={{
             animationDuration: '600ms',
             animationDelay: `${(idx + 1) * 100}ms`,

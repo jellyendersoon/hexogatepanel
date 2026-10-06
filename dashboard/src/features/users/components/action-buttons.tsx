@@ -728,9 +728,7 @@ const ActionButtons: FC<ActionButtonsProps> = ({ user, isModalHost = true, rende
                 </DropdownMenuItem>
               )}
 
-              {topDropdownActionCount > 0 && middleDropdownActionCount > 0 && (
-                <DropdownMenuSeparator className={mobileTopDropdownActionCount === 0 ? 'hidden md:block' : undefined} />
-              )}
+              {topDropdownActionCount > 0 && middleDropdownActionCount > 0 && <DropdownMenuSeparator className={mobileTopDropdownActionCount === 0 ? 'hidden md:block' : undefined} />}
 
               {/* Revoke Sub */}
               {canUpdateUsers && (

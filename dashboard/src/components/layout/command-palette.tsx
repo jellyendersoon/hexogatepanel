@@ -7,23 +7,7 @@ import { canReadResourcePage, hasPermission, isOwner } from '@/utils/rbac'
 import { selectCoreEditorHasActualChanges } from '@/features/core-editor/kit/core-editor-change-state'
 import { useCoreEditorStore } from '@/features/core-editor/state/core-editor-store'
 import type { WgCoreSection, XrayCoreSection } from '@/features/core-editor/state/core-editor-store'
-import {
-  Cpu,
-  FileUser,
-  Group,
-  LayoutDashboardIcon,
-  ListTodo,
-  Monitor,
-  Moon,
-  Palette,
-  PieChart,
-  Plus,
-  Settings,
-  Share2Icon,
-  Sun,
-  UserCog,
-  UsersIcon,
-} from 'lucide-react'
+import { Cpu, FileUser, Group, LayoutDashboardIcon, ListTodo, Monitor, Moon, Palette, PieChart, Plus, Settings, Share2Icon, Sun, UserCog, UsersIcon } from 'lucide-react'
 import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router'

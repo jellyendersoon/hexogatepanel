@@ -294,14 +294,7 @@ type ChartXAxisIntervalParams = {
   periodOverride?: Period
 }
 
-export const getChartXAxisInterval = ({
-  dataLength,
-  period,
-  shortcut,
-  windowWidth = 1024,
-  customRange,
-  periodOverride,
-}: ChartXAxisIntervalParams) => {
+export const getChartXAxisInterval = ({ dataLength, period, shortcut, windowWidth = 1024, customRange, periodOverride }: ChartXAxisIntervalParams) => {
   const targetLabels = getTargetXAxisLabels(period, windowWidth)
   const densityInterval = getDenseXAxisInterval(dataLength, targetLabels)
 

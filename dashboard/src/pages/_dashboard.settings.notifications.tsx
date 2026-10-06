@@ -6,34 +6,35 @@ import { PasswordInput } from '@/components/ui/password-input'
 import { SubscriptionFormActions } from '@/features/subscriptions/components/subscription-form-actions'
 import { useEffect, useState } from 'react'
 import { z } from 'zod'
-import { useForm } from 'react-hook-form'
+import { type ControllerRenderProps, type Path, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form'
 import { useSettingsContext } from './_dashboard.settings'
 import { Separator } from '@/components/ui/separator'
 import { toast } from 'sonner'
 import {
-  MessageSquare,
-  FileText,
+  ArrowUpDown,
   Bot,
-  Webhook,
+  Calendar,
   ChevronDown,
-  Settings,
-  Users,
+  Cpu,
+  FileText,
   Globe,
+  Group,
+  Key,
+  LayoutTemplate,
+  ListTodo,
+  Megaphone,
+  MessageSquare,
+  Plus,
   RotateCcw,
+  Settings,
+  Share2Icon,
+  Trash2,
   UserCog,
   UserKey,
-  Group,
-  Cpu,
-  ListTodo,
-  Share2Icon,
-  LayoutTemplate,
-  Calendar,
-  ArrowUpDown,
-  Megaphone,
-  Plus,
-  Trash2,
+  Users,
+  Webhook,
 } from 'lucide-react'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
@@ -56,6 +57,7 @@ const notificationChannelsSchema = z.object({
   node: notificationChannelSchema.optional(),
   user: notificationChannelSchema.optional(),
   user_template: notificationChannelSchema.optional(),
+  api_key: notificationChannelSchema.optional(),
 })
 
 // Validation schema matching the new API structure
@@ -132,6 +134,13 @@ const notificationSettingsSchema = z.object({
           delete: z.boolean().optional(),
         })
         .optional(),
+      api_key: z
+        .object({
+          create: z.boolean().optional(),
+          modify: z.boolean().optional(),
+          delete: z.boolean().optional(),
+        })
+        .optional(),
       days_left: z.boolean().optional(),
       percentage_reached: z.boolean().optional(),
     })
@@ -153,6 +162,10 @@ const notificationSettingsSchema = z.object({
 })
 
 type NotificationSettingsForm = z.infer<typeof notificationSettingsSchema>
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === 'object' && value !== null
+
+const getSubPermission = (data: unknown, key: string): unknown => (isRecord(data) ? data[key] : undefined)
 
 const normalizePercentageThresholds = (values?: number[]) =>
   Array.from(
@@ -270,6 +283,16 @@ const notificationConfigs: NotificationPermissionConfig[] = [
     ],
   },
   {
+    key: 'api_key',
+    translationKey: 'apiKey',
+    icon: Key,
+    subPermissions: [
+      { key: 'create', translationKey: 'create' },
+      { key: 'modify', translationKey: 'modify' },
+      { key: 'delete', translationKey: 'delete' },
+    ],
+  },
+  {
     key: 'days_left',
     translationKey: 'daysLeft',
     icon: Calendar,
@@ -302,6 +325,7 @@ const channelTargets: Array<{
   { key: 'node', translationKey: 'node', icon: Share2Icon },
   { key: 'user', translationKey: 'user', icon: Users },
   { key: 'user_template', translationKey: 'userTemplate', icon: LayoutTemplate },
+  { key: 'api_key', translationKey: 'apiKey', icon: Key },
 ]
 
 const createDefaultChannelValues = (): Record<ChannelTargetKey, NotificationChannelFormState> =>
@@ -330,6 +354,48 @@ const populateChannelValues = (channels?: NotificationChannels | null): Record<C
   return defaults
 }
 
+type IntegerFieldName =
+  | 'notification_settings.telegram_chat_id'
+  | 'notification_settings.telegram_topic_id'
+  | `notification_settings.channels.${ChannelTargetKey}.telegram_chat_id`
+  | `notification_settings.channels.${ChannelTargetKey}.telegram_topic_id`
+
+function IntegerFieldInput({ field, placeholder, syncKey }: { field: ControllerRenderProps<NotificationSettingsForm, IntegerFieldName>; placeholder: string; syncKey?: string }) {
+  const [inputValue, setInputValue] = useState(field.value?.toString() ?? '')
+
+  useEffect(() => {
+    setInputValue(field.value?.toString() ?? '')
+  }, [field.value, syncKey])
+
+  return (
+    <FormControl>
+      <Input
+        type="text"
+        name={field.name}
+        ref={field.ref}
+        value={inputValue}
+        onChange={e => {
+          const value = e.target.value
+          setInputValue(value)
+          if (value === '') {
+            field.onChange(undefined)
+          } else if (/^-?\d+$/.test(value)) {
+            field.onChange(parseInt(value))
+          }
+        }}
+        onBlur={() => {
+          if (inputValue !== '' && !/^-?\d+$/.test(inputValue)) {
+            setInputValue(field.value?.toString() ?? '')
+          }
+          field.onBlur()
+        }}
+        className="h-9 text-xs sm:text-sm"
+        placeholder={placeholder}
+      />
+    </FormControl>
+  )
+}
+
 export default function NotificationSettings() {
   const { t } = useTranslation()
 
@@ -356,6 +422,7 @@ export default function NotificationSettings() {
           subscription_revoked: false,
         },
         user_template: { create: false, modify: false, delete: false },
+        api_key: { create: false, modify: false, delete: false },
         days_left: false,
         percentage_reached: false,
       },
@@ -384,10 +451,10 @@ export default function NotificationSettings() {
 
   // Watch all notification enable fields to ensure switch/checkbox sync
   const watchedEnableFields = form.watch('notification_enable')
-  const adminUsageWarningsEnabled = Boolean((watchedEnableFields?.admin as any)?.usage_limit_warning)
-  const adminUsageThresholds = (form.watch('notification_enable.admin.usage_limit_warning_percentages' as any) as number[] | undefined) ?? []
+  const adminUsageWarningsEnabled = Boolean(watchedEnableFields?.admin?.usage_limit_warning)
+  const adminUsageThresholds = form.watch('notification_enable.admin.usage_limit_warning_percentages') ?? []
   const setAdminUsageThresholds = (thresholds: number[]) => {
-    form.setValue('notification_enable.admin.usage_limit_warning_percentages' as any, thresholds, {
+    form.setValue('notification_enable.admin.usage_limit_warning_percentages', thresholds, {
       shouldDirty: true,
       shouldTouch: true,
       shouldValidate: true,
@@ -400,7 +467,7 @@ export default function NotificationSettings() {
     setAdminUsageThresholds(adminUsageThresholds.filter((_, thresholdIndex) => thresholdIndex !== index))
   }
   const ensureAdminUsageThreshold = () => {
-    const currentThresholds = (form.getValues('notification_enable.admin.usage_limit_warning_percentages' as any) as number[] | undefined) ?? []
+    const currentThresholds = form.getValues('notification_enable.admin.usage_limit_warning_percentages') ?? []
     if (currentThresholds.length === 0) {
       setAdminUsageThresholds([80])
     }
@@ -412,13 +479,13 @@ export default function NotificationSettings() {
     if (config.key === 'admin' && enabled) {
       ensureAdminUsageThreshold()
     }
-    const currentData = form.getValues(`notification_enable.${config.key}` as any) || {}
-    const updates: any = {}
+    const currentData = form.getValues(`notification_enable.${config.key}`)
+    const updates: Record<string, boolean> = {}
     config.subPermissions.forEach(sub => {
       updates[sub.key] = enabled
     })
-    form.setValue(`notification_enable.${config.key}` as any, {
-      ...currentData,
+    form.setValue(`notification_enable.${config.key}`, {
+      ...(isRecord(currentData) ? currentData : {}),
       ...updates,
     })
   }
@@ -464,6 +531,7 @@ export default function NotificationSettings() {
             subscription_revoked: false,
           },
           user_template: enableData.user_template || { create: false, modify: false, delete: false },
+          api_key: enableData.api_key || { create: false, modify: false, delete: false },
           days_left: enableData.days_left ?? false,
           percentage_reached: enableData.percentage_reached ?? false,
         },
@@ -590,6 +658,7 @@ export default function NotificationSettings() {
             subscription_revoked: false,
           },
           user_template: enableData.user_template || { create: false, modify: false, delete: false },
+          api_key: enableData.api_key || { create: false, modify: false, delete: false },
           days_left: enableData.days_left ?? false,
           percentage_reached: enableData.percentage_reached ?? false,
         },
@@ -642,8 +711,8 @@ export default function NotificationSettings() {
                 let enabledCount = 0
                 let anyEnabled = false
 
-                if (hasSubPermissions && permissionData && typeof permissionData === 'object' && config.subPermissions) {
-                  enabledCount = config.subPermissions.filter(sub => (permissionData as any)[sub.key]).length
+                if (hasSubPermissions && isRecord(permissionData) && config.subPermissions) {
+                  enabledCount = config.subPermissions.filter(sub => getSubPermission(permissionData, sub.key)).length
                   anyEnabled = enabledCount > 0
                 }
 
@@ -673,7 +742,7 @@ export default function NotificationSettings() {
                     >
                       <FormField
                         control={form.control}
-                        name={`notification_enable.${config.key}` as any}
+                        name={`notification_enable.${config.key}`}
                         render={() => {
                           const isMainEnabled = hasSubPermissions ? anyEnabled : typeof watchedEnableFields?.[config.key] === 'boolean' ? (watchedEnableFields[config.key] as boolean) : false
 
@@ -725,7 +794,7 @@ export default function NotificationSettings() {
                                         } else {
                                           // For non-collapsible items, toggle the switch
                                           const newChecked = !isMainEnabled
-                                          form.setValue(`notification_enable.${config.key}` as any, newChecked)
+                                          form.setValue(`notification_enable.${config.key}`, newChecked)
                                         }
                                       }}
                                     >
@@ -746,7 +815,7 @@ export default function NotificationSettings() {
                                         // If toggling on, enable all. If toggling off, disable all.
                                         toggleAllSubPermissions(config, checked)
                                       } else {
-                                        form.setValue(`notification_enable.${config.key}` as any, checked)
+                                        form.setValue(`notification_enable.${config.key}`, checked)
                                       }
                                     }}
                                     onClick={e => e.stopPropagation()}
@@ -767,12 +836,13 @@ export default function NotificationSettings() {
                                 <FormField
                                   key={sub.key}
                                   control={form.control}
-                                  name={`notification_enable.${config.key}.${sub.key}` as any}
+                                  // react-hook-form cannot correlate a group key with that group's sub-permission keys, so the pair is asserted as a form path
+                                  name={`notification_enable.${config.key}.${sub.key}` as Path<NotificationSettingsForm>}
                                   render={({ field }) => (
                                     <FormItem className="hover:bg-background/50 flex items-center space-y-0 gap-x-2 rounded-sm px-2 py-1.5 transition-colors">
                                       <FormControl>
                                         <Checkbox
-                                          checked={(permissionData as any)?.[sub.key] || false}
+                                          checked={Boolean(getSubPermission(permissionData, sub.key))}
                                           onCheckedChange={checked => {
                                             field.onChange(checked)
                                             if (config.key === 'admin' && sub.key === 'usage_limit_warning' && checked === true) {
@@ -805,7 +875,7 @@ export default function NotificationSettings() {
                                     <div key={`${index}-${threshold}`} className="flex items-center gap-1">
                                       <FormField
                                         control={form.control}
-                                        name={`notification_enable.admin.usage_limit_warning_percentages.${index}` as any}
+                                        name={`notification_enable.admin.usage_limit_warning_percentages.${index}`}
                                         render={({ field }) => (
                                           <FormItem>
                                             <FormControl>
@@ -897,45 +967,7 @@ export default function NotificationSettings() {
                       <MessageSquare className="h-3.5 w-3.5" />
                       {t('settings.notifications.telegram.chatId')}
                     </Label>
-                    <FormField
-                      control={form.control}
-                      name="notification_settings.telegram_chat_id"
-                      render={({ field }) => {
-                        const [inputValue, setInputValue] = useState(field.value?.toString() ?? '')
-
-                        useEffect(() => {
-                          setInputValue(field.value?.toString() ?? '')
-                        }, [field.value])
-
-                        return (
-                          <FormControl>
-                            <Input
-                              type="text"
-                              name={field.name}
-                              ref={field.ref}
-                              value={inputValue}
-                              onChange={e => {
-                                const value = e.target.value
-                                setInputValue(value)
-                                if (value === '') {
-                                  field.onChange(undefined)
-                                } else if (/^-?\d+$/.test(value)) {
-                                  field.onChange(parseInt(value))
-                                }
-                              }}
-                              onBlur={() => {
-                                if (inputValue !== '' && !/^-?\d+$/.test(inputValue)) {
-                                  setInputValue(field.value?.toString() ?? '')
-                                }
-                                field.onBlur()
-                              }}
-                              className="h-9 text-xs sm:text-sm"
-                              placeholder="123456789"
-                            />
-                          </FormControl>
-                        )
-                      }}
-                    />
+                    <FormField control={form.control} name="notification_settings.telegram_chat_id" render={({ field }) => <IntegerFieldInput field={field} placeholder="123456789" />} />
                   </div>
 
                   <div className="space-y-1.5">
@@ -943,45 +975,7 @@ export default function NotificationSettings() {
                       <FileText className="h-3.5 w-3.5" />
                       {t('settings.notifications.telegram.topicId')}
                     </Label>
-                    <FormField
-                      control={form.control}
-                      name="notification_settings.telegram_topic_id"
-                      render={({ field }) => {
-                        const [inputValue, setInputValue] = useState(field.value?.toString() ?? '')
-
-                        useEffect(() => {
-                          setInputValue(field.value?.toString() ?? '')
-                        }, [field.value])
-
-                        return (
-                          <FormControl>
-                            <Input
-                              type="text"
-                              name={field.name}
-                              ref={field.ref}
-                              value={inputValue}
-                              onChange={e => {
-                                const value = e.target.value
-                                setInputValue(value)
-                                if (value === '') {
-                                  field.onChange(undefined)
-                                } else if (/^-?\d+$/.test(value)) {
-                                  field.onChange(parseInt(value))
-                                }
-                              }}
-                              onBlur={() => {
-                                if (inputValue !== '' && !/^-?\d+$/.test(inputValue)) {
-                                  setInputValue(field.value?.toString() ?? '')
-                                }
-                                field.onBlur()
-                              }}
-                              className="h-9 text-xs sm:text-sm"
-                              placeholder="123"
-                            />
-                          </FormControl>
-                        )
-                      }}
-                    />
+                    <FormField control={form.control} name="notification_settings.telegram_topic_id" render={({ field }) => <IntegerFieldInput field={field} placeholder="123" />} />
                   </div>
                 </div>
 
@@ -1045,41 +1039,7 @@ export default function NotificationSettings() {
                                     key={`telegram_chat_id_${activeChannelTab}`}
                                     control={form.control}
                                     name={`notification_settings.channels.${activeChannelTab}.telegram_chat_id`}
-                                    render={({ field }) => {
-                                      const [inputValue, setInputValue] = useState(field.value?.toString() ?? '')
-
-                                      useEffect(() => {
-                                        setInputValue(field.value?.toString() ?? '')
-                                      }, [field.value, activeChannelTab])
-
-                                      return (
-                                        <FormControl>
-                                          <Input
-                                            type="text"
-                                            name={field.name}
-                                            ref={field.ref}
-                                            value={inputValue}
-                                            onChange={e => {
-                                              const value = e.target.value
-                                              setInputValue(value)
-                                              if (value === '') {
-                                                field.onChange(undefined)
-                                              } else if (/^-?\d+$/.test(value)) {
-                                                field.onChange(parseInt(value))
-                                              }
-                                            }}
-                                            onBlur={() => {
-                                              if (inputValue !== '' && !/^-?\d+$/.test(inputValue)) {
-                                                setInputValue(field.value?.toString() ?? '')
-                                              }
-                                              field.onBlur()
-                                            }}
-                                            className="h-9 text-xs sm:text-sm"
-                                            placeholder="-1001234567890"
-                                          />
-                                        </FormControl>
-                                      )
-                                    }}
+                                    render={({ field }) => <IntegerFieldInput field={field} placeholder="-1001234567890" syncKey={activeChannelTab} />}
                                   />
                                 </div>
 
@@ -1092,41 +1052,7 @@ export default function NotificationSettings() {
                                     key={`telegram_topic_id_${activeChannelTab}`}
                                     control={form.control}
                                     name={`notification_settings.channels.${activeChannelTab}.telegram_topic_id`}
-                                    render={({ field }) => {
-                                      const [inputValue, setInputValue] = useState(field.value?.toString() ?? '')
-
-                                      useEffect(() => {
-                                        setInputValue(field.value?.toString() ?? '')
-                                      }, [field.value, activeChannelTab])
-
-                                      return (
-                                        <FormControl>
-                                          <Input
-                                            type="text"
-                                            name={field.name}
-                                            ref={field.ref}
-                                            value={inputValue}
-                                            onChange={e => {
-                                              const value = e.target.value
-                                              setInputValue(value)
-                                              if (value === '') {
-                                                field.onChange(undefined)
-                                              } else if (/^-?\d+$/.test(value)) {
-                                                field.onChange(parseInt(value))
-                                              }
-                                            }}
-                                            onBlur={() => {
-                                              if (inputValue !== '' && !/^-?\d+$/.test(inputValue)) {
-                                                setInputValue(field.value?.toString() ?? '')
-                                              }
-                                              field.onBlur()
-                                            }}
-                                            className="h-9 text-xs sm:text-sm"
-                                            placeholder="123"
-                                          />
-                                        </FormControl>
-                                      )
-                                    }}
+                                    render={({ field }) => <IntegerFieldInput field={field} placeholder="123" syncKey={activeChannelTab} />}
                                   />
                                 </div>
                               </div>

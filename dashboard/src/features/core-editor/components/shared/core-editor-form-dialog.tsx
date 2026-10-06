@@ -117,11 +117,7 @@ export function CoreEditorFormDialog({
         </div>
 
         <div className="flex justify-end gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => handleDialogOpenChange(false)}
-          >
+          <Button type="button" variant="outline" onClick={() => handleDialogOpenChange(false)}>
             {t('cancel')}
           </Button>
           {footerExtra}
@@ -131,9 +127,7 @@ export function CoreEditorFormDialog({
         <AlertDialogContent dir={dir}>
           <AlertDialogHeader>
             <AlertDialogTitle>{discardTitle ?? t('discardTitle', { defaultValue: 'Discard changes?' })}</AlertDialogTitle>
-            <AlertDialogDescription>
-              {discardDescription ?? t('discardDesc', { defaultValue: 'You have unsaved edits. Leave without saving?' })}
-            </AlertDialogDescription>
+            <AlertDialogDescription>{discardDescription ?? t('discardDesc', { defaultValue: 'You have unsaved edits. Leave without saving?' })}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDiscardOpen(false)}>{t('cancel')}</AlertDialogCancel>

@@ -2,54 +2,17 @@ import { useState, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Button } from '@/components/ui/button'
 import { LoaderButton } from '@/components/ui/loader-button'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { DatePicker } from '@/components/common/date-picker'
-import {
-  serializeDatePickerValue,
-  toDatePickerDisplayDate,
-} from '@/utils/datePickerUtils'
-import {
-  apiKeyFormSchema,
-  ApiKeyFormValuesInput,
-  ApiKeyFormValues,
-  apiKeyFormDefaultValues,
-} from '../forms/api-key-form'
-import {
-  useCreateApiKey,
-  useModifyApiKey,
-  APIKeyResponse,
-  getListApiKeysQueryKey,
-  RolePermissions,
-  useGetAdmins,
-  useGetAdminsSimple,
-} from '@/service/api'
+import { serializeDatePickerValue, toDatePickerDisplayDate } from '@/utils/datePickerUtils'
+import { apiKeyFormSchema, ApiKeyFormValuesInput, ApiKeyFormValues, apiKeyFormDefaultValues } from '../forms/api-key-form'
+import { useCreateApiKey, useModifyApiKey, APIKeyResponse, getListApiKeysQueryKey, RolePermissions, useGetAdmins, useGetAdminsSimple } from '@/service/api'
 import { useAdmin } from '@/hooks/use-admin'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
@@ -66,8 +29,7 @@ interface ApiKeyModalProps {
   editingApiKey: APIKeyResponse | null
 }
 
-const arePermissionMapsEqual = (a?: RolePermissionFormMap | null, b?: RolePermissionFormMap | null) =>
-  JSON.stringify(a || {}) === JSON.stringify(b || {})
+const arePermissionMapsEqual = (a?: RolePermissionFormMap | null, b?: RolePermissionFormMap | null) => JSON.stringify(a || {}) === JSON.stringify(b || {})
 
 const EMPTY_PERMISSION_MAP: RolePermissionFormMap = {}
 
@@ -80,11 +42,7 @@ const getErrorDescription = (error: unknown) => {
   return undefined
 }
 
-export default function ApiKeyModal({
-  isDialogOpen,
-  onOpenChange,
-  editingApiKey,
-}: ApiKeyModalProps) {
+export default function ApiKeyModal({ isDialogOpen, onOpenChange, editingApiKey }: ApiKeyModalProps) {
   const { t } = useTranslation()
   const [createdKey, setCreatedKey] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -118,10 +76,7 @@ export default function ApiKeyModal({
   const inheritPermissions = form.watch('inherit_permissions')
   const targetAdminId = form.watch('admin_id')
   const shouldLoadTargetAdminPermissions = isOwner && isDialogOpen && !inheritPermissions && !!targetAdminId && targetAdminId !== admin?.id
-  const targetAdminQuery = useGetAdmins(
-    shouldLoadTargetAdminPermissions && targetAdminId ? { ids: [targetAdminId] } : undefined,
-    { query: { enabled: shouldLoadTargetAdminPermissions } }
-  )
+  const targetAdminQuery = useGetAdmins(shouldLoadTargetAdminPermissions && targetAdminId ? { ids: [targetAdminId] } : undefined, { query: { enabled: shouldLoadTargetAdminPermissions } })
   const isLoadingPermissionCeiling = shouldLoadTargetAdminPermissions && targetAdminQuery.isLoading
   const targetAdmin = shouldLoadTargetAdminPermissions ? targetAdminQuery.data?.admins?.[0] : admin
   const permissionCeiling = useMemo(() => {
@@ -130,10 +85,7 @@ export default function ApiKeyModal({
     return sanitizeRolePermissions(targetAdmin?.role?.permissions)
   }, [shouldLoadTargetAdminPermissions, targetAdmin])
   const visiblePermissionCeiling = isLoadingPermissionCeiling ? EMPTY_PERMISSION_MAP : permissionCeiling
-  const visiblePermissionsValue = useMemo(
-    () => limitRolePermissionsToAllowed(permissionsValue, visiblePermissionCeiling),
-    [permissionsValue, visiblePermissionCeiling]
-  )
+  const visiblePermissionsValue = useMemo(() => limitRolePermissionsToAllowed(permissionsValue, visiblePermissionCeiling), [permissionsValue, visiblePermissionCeiling])
 
   useEffect(() => {
     if (editingApiKey) {
@@ -172,9 +124,7 @@ export default function ApiKeyModal({
       return
     }
 
-    const customPermissions = values.inherit_permissions
-      ? {}
-      : limitRolePermissionsToAllowed(values.permissions as RolePermissionFormMap, permissionCeiling)
+    const customPermissions = values.inherit_permissions ? {} : limitRolePermissionsToAllowed(values.permissions as RolePermissionFormMap, permissionCeiling)
 
     try {
       if (editingApiKey) {
@@ -207,12 +157,9 @@ export default function ApiKeyModal({
         toast.success(t('apiKeys.createSuccess'))
       }
     } catch (error: unknown) {
-      toast.error(
-        editingApiKey ? t('apiKeys.updateFailed') : t('apiKeys.createFailed'),
-        {
-          description: getErrorDescription(error),
-        }
-      )
+      toast.error(editingApiKey ? t('apiKeys.updateFailed') : t('apiKeys.createFailed'), {
+        description: getErrorDescription(error),
+      })
     }
   }
 
@@ -241,9 +188,7 @@ export default function ApiKeyModal({
             {editingApiKey ? <Pencil className="h-5 w-5" /> : <KeyRound className="h-5 w-5" />}
             <span>{editingApiKey ? t('apiKeys.editKey') : t('apiKeys.createKey')}</span>
           </DialogTitle>
-          <DialogDescription className="sr-only">
-            {t('apiKeys.description', { defaultValue: 'Manage API keys for programmatic access' })}
-          </DialogDescription>
+          <DialogDescription className="sr-only">{t('apiKeys.description', { defaultValue: 'Manage API keys for programmatic access' })}</DialogDescription>
         </DialogHeader>
 
         {createdKey ? (
@@ -255,27 +200,14 @@ export default function ApiKeyModal({
                 <AlertDescription>{t('apiKeys.apiKeyShowWarning')}</AlertDescription>
               </Alert>
               <div className="flex items-center gap-2">
-                <Input
-                  readOnly
-                  value={createdKey}
-                  className="font-mono"
-                  onClick={(e) => (e.target as HTMLInputElement).select()}
-                />
-                <Button
-                  size="icon"
-                  variant="outline"
-                  onClick={copyToClipboard}
-                  aria-label={t('apiKeys.apiKeyCopy')}
-                  title={t('apiKeys.apiKeyCopy')}
-                >
+                <Input readOnly value={createdKey} className="font-mono" onClick={e => (e.target as HTMLInputElement).select()} />
+                <Button size="icon" variant="outline" onClick={copyToClipboard} aria-label={t('apiKeys.apiKeyCopy')} title={t('apiKeys.apiKeyCopy')}>
                   {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
                 </Button>
               </div>
             </div>
             <DialogFooter className="pt-2">
-              <Button onClick={() => handleOpenChange(false)}>
-                {t('close')}
-              </Button>
+              <Button onClick={() => handleOpenChange(false)}>{t('close')}</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -290,11 +222,7 @@ export default function ApiKeyModal({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('apiKeys.admin')}</FormLabel>
-                          <Select
-                            value={field.value ? String(field.value) : ''}
-                            onValueChange={value => field.onChange(Number(value))}
-                            disabled={adminsQuery.isLoading}
-                          >
+                          <Select value={field.value ? String(field.value) : ''} onValueChange={value => field.onChange(Number(value))} disabled={adminsQuery.isLoading}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder={t('apiKeys.selectAdmin')} />
@@ -313,9 +241,7 @@ export default function ApiKeyModal({
                               )}
                             </SelectContent>
                           </Select>
-                          <FormDescription>
-                            {t('apiKeys.adminDescription', { defaultValue: 'The key will authenticate as this admin.' })}
-                          </FormDescription>
+                          <FormDescription>{t('apiKeys.adminDescription', { defaultValue: 'The key will authenticate as this admin.' })}</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -348,7 +274,7 @@ export default function ApiKeyModal({
                             showTime
                             useUtcTimestamp
                             date={toDatePickerDisplayDate(field.value)}
-                            onDateChange={(date) => {
+                            onDateChange={date => {
                               const value = date ? serializeDatePickerValue(date, { useUtcTimestamp: true }) : null
                               field.onChange(value)
                             }}
@@ -445,11 +371,7 @@ export default function ApiKeyModal({
               </div>
 
               <div className="flex justify-end gap-2 pt-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleOpenChange(false)}
-                >
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                   {t('cancel')}
                 </Button>
                 <LoaderButton

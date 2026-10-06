@@ -226,16 +226,22 @@ function ApiKeyCard({
           <div className="flex min-w-0 flex-wrap items-start justify-between gap-2">
             <div className="min-w-0 flex-1 space-y-1.5">
               <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
-                <span dir="auto" className="min-w-0 truncate text-sm font-medium">{apiKey.name}</span>
+                <span dir="auto" className="min-w-0 truncate text-sm font-medium">
+                  {apiKey.name}
+                </span>
                 {adminName ? (
                   <Badge variant="outline" className="flex max-w-32 shrink-0 items-center gap-1 px-1.5 text-[10px] font-normal opacity-80 sm:max-w-36">
                     <UserRound className="h-3 w-3 shrink-0" />
-                    <span dir="auto" className="min-w-0 truncate">{adminName}</span>
+                    <span dir="auto" className="min-w-0 truncate">
+                      {adminName}
+                    </span>
                   </Badge>
                 ) : null}
               </div>
               {apiKey.api_key_trimmed ? (
-                <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs">{apiKey.api_key_trimmed}</code>
+                <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs">
+                  {apiKey.api_key_trimmed}
+                </code>
               ) : (
                 <span className="text-muted-foreground text-xs">-</span>
               )}
@@ -254,7 +260,9 @@ function ApiKeyCard({
             </div>
             <div className="text-muted-foreground flex min-w-0 items-center gap-1.5 leading-none sm:justify-end">
               <CalendarIcon className="h-3.5 w-3.5 shrink-0" />
-              <span dir="ltr" className={cn('truncate', apiKey.is_expired && 'text-destructive font-medium')}>{apiKey.expire_date ? formatApiKeyExpireDate(apiKey.expire_date, i18n.language) : t('never')}</span>
+              <span dir="ltr" className={cn('truncate', apiKey.is_expired && 'text-destructive font-medium')}>
+                {apiKey.expire_date ? formatApiKeyExpireDate(apiKey.expire_date, i18n.language) : t('never')}
+              </span>
             </div>
           </div>
         </div>
@@ -314,16 +322,22 @@ export default function ApiKeysTable({
               </div>
               <div className="flex min-w-0 flex-1 flex-col gap-y-1 overflow-hidden">
                 <div className="flex min-w-0 items-center gap-x-1.5 overflow-hidden">
-                  <span dir="auto" className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">{apiKey.name}</span>
+                  <span dir="auto" className="overflow-hidden text-sm font-medium text-ellipsis whitespace-nowrap">
+                    {apiKey.name}
+                  </span>
                   {adminName ? (
                     <Badge variant="outline" className="flex max-w-28 shrink-0 items-center gap-1 px-1.5 text-[10px] font-normal opacity-80">
                       <UserRound className="h-3 w-3 shrink-0" />
-                      <span dir="auto" className="min-w-0 truncate">{adminName}</span>
+                      <span dir="auto" className="min-w-0 truncate">
+                        {adminName}
+                      </span>
                     </Badge>
                   ) : null}
                 </div>
                 {apiKey.api_key_trimmed ? (
-                  <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs md:hidden">{apiKey.api_key_trimmed}</code>
+                  <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs md:hidden">
+                    {apiKey.api_key_trimmed}
+                  </code>
                 ) : null}
               </div>
             </div>
@@ -339,7 +353,9 @@ export default function ApiKeysTable({
         skeletonClassName: 'w-32',
         cell: apiKey =>
           apiKey.api_key_trimmed ? (
-            <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs">{apiKey.api_key_trimmed}</code>
+            <code dir="ltr" className="bg-muted/80 inline-block max-w-full truncate rounded px-1.5 py-0.5 font-mono text-xs">
+              {apiKey.api_key_trimmed}
+            </code>
           ) : (
             <span className="text-muted-foreground">-</span>
           ),

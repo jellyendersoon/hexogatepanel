@@ -6,25 +6,14 @@ import { Separator } from '@/components/ui/separator'
 import { Card, CardContent } from '@/components/ui/card'
 import ApiKeysTable from '@/features/api-keys/components/api-keys-table'
 import ApiKeyModal from '@/features/api-keys/dialogs/api-key-modal'
-import {
-  APIKeyResponse,
-  useBulkDeleteApiKeys,
-  useRemoveApiKey,
-  useRevokeApiKey,
-  useListApiKeys,
-  getListApiKeysQueryKey,
-  APIKeyStatus,
-} from '@/service/api'
+import { APIKeyResponse, useBulkDeleteApiKeys, useRemoveApiKey, useRevokeApiKey, useListApiKeys, getListApiKeysQueryKey, APIKeyStatus } from '@/service/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { ApiKeyFilters } from '@/features/api-keys/components/api-key-filters'
 import { useDebouncedSearch } from '@/hooks/use-debounced-search'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  apiKeyAdvanceSearchFormSchema,
-  type ApiKeyAdvanceSearchFormValue,
-} from '@/features/api-keys/forms/api-key-advance-search-form'
+import { apiKeyAdvanceSearchFormSchema, type ApiKeyAdvanceSearchFormValue } from '@/features/api-keys/forms/api-key-advance-search-form'
 import ApiKeyAdvanceSearchModal from '@/features/api-keys/dialogs/api-key-advance-search-modal'
 import { ApiKeyDeleteDialog, ApiKeyRevokeDialog, ApiKeySecretDialog } from '@/features/api-keys/dialogs/api-key-action-dialogs'
 import { usePersistedViewMode } from '@/hooks/use-persisted-view-mode'
@@ -42,7 +31,7 @@ export default function ApiKeysPage() {
   const canDeleteApiKeys = hasPermission(admin, 'api_keys', 'delete')
   const [editingApiKey, setEditingApiKey] = useState<APIKeyResponse | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  
+
   const [keyToDelete, setKeyToDelete] = useState<APIKeyResponse | null>(null)
   const [keyToRevoke, setKeyToRevoke] = useState<APIKeyResponse | null>(null)
   const [newReissuedKey, setNewReissuedKey] = useState<string | null>(null)
@@ -194,18 +183,19 @@ export default function ApiKeysPage() {
   }
 
   const selectedCount = selectedApiKeyIds.length
-  const bulkActions: BulkActionItem[] = selectedCount && canDeleteApiKeys
-    ? [
-        {
-          key: 'delete',
-          label: t('delete'),
-          icon: Trash2,
-          onClick: () => setConfirmBulkDelete(true),
-          direct: true,
-          destructive: true,
-        },
-      ]
-    : []
+  const bulkActions: BulkActionItem[] =
+    selectedCount && canDeleteApiKeys
+      ? [
+          {
+            key: 'delete',
+            label: t('delete'),
+            icon: Trash2,
+            onClick: () => setConfirmBulkDelete(true),
+            direct: true,
+            destructive: true,
+          },
+        ]
+      : []
 
   return (
     <div className="flex w-full flex-col items-start gap-2">
@@ -215,18 +205,20 @@ export default function ApiKeysPage() {
           description="apiKeys.description"
           buttonIcon={canCreateApiKeys ? Plus : undefined}
           buttonText={canCreateApiKeys ? 'apiKeys.createKey' : undefined}
-          onButtonClick={canCreateApiKeys ? () => {
-            setEditingApiKey(null)
-            setIsModalOpen(true)
-          } : undefined}
+          onButtonClick={
+            canCreateApiKeys
+              ? () => {
+                  setEditingApiKey(null)
+                  setIsModalOpen(true)
+                }
+              : undefined
+          }
         />
         <Separator />
       </div>
 
       <div className="w-full p-4">
-        <div
-          className="flex flex-col gap-4 transform-gpu"
-        >
+        <div className="flex transform-gpu flex-col gap-4">
           <ApiKeyFilters
             search={search}
             onSearchChange={setSearch}
@@ -237,7 +229,7 @@ export default function ApiKeysPage() {
             filters={{
               status: filters.status?.[0],
             }}
-            onFilterChange={(newFilters) => {
+            onFilterChange={newFilters => {
               if (!Object.keys(newFilters).length) {
                 handleClearAdvanceSearch()
               } else {
@@ -270,9 +262,7 @@ export default function ApiKeysPage() {
               <CardContent className="p-8 text-center">
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold">{t('apiKeys.noKeys', { defaultValue: 'No API keys configured' })}</h3>
-                  <p className="text-muted-foreground mx-auto max-w-2xl">
-                    {t('apiKeys.noKeysDescription', { defaultValue: 'Create an API key to allow programmatic access.' })}
-                  </p>
+                  <p className="text-muted-foreground mx-auto max-w-2xl">{t('apiKeys.noKeysDescription', { defaultValue: 'Create an API key to allow programmatic access.' })}</p>
                 </div>
               </CardContent>
             </Card>
@@ -293,20 +283,9 @@ export default function ApiKeysPage() {
         </div>
       </div>
 
-      {(canCreateApiKeys || canUpdateApiKeys) && (
-        <ApiKeyModal
-          isDialogOpen={isModalOpen}
-          onOpenChange={setIsModalOpen}
-          editingApiKey={editingApiKey}
-        />
-      )}
+      {(canCreateApiKeys || canUpdateApiKeys) && <ApiKeyModal isDialogOpen={isModalOpen} onOpenChange={setIsModalOpen} editingApiKey={editingApiKey} />}
 
-      <ApiKeyAdvanceSearchModal
-        isDialogOpen={isAdvanceSearchOpen}
-        onOpenChange={setIsAdvanceSearchOpen}
-        form={advanceSearchForm}
-        onSubmit={handleAdvanceSearchSubmit}
-      />
+      <ApiKeyAdvanceSearchModal isDialogOpen={isAdvanceSearchOpen} onOpenChange={setIsAdvanceSearchOpen} form={advanceSearchForm} onSubmit={handleAdvanceSearchSubmit} />
 
       <ApiKeyDeleteDialog
         apiKey={keyToDelete}

@@ -513,7 +513,9 @@ export const hostFormDefaultValues: HostFormValues = {
 }
 
 /** Normalize API fragment settings for the host form (accept legacy `delay` as `interval`). */
-export function mapHostFragmentSettingsForForm(fragmentSettings: { xray?: Record<string, unknown> | null; sing_box?: NonNullable<HostFormValues['fragment_settings']>['sing_box'] | null } | null | undefined): HostFormValues['fragment_settings'] | undefined {
+export function mapHostFragmentSettingsForForm(
+  fragmentSettings: { xray?: Record<string, unknown> | null; sing_box?: NonNullable<HostFormValues['fragment_settings']>['sing_box'] | null } | null | undefined,
+): HostFormValues['fragment_settings'] | undefined {
   if (!fragmentSettings) return undefined
   const xrayRaw = fragmentSettings.xray
   if (!xrayRaw && fragmentSettings.sing_box == null) return undefined

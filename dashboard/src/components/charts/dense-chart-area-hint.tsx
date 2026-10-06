@@ -50,7 +50,7 @@ export default function DenseChartAreaHint({ pointCount, className }: DenseChart
     >
       <div className="flex min-w-0 items-start gap-2">
         <AreaChart className="text-primary mt-0.5 h-3.5 w-3.5 shrink-0" />
-        <p className="text-pretty leading-relaxed">
+        <p className="leading-relaxed text-pretty">
           {t('statistics.denseChartAreaHint', {
             count: pointCount,
             defaultValue: 'This chart has {{count}} candles. Area charts from Theme settings usually perform better with large ranges.',
@@ -64,14 +64,7 @@ export default function DenseChartAreaHint({ pointCount, className }: DenseChart
         <Button type="button" size="sm" variant="ghost" className="h-7 px-2.5 text-xs" asChild>
           <Link to="/settings/theme">{t('theme.title', { defaultValue: 'Theme' })}</Link>
         </Button>
-        <Button
-          type="button"
-          size="icon"
-          variant="ghost"
-          className="text-muted-foreground h-7 w-7"
-          onClick={handleDismiss}
-          aria-label={t('close', { defaultValue: 'Close' })}
-        >
+        <Button type="button" size="icon" variant="ghost" className="text-muted-foreground h-7 w-7" onClick={handleDismiss} aria-label={t('close', { defaultValue: 'Close' })}>
           <X className="h-3.5 w-3.5" />
         </Button>
       </div>

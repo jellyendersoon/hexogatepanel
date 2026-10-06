@@ -222,7 +222,7 @@ export function XrayAdvancedSection() {
 
       {filterTabsAvailable && (
         <Tabs dir={dir} value={activeTab} onValueChange={value => setActiveTab(value as AdvancedTab)} className="min-w-0">
-          <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="-mx-1 [scrollbar-width:none] overflow-x-auto px-1 [&::-webkit-scrollbar]:hidden">
             <TabsList dir={dir} className="inline-flex h-10 w-auto">
               <TabsTrigger value="all" className="px-3">
                 {t('coreEditor.advanced.tabs.all', { defaultValue: 'All' })}

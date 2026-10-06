@@ -245,7 +245,6 @@ const NoiseItem = memo<NoiseItemProps>(({ index, form, onRemove, onDuplicate, t 
   )
 })
 
-
 NoiseItem.displayName = 'NoiseItem'
 
 // Reusable ArrayInput wrapper backed by shared popover-array component
@@ -435,9 +434,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                             <p className="text-muted-foreground text-[11px]">{t('hostsDialog.noise.info')}</p>
                             <p className="text-muted-foreground text-[11px]">{t('hostsDialog.noise.info.attention')}</p>
                             <p className="text-muted-foreground text-[11px]">{t('hostsDialog.noise.info.examples')}</p>
-                            <p className="text-muted-foreground overflow-hidden text-[11px]">
-                              rand:10-20,10-20 rand:10-20,10-20 &base64:7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=,10-25
-                            </p>
+                            <p className="text-muted-foreground overflow-hidden text-[11px]">rand:10-20,10-20 rand:10-20,10-20 &base64:7nQBAAABAAAAAAAABnQtcmluZwZtc2VkZ2UDbmV0AAABAAE=,10-25</p>
                           </div>
                         </PopoverContent>
                       </Popover>
@@ -455,7 +452,7 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                 </div>
 
                 {/* FinalMask Settings */}
-                <div className="space-y-4 pt-4 border-t">
+                <div className="space-y-4 border-t pt-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <h4 className="text-sm font-medium">{t('hostsDialog.finalmask.title', { defaultValue: 'FinalMask Settings' })}</h4>
@@ -467,29 +464,33 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                         </PopoverTrigger>
                         <PopoverContent className="w-[min(90vw,20rem)] p-3 sm:w-80" side={infoPopoverSide} align={infoPopoverAlign} sideOffset={5}>
                           <div className="space-y-1.5">
-                            <p className="text-muted-foreground text-[11px]">{t('hostsDialog.finalmask.info', { defaultValue: 'Configure custom finalmask client configurations (TCP, UDP, and QUIC params).' })}</p>
+                            <p className="text-muted-foreground text-[11px]">
+                              {t('hostsDialog.finalmask.info', { defaultValue: 'Configure custom finalmask client configurations (TCP, UDP, and QUIC params).' })}
+                            </p>
                           </div>
                         </PopoverContent>
                       </Popover>
                     </div>
                     <Switch
                       checked={form.watch('final_mask_settings') !== undefined && form.watch('final_mask_settings') !== null}
-                      onCheckedChange={(checked) => {
+                      onCheckedChange={checked => {
                         if (checked) {
-                          form.setValue('final_mask_settings', {
-                            tcp: [],
-                            udp: [],
-                            quicParams: {}
-                          }, { shouldDirty: true, shouldTouch: true })
+                          form.setValue(
+                            'final_mask_settings',
+                            {
+                              tcp: [],
+                              udp: [],
+                              quicParams: {},
+                            },
+                            { shouldDirty: true, shouldTouch: true },
+                          )
                         } else {
                           form.setValue('final_mask_settings', undefined, { shouldDirty: true, shouldTouch: true })
                         }
                       }}
                     />
                   </div>
-                  {form.watch('final_mask_settings') !== undefined && form.watch('final_mask_settings') !== null && (
-                    <FinalMaskSettings form={form} />
-                  )}
+                  {form.watch('final_mask_settings') !== undefined && form.watch('final_mask_settings') !== null && <FinalMaskSettings form={form} />}
                 </div>
               </div>
             </TabsContent>
@@ -1602,7 +1603,11 @@ const HostModal: React.FC<HostModalProps> = ({ isDialogOpen, onOpenChange, onSub
                               <FormItem>
                                 <FormLabel>{t('hostsDialog.cipherSuites', { defaultValue: 'Cipher Suites' })}</FormLabel>
                                 <FormControl>
-                                  <Input placeholder={t('hostsDialog.cipherSuitesPlaceholder', { defaultValue: 'e.g. TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256' })} {...field} value={field.value ?? ''} />
+                                  <Input
+                                    placeholder={t('hostsDialog.cipherSuitesPlaceholder', { defaultValue: 'e.g. TLS_AES_128_GCM_SHA256:TLS_CHACHA20_POLY1305_SHA256' })}
+                                    {...field}
+                                    value={field.value ?? ''}
+                                  />
                                 </FormControl>
                                 <FormMessage />
                               </FormItem>

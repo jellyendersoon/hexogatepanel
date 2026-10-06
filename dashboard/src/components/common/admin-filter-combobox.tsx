@@ -74,16 +74,19 @@ export default function AdminFilterCombobox({ value, onValueChange, onAdminSelec
     setIsLoadingMore(false)
   }, [fetchedAdminsResponse, offset])
 
-  const handleScroll = useCallback((event: UIEvent<HTMLDivElement>) => {
-    if (isLoadingMore || isFetching || !hasMore) return
-    const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
-    if (scrollHeight - scrollTop - clientHeight < 90) {
-      const nextOffset = requestedOffsetRef.current + PAGE_SIZE
-      requestedOffsetRef.current = nextOffset
-      setIsLoadingMore(true)
-      setOffset(nextOffset)
-    }
-  }, [hasMore, isFetching, isLoadingMore])
+  const handleScroll = useCallback(
+    (event: UIEvent<HTMLDivElement>) => {
+      if (isLoadingMore || isFetching || !hasMore) return
+      const { scrollTop, scrollHeight, clientHeight } = event.currentTarget
+      if (scrollHeight - scrollTop - clientHeight < 90) {
+        const nextOffset = requestedOffsetRef.current + PAGE_SIZE
+        requestedOffsetRef.current = nextOffset
+        setIsLoadingMore(true)
+        setOffset(nextOffset)
+      }
+    },
+    [hasMore, isFetching, isLoadingMore],
+  )
 
   const selectedAdmin = useMemo(() => admins.find(admin => admin.username === value), [admins, value])
   const triggerLabel = value === 'all' ? t('statistics.adminFilterAll') : selectedAdmin?.username || value

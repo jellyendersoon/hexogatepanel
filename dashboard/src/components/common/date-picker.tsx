@@ -76,7 +76,7 @@ interface BaseDatePickerProps {
   /**
    * Callback for field change (for form integration)
    */
-  onFieldChange?: (fieldName: string, value: any) => void
+  onFieldChange?: (fieldName: string, value: string | number | undefined) => void
   /**
    * Alignment of the popover (overrides responsive defaults when set)
    */
@@ -341,37 +341,37 @@ export function DatePicker({
     [mode, disableAfter, minDate, maxDate],
   )
 
+  const clearDate = useCallback(() => {
+    setInternalDate(undefined)
+    handleSingleDateChange(undefined)
+    onFieldChange?.(fieldName, undefined)
+  }, [handleSingleDateChange, onFieldChange, fieldName])
+
+  const handleClearClick = useCallback(
+    (e: MouseEvent<HTMLElement>) => {
+      e.preventDefault()
+      e.stopPropagation()
+      clearDate()
+    },
+    [clearDate],
+  )
+
+  const handleClearKeyDown = useCallback(
+    (e: KeyboardEvent<HTMLElement>) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return
+      e.preventDefault()
+      e.stopPropagation()
+      clearDate()
+    },
+    [clearDate],
+  )
+
   const now = new Date()
 
   // Single date mode
   if (mode === 'single') {
     const displayDate = internalDate || (date ? new Date(date) : undefined)
     const timeValue = displayDate ? `${String(displayDate.getHours()).padStart(2, '0')}:${String(displayDate.getMinutes()).padStart(2, '0')}` : ''
-
-    const clearDate = useCallback(() => {
-      setInternalDate(undefined)
-      handleSingleDateChange(undefined)
-      onFieldChange?.(fieldName, undefined)
-    }, [handleSingleDateChange, onFieldChange, fieldName])
-
-    const handleClearClick = useCallback(
-      (e: MouseEvent<HTMLElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
-        clearDate()
-      },
-      [clearDate],
-    )
-
-    const handleClearKeyDown = useCallback(
-      (e: KeyboardEvent<HTMLElement>) => {
-        if (e.key !== 'Enter' && e.key !== ' ') return
-        e.preventDefault()
-        e.stopPropagation()
-        clearDate()
-      },
-      [clearDate],
-    )
 
     return (
       <div className={cn('grid gap-2', className)}>

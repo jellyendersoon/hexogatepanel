@@ -216,10 +216,8 @@ export default function Node({
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className={cn('group/version inline-flex items-center', dir === 'rtl' ? 'flex-row-reverse gap-1' : 'gap-1')}>
-                          <Server className={'h-3 w-3 shrink-0 transition-colors sm:h-3.5 sm:w-3.5 text-muted-foreground'} />
-                          <span className={'font-mono text-[10px] font-medium sm:text-[11px] text-muted-foreground'}>
-                            {node.node_version}
-                          </span>
+                          <Server className={'text-muted-foreground h-3 w-3 shrink-0 transition-colors sm:h-3.5 sm:w-3.5'} />
+                          <span className={'text-muted-foreground font-mono text-[10px] font-medium sm:text-[11px]'}>{node.node_version}</span>
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="top" className="max-w-xs">

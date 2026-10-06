@@ -22,17 +22,7 @@ interface ApiKeyFiltersProps {
   onAdvanceSearchOpen: () => void
 }
 
-export const ApiKeyFilters = ({
-  search,
-  onSearchChange,
-  isFetching,
-  onRefresh,
-  viewMode,
-  onViewModeChange,
-  filters,
-  onFilterChange,
-  onAdvanceSearchOpen,
-}: ApiKeyFiltersProps) => {
+export const ApiKeyFilters = ({ search, onSearchChange, isFetching, onRefresh, viewMode, onViewModeChange, filters, onFilterChange, onAdvanceSearchOpen }: ApiKeyFiltersProps) => {
   const { t } = useTranslation()
   const dir = useDirDetection()
 
@@ -47,12 +37,7 @@ export const ApiKeyFilters = ({
     <div dir={dir} className="flex items-center gap-2 md:gap-4">
       <div className="relative min-w-0 flex-1 md:w-[calc(100%/3-10px)] md:flex-none">
         <SearchIcon className={cn('absolute', dir === 'rtl' ? 'right-2' : 'left-2', 'text-muted-foreground top-1/2 h-4 w-4 -translate-y-1/2')} />
-        <Input
-          placeholder={t('search', { defaultValue: 'Search' })}
-          value={search}
-          onChange={e => onSearchChange(e.target.value)}
-          className={cn('pr-10 pl-8', dir === 'rtl' && 'pr-8 pl-10')}
-        />
+        <Input placeholder={t('search', { defaultValue: 'Search' })} value={search} onChange={e => onSearchChange(e.target.value)} className={cn('pr-10 pl-8', dir === 'rtl' && 'pr-8 pl-10')} />
         {search && (
           <button
             type="button"
@@ -70,10 +55,7 @@ export const ApiKeyFilters = ({
           type="button"
           size="icon-md"
           variant="ghost"
-          className={cn(
-            'relative h-9 w-9 rounded-lg border',
-            hasActiveFilters && (dir === 'rtl' ? 'rounded-l-none border-l-0' : 'rounded-r-none'),
-          )}
+          className={cn('relative h-9 w-9 rounded-lg border', hasActiveFilters && (dir === 'rtl' ? 'rounded-l-none border-l-0' : 'rounded-r-none'))}
           onClick={onAdvanceSearchOpen}
           aria-label={t('advanceSearch.title', { defaultValue: 'Advanced search' })}
           title={t('advanceSearch.title', { defaultValue: 'Advanced search' })}

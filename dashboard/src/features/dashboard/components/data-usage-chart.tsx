@@ -50,12 +50,7 @@ const PERIOD_KEYS = [
   { key: 'all', period: 'day' as Period, allTime: true },
 ]
 
-const transformUsageData = (
-  apiData: { stats: UserUsageStat[] },
-  period: Period,
-  locale: string = 'en',
-  rangeHint?: { hours?: number; days?: number; months?: number; allTime?: boolean },
-) => {
+const transformUsageData = (apiData: { stats: UserUsageStat[] }, period: Period, locale: string = 'en', rangeHint?: { hours?: number; days?: number; months?: number; allTime?: boolean }) => {
   if (!apiData?.stats || !Array.isArray(apiData.stats)) {
     return []
   }
@@ -365,10 +360,7 @@ const DataUsageChart = ({ adminUsername }: { adminUsername?: string }) => {
                   <YAxis dataKey={'traffic'} tickLine={false} tickMargin={4} axisLine={false} width={40} tickFormatter={val => formatBytes(val, 0, true).toString()} tick={{ fontSize: 10 }} />
                   <ChartTooltip cursor={false} content={<CustomBarTooltip period={activePeriod} />} />
                   <Bar dataKey="traffic" radius={6} maxBarSize={48} fill="hsl(var(--primary))" isAnimationActive={isAnimationActive}>
-                    {usePerBarRadius &&
-                      chartData.map((_, index: number) => (
-                        <Cell key={`cell-${index}`} fill={index === activeIndex ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))'} />
-                      ))}
+                    {usePerBarRadius && chartData.map((_, index: number) => <Cell key={`cell-${index}`} fill={index === activeIndex ? 'hsl(var(--muted-foreground))' : 'hsl(var(--primary))'} />)}
                   </Bar>
                 </BarChart>
               )}

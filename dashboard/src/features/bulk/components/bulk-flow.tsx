@@ -357,8 +357,7 @@ export default function BulkFlow({ operationType }: BulkFlowProps) {
 
   // For groups operation, groups are the operation target, not user targets
   // So isApplyToAll should only check users, admins, and hasGroups
-  const totalTargets =
-    selectedUsers.length + selectedAdmins.length + (operationType === 'groups' ? selectedHasGroups.length + (hasNoGroup ? 1 : 0) : selectedGroups.length)
+  const totalTargets = selectedUsers.length + selectedAdmins.length + (operationType === 'groups' ? selectedHasGroups.length + (hasNoGroup ? 1 : 0) : selectedGroups.length)
   const hasStatusFilter = (operationType === 'data' || operationType === 'expire') && selectedStatuses.length > 0
   const statusTargetCount = hasStatusFilter ? selectedStatuses.length : 0
   const hasExpireDateFilter = (operationType === 'data' || operationType === 'expire') && Boolean(expiredAfter || expiredBefore)
@@ -766,9 +765,7 @@ export default function BulkFlow({ operationType }: BulkFlowProps) {
                     <div className="flex items-center justify-between gap-3 rounded-md border p-3">
                       <div className="space-y-0.5">
                         <Label className="text-sm font-medium">{t('bulk.hasNoGroup', { defaultValue: 'Users with no group' })}</Label>
-                        <p className="text-muted-foreground text-xs">
-                          {t('bulk.hasNoGroupDescription', { defaultValue: 'Target only users that currently belong to no group.' })}
-                        </p>
+                        <p className="text-muted-foreground text-xs">{t('bulk.hasNoGroupDescription', { defaultValue: 'Target only users that currently belong to no group.' })}</p>
                       </div>
                       <Switch
                         checked={hasNoGroup}

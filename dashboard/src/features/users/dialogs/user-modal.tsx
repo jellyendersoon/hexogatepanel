@@ -822,12 +822,15 @@ function UserModal({ isDialogOpen, onOpenChange, form, editingUser, editingUserI
       // Only validate fields that have been touched
       const fieldsToValidate = isSubmit
         ? currentValues
-        : Object.keys(touchedFields).reduce((acc, key) => {
-            if (touchedFields[key]) {
-              acc[key] = currentValues[key]
-            }
-            return acc
-          }, {} as Record<string, unknown>)
+        : Object.keys(touchedFields).reduce(
+            (acc, key) => {
+              if (touchedFields[key]) {
+                acc[key] = currentValues[key]
+              }
+              return acc
+            },
+            {} as Record<string, unknown>,
+          )
 
       // If no fields are touched, clear errors and return true
       if (!isSubmit && Object.keys(fieldsToValidate).length === 0) {

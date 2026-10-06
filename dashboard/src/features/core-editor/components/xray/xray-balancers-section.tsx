@@ -664,8 +664,16 @@ export function XrayBalancersSection({ headerAddPulse, headerAddEpoch }: XrayBal
         onOpenChange={handleDetailOpenChange}
         initialData={dialogMode === 'add' ? initialDraftRef.current : editOriginalBalancer}
         getCurrentData={() => draftBalancer ?? b}
-        discardTitle={dialogMode === 'add' ? t('coreEditor.balancer.discardDraftTitle', { defaultValue: 'Discard new balancer?' }) : t('coreEditor.balancer.discardDraftTitle', { defaultValue: 'Discard changes?' })}
-        discardDescription={dialogMode === 'add' ? t('coreEditor.balancer.discardDraftDescription', { defaultValue: 'This balancer is not in the list yet. Closing without adding will discard your changes.' }) : t('coreEditor.balancer.discardDraftDescription', { defaultValue: 'Your modifications to this balancer will be lost if you close now.' })}
+        discardTitle={
+          dialogMode === 'add'
+            ? t('coreEditor.balancer.discardDraftTitle', { defaultValue: 'Discard new balancer?' })
+            : t('coreEditor.balancer.discardDraftTitle', { defaultValue: 'Discard changes?' })
+        }
+        discardDescription={
+          dialogMode === 'add'
+            ? t('coreEditor.balancer.discardDraftDescription', { defaultValue: 'This balancer is not in the list yet. Closing without adding will discard your changes.' })
+            : t('coreEditor.balancer.discardDraftDescription', { defaultValue: 'Your modifications to this balancer will be lost if you close now.' })
+        }
         discardActionLabel={t('coreEditor.balancer.discardDraftAction', { defaultValue: 'Discard' })}
         leadingIcon={dialogMode === 'add' ? <Plus className="h-5 w-5 shrink-0" /> : <Pencil className="h-5 w-5 shrink-0" />}
         title={dialogMode === 'add' ? t('coreEditor.balancer.dialogTitleAdd', { defaultValue: 'Add balancer' }) : t('coreEditor.balancer.dialogTitleEdit', { defaultValue: 'Edit balancer' })}
@@ -1070,7 +1078,6 @@ export function XrayBalancersSection({ headerAddPulse, headerAddEpoch }: XrayBal
         )}
       </CoreEditorFormDialog>
 
-      
       <AlertDialog open={blockAddWhileDraftOpen} onOpenChange={setBlockAddWhileDraftOpen}>
         <AlertDialogContent dir={dir}>
           <AlertDialogHeader>

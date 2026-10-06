@@ -150,7 +150,7 @@ export const SelectorPanel = memo(function SelectorPanel({
               <Skeleton className="h-9 w-full sm:h-10" />
             </div>
 
-            <div className="scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent max-h-[220px] min-h-0 flex-1 space-y-1.5 overflow-y-auto sm:max-h-[280px] sm:space-y-2" dir="ltr">
+            <div className="scrollbar-thumb-muted max-h-[220px] min-h-0 flex-1 scrollbar-thin scrollbar-track-transparent space-y-1.5 overflow-y-auto sm:max-h-[280px] sm:space-y-2" dir="ltr">
               {Array.from({ length: 5 }).map((_, index) => (
                 <div key={index} className="flex min-w-0 items-center gap-2 rounded-md px-3 py-2 sm:gap-2.5 sm:px-3.5 sm:py-2.5">
                   <Skeleton className="h-4 w-4 flex-shrink-0 rounded-full sm:h-4 sm:w-4" />
@@ -166,7 +166,7 @@ export const SelectorPanel = memo(function SelectorPanel({
               <Input placeholder={searchPlaceholder} value={search} onChange={e => setSearch(e.target.value)} className="h-9 w-full pl-10 text-sm sm:h-10 sm:pl-10 sm:text-sm" />
             </div>
 
-            <div className="scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent max-h-[220px] min-h-0 flex-1 space-y-1.5 overflow-y-auto sm:max-h-[280px] sm:space-y-2" dir="ltr">
+            <div className="scrollbar-thumb-muted max-h-[220px] min-h-0 flex-1 scrollbar-thin scrollbar-track-transparent space-y-1.5 overflow-y-auto sm:max-h-[280px] sm:space-y-2" dir="ltr">
               {filteredItems.map(item => {
                 const id = typeof item[itemValueKey] === 'number' ? (item[itemValueKey] as number) : undefined
                 let label = ''

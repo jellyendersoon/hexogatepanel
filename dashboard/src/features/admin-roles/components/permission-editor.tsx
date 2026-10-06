@@ -58,14 +58,12 @@ export function PermissionEditor({ permissions, onPermissionsChange, className, 
         ...group,
         actions: group.actions.filter(item => isRolePermissionActionAllowed(item, allowedPermissions)),
       })).filter(group => group.actions.length > 0),
-    [allowedPermissions]
+    [allowedPermissions],
   )
 
   const setPermission = (item: PermissionAction, value: boolean | { scope: RoleScope }) => {
     const next: RolePermissionFormMap = { ...(permissions || {}) }
-    const nextValue = item.scoped && typeof value === 'object'
-      ? { scope: Math.min(value.scope, getRolePermissionAllowedScope(item, allowedPermissions)) as RoleScope }
-      : value
+    const nextValue = item.scoped && typeof value === 'object' ? { scope: Math.min(value.scope, getRolePermissionAllowedScope(item, allowedPermissions)) as RoleScope } : value
     next[item.resource] = { ...(next[item.resource] || {}), [item.action]: nextValue }
     onPermissionsChange(limitRolePermissionsToAllowed(next, allowedPermissions))
   }

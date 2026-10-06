@@ -13,7 +13,7 @@ export function CoreSectionTabs({ className }: { className?: string }) {
 
   return (
     <div className={cn('flex w-full border-b px-4', className)} role="tablist" aria-label={t('coreEditor.section.label', { defaultValue: 'Section' })}>
-      <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
+      <div className="flex min-w-0 flex-1 scrollbar-none overflow-x-auto">
         {items.map(item => {
           const Icon = item.icon
           const isActive = active === item.id
@@ -58,7 +58,7 @@ export function CoreSectionTabsPlaceholder({
 
   return (
     <div className={cn('flex w-full border-b px-4', className)} role="presentation" aria-busy="true" aria-label={t('coreEditor.section.label', { defaultValue: 'Section' })}>
-      <div className="scrollbar-none flex min-w-0 flex-1 overflow-x-auto">
+      <div className="flex min-w-0 flex-1 scrollbar-none overflow-x-auto">
         {items.map(item => {
           const Icon = item.icon
           const isActive = active === item.id

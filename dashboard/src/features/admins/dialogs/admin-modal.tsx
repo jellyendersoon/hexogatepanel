@@ -562,13 +562,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
                                         </p>
                                       ) : null}
                                     </div>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="icon"
-                                      className="text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0"
-                                      onClick={() => removeCustomVariable(index)}
-                                    >
+                                    <Button type="button" variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10 h-8 w-8 shrink-0" onClick={() => removeCustomVariable(index)}>
                                       <Trash2 className="h-4 w-4" />
                                     </Button>
                                   </div>

@@ -342,100 +342,96 @@ export const DataTable = memo(
         <div ref={scrollRef} onScroll={onScroll} className="scrollbar-hide max-h-[min(70vh,800px)] overflow-auto">
           <Table dir={isRTL ? 'rtl' : 'ltr'} containerClassName="overflow-visible">
             <TableHeader ref={headerRef}>
-            {table.getHeaderGroups().map(headerGroup => (
-              <TableRow key={headerGroup.id} className="uppercase">
-                {headerGroup.headers.map(header => (
-                  <TableHead
-                    key={header.id}
-                    className={cn(
-                      'bg-card sticky top-0 z-20 text-xs',
-                      isRTL && 'text-right',
-                      header.id === 'select' && 'w-8 !px-1 py-1.5',
-                      header.id === 'username' && 'w-auto md:w-auto',
-                      header.id === 'status' && 'max-w-[70px] !px-0 md:w-auto',
-                      header.id === 'details' && 'px-1 md:w-[440px]',
-                      !['select', 'username', 'status', 'details', 'chevron'].includes(header.id) && 'hidden md:table-cell',
-                      header.id === 'chevron' && 'table-cell md:hidden',
-                    )}
-                  >
-                    {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {isLoadingData
-              ? LoadingState
-              : table.getRowModel().rows?.length
-                ? table.getRowModel().rows.map(row => {
-                    const isRowSelected = row.getIsSelected()
+              {table.getHeaderGroups().map(headerGroup => (
+                <TableRow key={headerGroup.id} className="uppercase">
+                  {headerGroup.headers.map(header => (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        'bg-card sticky top-0 z-20 text-xs',
+                        isRTL && 'text-right',
+                        header.id === 'select' && 'w-8 !px-1 py-1.5',
+                        header.id === 'username' && 'w-auto md:w-auto',
+                        header.id === 'status' && 'max-w-[70px] !px-0 md:w-auto',
+                        header.id === 'details' && 'px-1 md:w-[440px]',
+                        !['select', 'username', 'status', 'details', 'chevron'].includes(header.id) && 'hidden md:table-cell',
+                        header.id === 'chevron' && 'table-cell md:hidden',
+                      )}
+                    >
+                      {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
+                    </TableHead>
+                  ))}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {isLoadingData
+                ? LoadingState
+                : table.getRowModel().rows?.length
+                  ? table.getRowModel().rows.map(row => {
+                      const isRowSelected = row.getIsSelected()
 
-                    return (
-                      <React.Fragment key={row.id}>
-                        <TableRow
-                          className={cn(
-                            'cursor-pointer border-b md:cursor-default',
+                      return (
+                        <React.Fragment key={row.id}>
+                          <TableRow
+                            className={cn(
+                              'cursor-pointer border-b md:cursor-default',
 
-                            expandedRow === row.original.id && 'border-transparent',
-                          )}
-                          onClick={e => handleEditModal(e, row.original)}
-                          data-state={isRowSelected ? 'selected' : undefined}
-                        >
-                          {row.getVisibleCells().map(cell => (
-                            <TableCell
-                              key={cell.id}
-                              data-role={cell.column.id === 'select' ? 'row-selector' : undefined}
-                              className={cn(
-                                'text-sm',
-                                cell.column.id === 'details' && 'tabular-nums',
-                                cell.column.id !== 'details' && 'whitespace-nowrap',
-                                cell.column.id === 'details' && 'md:whitespace-nowrap',
-                                cell.column.id !== 'details' && 'py-1.5',
-                                cell.column.id === 'username' && cn('max-w-[calc(100vw-50px-32px-100px-60px)]', hasSelectionColumn && '!px-0'),
-                                cell.column.id === 'status' && '!px-0',
-                                cell.column.id === 'select' && 'w-8 !px-1 !py-5',
-                                cell.column.id === 'chevron' && 'w-4 !p-0',
-                                !['select', 'username', 'status', 'details', 'chevron'].includes(cell.column.id) && 'hidden !p-0 md:table-cell',
-                                cell.column.id === 'chevron' && 'table-cell md:hidden',
-                                !['details', 'select', 'chevron'].includes(cell.column.id) && (isRTL ? 'pl-1.5 sm:pl-3' : 'pr-1.5 sm:pr-3'),
-                              )}
-                            >
-                              {cell.column.id === 'chevron' ? (
-                                <div
-                                  className="chevron flex cursor-pointer items-center justify-center"
-                                  onClick={e => {
-                                    e.stopPropagation()
-                                    handleRowToggle(row.original.id)
-                                  }}
-                                >
-                                  <ChevronDown className={cn('h-3.5 w-3.5', expandedRow === row.original.id && 'rotate-180')} />
-                                </div>
-                              ) : (
-                                flexRender(cell.column.columnDef.cell, cell.getContext())
-                              )}
-                            </TableCell>
-                          ))}
-                        </TableRow>
-                        {expandedRow === row.original.id && (
-                          <TableRow className={cn('border-b md:hidden', 'border-transparent')} data-state={isRowSelected ? 'selected' : undefined}>
-                            <TableCell colSpan={columns.length} className={cn('p-0 text-sm')}>
-                              <ExpandedRowContent row={row} />
-                            </TableCell>
+                              expandedRow === row.original.id && 'border-transparent',
+                            )}
+                            onClick={e => handleEditModal(e, row.original)}
+                            data-state={isRowSelected ? 'selected' : undefined}
+                          >
+                            {row.getVisibleCells().map(cell => (
+                              <TableCell
+                                key={cell.id}
+                                data-role={cell.column.id === 'select' ? 'row-selector' : undefined}
+                                className={cn(
+                                  'text-sm',
+                                  cell.column.id === 'details' && 'tabular-nums',
+                                  cell.column.id !== 'details' && 'whitespace-nowrap',
+                                  cell.column.id === 'details' && 'md:whitespace-nowrap',
+                                  cell.column.id !== 'details' && 'py-1.5',
+                                  cell.column.id === 'username' && cn('max-w-[calc(100vw-50px-32px-100px-60px)]', hasSelectionColumn && '!px-0'),
+                                  cell.column.id === 'status' && '!px-0',
+                                  cell.column.id === 'select' && 'w-8 !px-1 !py-5',
+                                  cell.column.id === 'chevron' && 'w-4 !p-0',
+                                  !['select', 'username', 'status', 'details', 'chevron'].includes(cell.column.id) && 'hidden !p-0 md:table-cell',
+                                  cell.column.id === 'chevron' && 'table-cell md:hidden',
+                                  !['details', 'select', 'chevron'].includes(cell.column.id) && (isRTL ? 'pl-1.5 sm:pl-3' : 'pr-1.5 sm:pr-3'),
+                                )}
+                              >
+                                {cell.column.id === 'chevron' ? (
+                                  <div
+                                    className="chevron flex cursor-pointer items-center justify-center"
+                                    onClick={e => {
+                                      e.stopPropagation()
+                                      handleRowToggle(row.original.id)
+                                    }}
+                                  >
+                                    <ChevronDown className={cn('h-3.5 w-3.5', expandedRow === row.original.id && 'rotate-180')} />
+                                  </div>
+                                ) : (
+                                  flexRender(cell.column.columnDef.cell, cell.getContext())
+                                )}
+                              </TableCell>
+                            ))}
                           </TableRow>
-                        )}
-                      </React.Fragment>
-                    )
-                  })
-                : EmptyState}
-          </TableBody>
-        </Table>
+                          {expandedRow === row.original.id && (
+                            <TableRow className={cn('border-b md:hidden', 'border-transparent')} data-state={isRowSelected ? 'selected' : undefined}>
+                              <TableCell colSpan={columns.length} className={cn('p-0 text-sm')}>
+                                <ExpandedRowContent row={row} />
+                              </TableCell>
+                            </TableRow>
+                          )}
+                        </React.Fragment>
+                      )
+                    })
+                  : EmptyState}
+            </TableBody>
+          </Table>
         </div>
-        <div
-          ref={trackRef}
-          aria-hidden
-          className={cn('pointer-events-none absolute z-20 w-[3px] rounded-full opacity-0 transition-opacity duration-300', isRTL ? 'left-1' : 'right-1')}
-        >
+        <div ref={trackRef} aria-hidden className={cn('pointer-events-none absolute z-20 w-[3px] rounded-full opacity-0 transition-opacity duration-300', isRTL ? 'left-1' : 'right-1')}>
           <div
             ref={thumbRef}
             className="bg-foreground/25 hover:bg-foreground/45 absolute inset-x-0 cursor-grab touch-none rounded-full active:cursor-grabbing"

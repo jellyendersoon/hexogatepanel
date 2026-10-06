@@ -422,10 +422,7 @@ export function AllNodesStackedBarChart() {
     [showCustomRange, customRange, activePeriod, selectedTime, chartData.length, windowWidth, periodOverride],
   )
 
-  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(
-    () => getChartRenderFlags(chartData.length, nodeList.length),
-    [chartData.length, nodeList.length],
-  )
+  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(() => getChartRenderFlags(chartData.length, nodeList.length), [chartData.length, nodeList.length])
   const brushWindow = useMemo(() => getChartBrushWindow(chartData.length, nodeList.length), [chartData.length, nodeList.length])
 
   const pieData = useMemo<NodePieChartDataPoint[]>(() => {
@@ -658,9 +655,7 @@ export function AllNodesStackedBarChart() {
                           cursor="pointer"
                         />
                       ))}
-                      {brushWindow && (
-                        <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />
-                      )}
+                      {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
                     </AreaChart>
                   ) : (
                     <BarChart {...(useAccessibilityLayer ? { accessibilityLayer: true } : {})} data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }} onClick={handleChartPointClick}>
@@ -690,15 +685,10 @@ export function AllNodesStackedBarChart() {
                           cursor="pointer"
                           isAnimationActive={isAnimationActive}
                         >
-                          {usePerBarRadius &&
-                            chartData.map(row => (
-                              <Cell key={`${node.id}-${row._period_start}`} {...getCellRadiusProps(getStackedNodeRadius(row, node.name, nodeList))} />
-                            ))}
+                          {usePerBarRadius && chartData.map(row => <Cell key={`${node.id}-${row._period_start}`} {...getCellRadiusProps(getStackedNodeRadius(row, node.name, nodeList))} />)}
                         </Bar>
                       ))}
-                      {brushWindow && (
-                        <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />
-                      )}
+                      {brushWindow && <ChartBrush startIndex={brushWindow.startIndex} endIndex={brushWindow.endIndex} />}
                     </BarChart>
                   )
                 ) : chartData.length > 0 && chartView === 'pie' ? (

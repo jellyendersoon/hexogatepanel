@@ -244,11 +244,13 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
           ]
         : []),
       ...(canReadApiKeys
-        ? [{
-            title: 'apiKeys.title',
-            url: '/api-keys',
-            icon: Key,
-          }]
+        ? [
+            {
+              title: 'apiKeys.title',
+              url: '/api-keys',
+              icon: Key,
+            },
+          ]
         : []),
       ...(nodeNavItems.length > 0
         ? [

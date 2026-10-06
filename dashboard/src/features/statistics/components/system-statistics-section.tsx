@@ -126,7 +126,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
     >
       {/* CPU Usage */}
       <div className="h-full w-full">
-        <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+        <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
           <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
             <div className="mb-2 flex items-start justify-between sm:mb-3">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -162,7 +162,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
 
       {/* Memory Usage */}
       <div className="h-full w-full">
-        <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+        <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
           <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
             <div className="mb-2 flex items-start justify-between sm:mb-3">
               <div className="flex items-center gap-2 sm:gap-3">
@@ -193,7 +193,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
       {/* Disk Usage (All Nodes / master view) */}
       {!nodeStatsMode && (
         <div className="h-full w-full">
-          <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+          <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
             <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
               <div className="mb-2 flex items-start justify-between sm:mb-3">
                 <div className="flex items-center gap-2 sm:gap-3">
@@ -226,7 +226,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
         <>
           {/* Uplink */}
           <div className="h-full w-full">
-            <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+            <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
               <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
                 <div className="mb-2 flex items-start justify-between sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -253,7 +253,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
 
           {/* Downlink */}
           <div className="h-full w-full">
-            <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+            <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
               <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
                 <div className="mb-2 flex items-start justify-between sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -280,7 +280,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
 
           {/* Node Uptime */}
           <div className="h-full w-full sm:col-span-2">
-            <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+            <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
               <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
                 <div className="mb-2 flex items-start justify-between sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">
@@ -306,7 +306,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
             <>
               {/* Total Traffic */}
               <div className="h-full w-full">
-                <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+                <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
                   <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
                     <div className="mb-2 flex items-start justify-between sm:mb-3">
                       <div className="flex items-center gap-2 sm:gap-3">
@@ -347,7 +347,7 @@ export default function SystemStatisticsSection({ currentStats, usersStats }: Sy
 
           {/* Panel Uptime */}
           <div className="h-full w-full sm:col-span-2">
-            <Card dir={dir} className="group relative h-full w-full overflow-hidden transition-colors hover:bg-accent/40">
+            <Card dir={dir} className="group hover:bg-accent/40 relative h-full w-full overflow-hidden transition-colors">
               <CardContent className="flex h-full flex-col justify-between p-4 sm:p-5 lg:p-6">
                 <div className="mb-2 flex items-start justify-between sm:mb-3">
                   <div className="flex items-center gap-2 sm:gap-3">

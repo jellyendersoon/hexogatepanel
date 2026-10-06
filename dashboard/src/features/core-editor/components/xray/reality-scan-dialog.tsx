@@ -472,7 +472,9 @@ export function RealityScanDialog({ open, onOpenChange, initialTarget }: Reality
       }
     >
       <div className="space-y-4">
-        <p className="text-muted-foreground text-sm">{t('coreEditor.realityScan.description', { defaultValue: 'Probe one or more targets to check they work as REALITY decoys. REALITY needs HTTP/2 and TLS 1.3.' })}</p>
+        <p className="text-muted-foreground text-sm">
+          {t('coreEditor.realityScan.description', { defaultValue: 'Probe one or more targets to check they work as REALITY decoys. REALITY needs HTTP/2 and TLS 1.3.' })}
+        </p>
 
         <form id="reality-scan-form" onSubmit={handleSubmit} className="grid items-start gap-4 sm:grid-cols-[minmax(0,1fr)_140px]">
           <div className="flex min-w-0 flex-col gap-2">

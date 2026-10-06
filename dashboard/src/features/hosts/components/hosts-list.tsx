@@ -22,6 +22,13 @@ import SortableHost from './sortable-host'
 import { BulkActionItem, BulkActionsBar } from '@/features/users/components/bulk-actions-bar'
 import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-alert-dialog'
 import { Skeleton } from '@/components/ui/skeleton'
+import { formatErrorDetail } from '@/utils/error-utils'
+
+const getApiErrorDescription = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null) return undefined
+  const maybeError = error as { data?: { detail?: unknown }; message?: unknown }
+  return formatErrorDetail(maybeError.data?.detail) || (typeof maybeError.message === 'string' && maybeError.message ? maybeError.message : undefined)
+}
 
 export interface HostsListProps {
   data?: BaseHost[]
@@ -46,12 +53,6 @@ interface BulkActionDialogConfig {
   onConfirm: () => Promise<void>
   isPending: boolean
   destructive?: boolean
-}
-
-const toOptionalNumber = (value: unknown) => {
-  if (value === null || value === undefined || value === '') return undefined
-  const numericValue = Number(value)
-  return Number.isFinite(numericValue) ? numericValue : undefined
 }
 
 export default function HostsList({
@@ -281,7 +282,7 @@ export default function HostsList({
                   seq_key: host.transport_settings.xhttp_settings.seq_key ?? undefined,
                   uplink_data_placement: host.transport_settings.xhttp_settings.uplink_data_placement ?? undefined,
                   uplink_data_key: host.transport_settings.xhttp_settings.uplink_data_key ?? undefined,
-                  uplink_chunk_size: toOptionalNumber(host.transport_settings.xhttp_settings.uplink_chunk_size),
+                  uplink_chunk_size: host.transport_settings.xhttp_settings.uplink_chunk_size ?? undefined,
                   sc_max_each_post_bytes: host.transport_settings.xhttp_settings.sc_max_each_post_bytes ?? undefined,
                   sc_min_posts_interval_ms: host.transport_settings.xhttp_settings.sc_min_posts_interval_ms ?? undefined,
                   download_settings: host.transport_settings.xhttp_settings.download_settings ?? undefined,
@@ -391,7 +392,7 @@ export default function HostsList({
         fragment_settings: host.fragment_settings,
         noise_settings: host.noise_settings,
         mux_settings: host.mux_settings,
-        transport_settings: host.transport_settings as any, // Type cast needed due to Output/Input mismatch
+        transport_settings: host.transport_settings,
         http_headers: host.http_headers || {},
         wireguard_overrides: host.wireguard_overrides ?? undefined,
         subscription_templates: host.subscription_templates ?? undefined,
@@ -406,28 +407,10 @@ export default function HostsList({
 
       // Refresh the hosts data
       refreshHostsData()
-    } catch (error) {
+    } catch {
       // Show error toast
       toast.error(t('host.duplicateFailed', { name: host.remark || '' }))
     }
-  }
-  const cleanEmptyValues = (obj: any) => {
-    if (!obj) return undefined
-    const cleaned: any = {}
-    for (const [key, value] of Object.entries(obj)) {
-      if (value === null || value === undefined || value === '' || (Array.isArray(value) && value.length === 0) || (typeof value === 'object' && Object.keys(value).length === 0)) {
-        continue
-      }
-      if (typeof value === 'object') {
-        const cleanedValue = cleanEmptyValues(value)
-        if (cleanedValue !== undefined) {
-          cleaned[key] = cleanedValue
-        }
-      } else {
-        cleaned[key] = value
-      }
-    }
-    return Object.keys(cleaned).length > 0 ? cleaned : undefined
   }
 
   const handleSubmit = async (data: HostFormValues): Promise<{ status: number }> => {
@@ -471,11 +454,10 @@ export default function HostsList({
       clearSelection()
       setBulkAction(null)
       await refreshHostsData()
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(t('error', { defaultValue: 'Error' }), {
         description:
-          error?.data?.detail ||
-          error?.message ||
+          getApiErrorDescription(error) ||
           t('deleteHost.bulkDeleteFailed', {
             defaultValue: 'Failed to delete selected hosts.',
           }),
@@ -501,9 +483,9 @@ export default function HostsList({
       clearSelection()
       setBulkAction(null)
       await refreshHostsData()
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('host.bulkDisableFailed', { defaultValue: 'Failed to disable selected hosts.' }),
+        description: getApiErrorDescription(error) || t('host.bulkDisableFailed', { defaultValue: 'Failed to disable selected hosts.' }),
       })
     }
   }
@@ -526,9 +508,9 @@ export default function HostsList({
       clearSelection()
       setBulkAction(null)
       await refreshHostsData()
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast.error(t('error', { defaultValue: 'Error' }), {
-        description: error?.data?.detail || error?.message || t('host.bulkEnableFailed', { defaultValue: 'Failed to enable selected hosts.' }),
+        description: getApiErrorDescription(error) || t('host.bulkEnableFailed', { defaultValue: 'Failed to enable selected hosts.' }),
       })
     }
   }
@@ -652,20 +634,11 @@ export default function HostsList({
                     seq_key: host.transport_settings.xhttp_settings.seq_key ?? undefined,
                     uplink_data_placement: host.transport_settings.xhttp_settings.uplink_data_placement ?? undefined,
                     uplink_data_key: host.transport_settings.xhttp_settings.uplink_data_key ?? undefined,
-                    uplink_chunk_size: toOptionalNumber(host.transport_settings.xhttp_settings.uplink_chunk_size),
+                    uplink_chunk_size: host.transport_settings.xhttp_settings.uplink_chunk_size ?? undefined,
                     sc_max_each_post_bytes: host.transport_settings.xhttp_settings.sc_max_each_post_bytes ?? undefined,
                     sc_min_posts_interval_ms: host.transport_settings.xhttp_settings.sc_min_posts_interval_ms ?? undefined,
                     download_settings: host.transport_settings.xhttp_settings.download_settings ?? undefined,
-                    xmux: host.transport_settings.xhttp_settings.xmux
-                      ? {
-                          max_concurrency: host.transport_settings.xhttp_settings.xmux.maxConcurrency ?? undefined,
-                          max_connections: host.transport_settings.xhttp_settings.xmux.maxConnections ?? undefined,
-                          c_max_reuse_times: host.transport_settings.xhttp_settings.xmux.cMaxReuseTimes ?? undefined,
-                          h_max_reusable_secs: host.transport_settings.xhttp_settings.xmux.hMaxReusableSecs ?? undefined,
-                          h_max_request_times: host.transport_settings.xhttp_settings.xmux.hMaxRequestTimes ?? undefined,
-                          h_keep_alive_period: host.transport_settings.xhttp_settings.xmux.hKeepAlivePeriod ?? undefined,
-                        }
-                      : undefined,
+                    xmux: host.transport_settings.xhttp_settings.xmux ?? undefined,
                   }
                 : undefined,
               grpc_settings: host.transport_settings.grpc_settings
@@ -832,7 +805,7 @@ export default function HostsList({
   const selectedCount = selectedHostIds.length
   const selectedHosts = (hosts || []).filter(host => typeof host.id === 'number' && selectedHostIds.includes(host.id))
   const selectedEnableEligibleIds = selectedHosts.filter(host => Boolean(host.is_disabled)).map(host => host.id as number)
-  const selectedDisableEligibleIds = selectedHosts.filter(host => !Boolean(host.is_disabled)).map(host => host.id as number)
+  const selectedDisableEligibleIds = selectedHosts.filter(host => !host.is_disabled).map(host => host.id as number)
   const enableEligibleCount = selectedEnableEligibleIds.length
   const disableEligibleCount = selectedDisableEligibleIds.length
   const bulkActions: BulkActionItem[] = selectedCount

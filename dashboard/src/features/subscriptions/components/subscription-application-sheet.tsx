@@ -290,7 +290,7 @@ function ApplicationFieldsGridCreate({ iconBroken, setIconBroken }: { iconBroken
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="scrollbar-thin z-[60]">
+              <SelectContent className="z-[60] scrollbar-thin">
                 {platformOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-1.5">
@@ -472,7 +472,7 @@ function ApplicationFieldsGridEdit({
                   <SelectValue />
                 </SelectTrigger>
               </FormControl>
-              <SelectContent className="scrollbar-thin z-[60]">
+              <SelectContent className="z-[60] scrollbar-thin">
                 {platformOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-1.5">
@@ -719,7 +719,7 @@ function DownloadLinksSection({ variant, linksFieldName, rowIdPrefix, applicatio
                               <SelectValue />
                             </SelectTrigger>
                           </FormControl>
-                          <SelectContent className="scrollbar-thin z-[60]">
+                          <SelectContent className="z-[60] scrollbar-thin">
                             {languageOptions.map(option => (
                               <SelectItem key={option.value} value={option.value}>
                                 <div className="flex items-center gap-1.5">

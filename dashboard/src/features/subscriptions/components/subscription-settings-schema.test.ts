@@ -2,8 +2,7 @@ import { describe, expect, it } from 'bun:test'
 
 import { defaultSubscriptionRules } from './subscription-settings-schema'
 
-const matchDefaultRule = (userAgent: string) =>
-  defaultSubscriptionRules.find(rule => new RegExp(rule.pattern).test(userAgent))?.target
+const matchDefaultRule = (userAgent: string) => defaultSubscriptionRules.find(rule => new RegExp(rule.pattern).test(userAgent))?.target
 
 describe('default subscription rules', () => {
   it('uses the first matching rule for built-in clients', () => {

@@ -27,7 +27,7 @@ const getWebsocketUrl = (nodeID: string) => {
 }
 
 const Logs = ({ className }: { className?: string }) => {
-  const [logs, setLogs] = useState<{id: string, text: string}[]>([])
+  const [logs, setLogs] = useState<{ id: string; text: string }[]>([])
   const [selectedNode] = useState<string>('')
   const logsDiv = useRef<HTMLDivElement | null>(null)
 
@@ -45,7 +45,8 @@ const Logs = ({ className }: { className?: string }) => {
 
   useWebSocket(getWebsocketUrl(selectedNode), {
     onMessage: (e: MessageEvent<string>) => {
-      const newLogs = e.data.split('\n')
+      const newLogs = e.data
+        .split('\n')
         .filter((line: string) => line.trim() !== '') // Remove empty lines
         .map((text: string) => ({ id: crypto.randomUUID(), text }))
       setLogs(prevLogs => {
@@ -71,7 +72,7 @@ const Logs = ({ className }: { className?: string }) => {
     <div ref={logsDiv} className="h-[400px] space-y-2 overflow-auto rounded-lg border p-4 font-mono text-sm">
       <div className={`w-full rounded-lg p-4 font-mono text-sm ${className}`}>
         <div className="space-y-1">
-          {logs.map((log) => (
+          {logs.map(log => (
             <div key={log.id} className="flex items-start space-x-4">
               <div className="flex items-start space-x-4">
                 <span>

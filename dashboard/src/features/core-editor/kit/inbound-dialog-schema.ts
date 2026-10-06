@@ -169,8 +169,7 @@ export function createInboundDialogSchema(caps: Caps, t: TFunction) {
       }
 
       const mldsaSeedValue = typeof raw[INBOUND_FORM_FIELD_SEC_MLDSA65_SEED] === 'string' ? String(raw[INBOUND_FORM_FIELD_SEC_MLDSA65_SEED]).trim() : ''
-      const mldsaVerifyValue =
-        typeof raw[INBOUND_FORM_FIELD_SEC_MLDSA65_VERIFY] === 'string' ? String(raw[INBOUND_FORM_FIELD_SEC_MLDSA65_VERIFY]).trim() : ''
+      const mldsaVerifyValue = typeof raw[INBOUND_FORM_FIELD_SEC_MLDSA65_VERIFY] === 'string' ? String(raw[INBOUND_FORM_FIELD_SEC_MLDSA65_VERIFY]).trim() : ''
 
       if (mldsaVerifyValue && !mldsaSeedValue) {
         ctx.addIssue({

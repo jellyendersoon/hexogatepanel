@@ -70,9 +70,7 @@ export const decodeMldsa65Base64Url = (value: string): Uint8Array | null => {
   }
 }
 
-export type Mldsa65FieldValidation =
-  | { ok: true }
-  | { ok: false; reason: 'empty' | 'encoding' | 'length' }
+export type Mldsa65FieldValidation = { ok: true } | { ok: false; reason: 'empty' | 'encoding' | 'length' }
 
 export const validateMldsa65Seed = (seed: string): Mldsa65FieldValidation => {
   const trimmed = seed.trim()

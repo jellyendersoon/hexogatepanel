@@ -122,7 +122,7 @@ export default function CleanupSettings() {
   const deleteExpiredUsersMutation = useDeleteExpiredUsers()
   const resetUsersDataUsageMutation = useResetUsersDataUsage()
   const clearUsageDataMutation = useClearUsageData()
-  
+
   // Track which operation is running
   const [isPreviewRunning, setIsPreviewRunning] = useState(false)
 
@@ -197,7 +197,7 @@ export default function CleanupSettings() {
           }
 
           toast.error(t(failureMessageKey), { description: errorMessage })
-          
+
           // Reset preview state on error
           if (isDryRun) {
             setIsPreviewRunning(false)
@@ -464,16 +464,9 @@ export default function CleanupSettings() {
 
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {/* Preview Button */}
-            <Button 
-              variant="outline" 
-              disabled={deleteExpiredUsersMutation.isPending || isPreviewRunning} 
-              onClick={handlePreviewExpired}
-              className="w-full"
-            >
+            <Button variant="outline" disabled={deleteExpiredUsersMutation.isPending || isPreviewRunning} onClick={handlePreviewExpired} className="w-full">
               <Eye className="mr-2 h-4 w-4" />
-              {isPreviewRunning
-                ? t('settings.cleanup.expiredUsers.previewing')
-                : t('settings.cleanup.expiredUsers.dryRun')}
+              {isPreviewRunning ? t('settings.cleanup.expiredUsers.previewing') : t('settings.cleanup.expiredUsers.dryRun')}
             </Button>
 
             {/* Delete Button with confirmation */}
@@ -481,7 +474,7 @@ export default function CleanupSettings() {
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" disabled={deleteExpiredUsersMutation.isPending || isPreviewRunning} className="w-full">
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {(deleteExpiredUsersMutation.isPending && !isPreviewRunning)
+                  {deleteExpiredUsersMutation.isPending && !isPreviewRunning
                     ? t('settings.cleanup.expiredUsers.deleting')
                     : (() => {
                         const buttonKeyMap: Record<CleanupDeleteTarget, string> = {
@@ -522,7 +515,11 @@ export default function CleanupSettings() {
                 </AlertDialogHeader>
                 <AlertDialogFooter>
                   <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDeleteConfirmed} disabled={deleteExpiredUsersMutation.isPending || isPreviewRunning} className="bg-destructive text-destructive-foreground hover:bg-destructive/90 m-0!">
+                  <AlertDialogAction
+                    onClick={handleDeleteConfirmed}
+                    disabled={deleteExpiredUsersMutation.isPending || isPreviewRunning}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90 m-0!"
+                  >
                     {(() => {
                       const buttonKeyMap: Record<CleanupDeleteTarget, string> = {
                         expired: 'settings.cleanup.expiredUsers.deleteExpired',

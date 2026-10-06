@@ -26,14 +26,7 @@ import { bytesToFormGigabytes, formatBytes, gbToBytes } from '@/utils/formatByte
 import { getGetRolesQueryKey, getGetRolesSimpleQueryKey, useCreateRole, useGetAllGroups, useGetUserTemplatesSimple, useModifyRole } from '@/service/api'
 import { PermissionCountBadge, PermissionEditor } from '@/features/admin-roles/components/permission-editor'
 
-import {
-  AdminRoleFormValues,
-  AdminRoleFormValuesInput,
-  FEATURE_KEYS,
-  RolePermissionFormMap,
-  adminRoleFormDefaultValues,
-  adminRoleFormToPayload,
-} from '@/features/admin-roles/forms/admin-role-form'
+import { AdminRoleFormValues, AdminRoleFormValuesInput, FEATURE_KEYS, RolePermissionFormMap, adminRoleFormDefaultValues, adminRoleFormToPayload } from '@/features/admin-roles/forms/admin-role-form'
 
 const ONE_GB_IN_BYTES = 1024 * 1024 * 1024
 
@@ -317,9 +310,7 @@ function HwidPolicySection({ form }: { form: AdminRoleForm }) {
 
   return (
     <div className="space-y-3">
-      <p className="text-muted-foreground text-xs">
-        {t('adminRoles.hwidPolicyHint', { defaultValue: 'Choose how HWID policy is applied. Use "Override" to customize limits for this role.' })}
-      </p>
+      <p className="text-muted-foreground text-xs">{t('adminRoles.hwidPolicyHint', { defaultValue: 'Choose how HWID policy is applied. Use "Override" to customize limits for this role.' })}</p>
 
       <FormField
         control={form.control}

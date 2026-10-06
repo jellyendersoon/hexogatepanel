@@ -15,7 +15,7 @@ import { formatBytes, gbToBytes } from '@/utils/formatByte'
 import { queryClient } from '@/utils/query-client'
 import { Loader2, RefreshCw, Settings, Server, Pencil } from 'lucide-react'
 import React, { useEffect, useRef, useState } from 'react'
-import { UseFormReturn } from 'react-hook-form'
+import { type ControllerRenderProps, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { toast } from 'sonner'
 import { v4 as uuidv4 } from 'uuid'
@@ -32,6 +32,337 @@ interface NodeModalProps {
   initialNodeData?: NodeResponse
   coresData?: CoresSimpleResponse
   onSuccess?: () => void
+}
+
+function KeepAliveField({ field, form }: { field: ControllerRenderProps<NodeFormValues, 'keep_alive'>; form: UseFormReturn<NodeFormValues> }) {
+  const { t } = useTranslation()
+  const [displayValue, setDisplayValue] = useState<string>(field.value?.toString() || '')
+  const [unit, setUnit] = useState<'seconds' | 'minutes' | 'hours'>('seconds')
+
+  const convertToSeconds = (value: number, fromUnit: 'seconds' | 'minutes' | 'hours') => {
+    switch (fromUnit) {
+      case 'minutes':
+        return value * 60
+      case 'hours':
+        return value * 3600
+      default:
+        return value
+    }
+  }
+
+  const convertFromSeconds = (seconds: number, toUnit: 'seconds' | 'minutes' | 'hours') => {
+    switch (toUnit) {
+      case 'minutes':
+        return Math.floor(seconds / 60)
+      case 'hours':
+        return Math.floor(seconds / 3600)
+      default:
+        return seconds
+    }
+  }
+
+  return (
+    <FormItem>
+      <FormLabel>{t('nodeModal.keepAlive')}</FormLabel>
+      <div className="flex flex-col gap-1.5">
+        <p className="text-muted-foreground text-xs">{t('nodeModal.keepAliveDescription')}</p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <FormControl>
+            <Input
+              isError={!!form.formState.errors.keep_alive}
+              type="number"
+              value={displayValue ?? ''}
+              onChange={e => {
+                const value = e.target.value
+                setDisplayValue(value)
+                const numValue = parseInt(value) || 0
+                field.onChange(convertToSeconds(numValue, unit))
+              }}
+            />
+          </FormControl>
+          <Select
+            value={unit}
+            onValueChange={(value: 'seconds' | 'minutes' | 'hours') => {
+              setUnit(value)
+              const currentSeconds = field.value || 0
+              const newDisplayValue = convertFromSeconds(currentSeconds, value)
+              setDisplayValue(newDisplayValue.toString())
+            }}
+          >
+            <SelectTrigger className="flex-1">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="seconds">{t('nodeModal.seconds')}</SelectItem>
+              <SelectItem value="minutes">{t('nodeModal.minutes')}</SelectItem>
+              <SelectItem value="hours">{t('nodeModal.hours')}</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <FormMessage />
+    </FormItem>
+  )
+}
+
+function ResetTimeField({ field, form }: { field: ControllerRenderProps<NodeFormValues, 'reset_time'>; form: UseFormReturn<NodeFormValues> }) {
+  const { t } = useTranslation()
+  const resetStrategy = form.watch('data_limit_reset_strategy')
+
+  const decodeResetTime = (value: number | null | undefined, strategy: string | null | undefined): { day?: number; time: Date | null } => {
+    if (value === null || value === undefined || value === -1 || !strategy || strategy === DataLimitResetStrategy.no_reset) {
+      return { time: null }
+    }
+
+    const SECONDS_PER_DAY = 86400
+    let day: number | undefined
+    let seconds: number
+
+    switch (strategy) {
+      case DataLimitResetStrategy.day:
+        seconds = value
+        break
+      case DataLimitResetStrategy.week:
+        day = Math.floor(value / SECONDS_PER_DAY)
+        seconds = value % SECONDS_PER_DAY
+        break
+      case DataLimitResetStrategy.month:
+        day = Math.floor(value / SECONDS_PER_DAY)
+        seconds = value % SECONDS_PER_DAY
+        break
+      case DataLimitResetStrategy.year:
+        day = Math.floor(value / SECONDS_PER_DAY)
+        seconds = value % SECONDS_PER_DAY
+        break
+      default:
+        seconds = value
+    }
+
+    const hours = Math.floor(seconds / 3600)
+    const minutes = Math.floor((seconds % 3600) / 60)
+    const date = new Date()
+    date.setHours(hours, minutes, 0, 0)
+
+    return { day, time: date }
+  }
+
+  const encodeResetTime = (day: number | undefined, time: Date | null, strategy: string | null | undefined): number | null => {
+    if (!time || !strategy || strategy === DataLimitResetStrategy.no_reset) return -1
+
+    const SECONDS_PER_DAY = 86400
+    const hours = time.getHours()
+    const minutes = time.getMinutes()
+    const seconds = hours * 3600 + minutes * 60
+
+    switch (strategy) {
+      case DataLimitResetStrategy.day:
+        return seconds
+      case DataLimitResetStrategy.week:
+        return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
+      case DataLimitResetStrategy.month:
+        return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
+      case DataLimitResetStrategy.year:
+        return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
+      default:
+        return seconds
+    }
+  }
+
+  const decoded = decodeResetTime(field.value, resetStrategy)
+  const [useIntervalBased, setUseIntervalBased] = useState(field.value === -1 || field.value === null || field.value === undefined)
+  const [selectedDay, setSelectedDay] = useState<number | undefined>(decoded.day)
+  const [selectedTime, setSelectedTime] = useState<Date | null>(decoded.time)
+  const prevFieldValueRef = React.useRef<number | null | undefined>(field.value)
+  const isUpdatingFromFieldRef = React.useRef(false)
+  const prevStateRef = React.useRef<{ useIntervalBased: boolean; selectedDay?: number; selectedTime?: number; resetStrategy?: string | null }>({
+    useIntervalBased,
+    selectedDay,
+    selectedTime: selectedTime?.getTime(),
+    resetStrategy: resetStrategy ?? undefined,
+  })
+
+  useEffect(() => {
+    if (isUpdatingFromFieldRef.current) {
+      isUpdatingFromFieldRef.current = false
+      prevFieldValueRef.current = field.value
+      return
+    }
+
+    if (prevFieldValueRef.current === field.value && prevStateRef.current.resetStrategy === resetStrategy) {
+      return
+    }
+
+    prevFieldValueRef.current = field.value
+    const newDecoded = decodeResetTime(field.value, resetStrategy)
+    const newUseIntervalBased = field.value === -1 || field.value === null || field.value === undefined
+
+    setUseIntervalBased(newUseIntervalBased)
+    setSelectedDay(newDecoded.day)
+    setSelectedTime(newDecoded.time)
+    prevStateRef.current = {
+      useIntervalBased: newUseIntervalBased,
+      selectedDay: newDecoded.day,
+      selectedTime: newDecoded.time?.getTime(),
+      resetStrategy: resetStrategy ?? undefined,
+    }
+  }, [field.value, resetStrategy])
+
+  useEffect(() => {
+    if (!resetStrategy || resetStrategy === DataLimitResetStrategy.no_reset) {
+      return
+    }
+
+    const stateChanged =
+      prevStateRef.current.useIntervalBased !== useIntervalBased ||
+      prevStateRef.current.selectedDay !== selectedDay ||
+      prevStateRef.current.selectedTime !== selectedTime?.getTime() ||
+      prevStateRef.current.resetStrategy !== resetStrategy
+
+    if (!stateChanged) {
+      return
+    }
+
+    prevStateRef.current = { useIntervalBased, selectedDay, selectedTime: selectedTime?.getTime(), resetStrategy }
+
+    let newValue: number | null
+
+    if (useIntervalBased) {
+      newValue = -1
+    } else {
+      newValue = encodeResetTime(selectedDay, selectedTime, resetStrategy)
+    }
+
+    if (newValue !== null && newValue !== field.value) {
+      isUpdatingFromFieldRef.current = true
+      field.onChange(newValue)
+    }
+  }, [useIntervalBased, selectedDay, selectedTime, resetStrategy, field.value])
+
+  const getDayOptions = () => {
+    switch (resetStrategy) {
+      case DataLimitResetStrategy.week:
+        return [
+          { value: 0, label: t('nodeModal.monday', { defaultValue: 'Monday' }) },
+          { value: 1, label: t('nodeModal.tuesday', { defaultValue: 'Tuesday' }) },
+          { value: 2, label: t('nodeModal.wednesday', { defaultValue: 'Wednesday' }) },
+          { value: 3, label: t('nodeModal.thursday', { defaultValue: 'Thursday' }) },
+          { value: 4, label: t('nodeModal.friday', { defaultValue: 'Friday' }) },
+          { value: 5, label: t('nodeModal.saturday', { defaultValue: 'Saturday' }) },
+          { value: 6, label: t('nodeModal.sunday', { defaultValue: 'Sunday' }) },
+        ]
+      case DataLimitResetStrategy.month:
+        return Array.from({ length: 28 }, (_, i) => ({
+          value: i + 1,
+          label: String(i + 1),
+        }))
+      case DataLimitResetStrategy.year:
+        return Array.from({ length: 365 }, (_, i) => ({
+          value: i + 1,
+          label: `${i + 1}`,
+        }))
+      default:
+        return []
+    }
+  }
+
+  const dayOptions = getDayOptions()
+  const dataLimit = form.watch('data_limit')
+
+  if (!dataLimit || dataLimit === null || dataLimit === undefined || Number(dataLimit) <= 0 || !resetStrategy || resetStrategy === DataLimitResetStrategy.no_reset) {
+    return <></>
+  }
+
+  return (
+    <FormItem>
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <FormLabel>{t('nodeModal.resetTime')}</FormLabel>
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground text-xs">
+              {useIntervalBased ? t('nodeModal.intervalBased', { defaultValue: 'Interval-based' }) : t('nodeModal.absoluteTime', { defaultValue: 'Absolute time' })}
+            </span>
+            <Switch
+              checked={!useIntervalBased}
+              onCheckedChange={checked => {
+                const newUseIntervalBased = !checked
+                setUseIntervalBased(newUseIntervalBased)
+
+                if (newUseIntervalBased) {
+                  isUpdatingFromFieldRef.current = true
+                  field.onChange(-1)
+                } else {
+                  const defaultDay =
+                    resetStrategy === DataLimitResetStrategy.week ? 0 : resetStrategy === DataLimitResetStrategy.month ? 1 : resetStrategy === DataLimitResetStrategy.year ? 1 : undefined
+                  const defaultTime = new Date()
+                  defaultTime.setHours(0, 0, 0, 0)
+                  setSelectedDay(defaultDay)
+                  setSelectedTime(defaultTime)
+                }
+              }}
+            />
+          </div>
+        </div>
+
+        {!useIntervalBased && (
+          <div className="space-y-3">
+            {dayOptions.length > 0 && (
+              <Select
+                value={selectedDay?.toString() || ''}
+                onValueChange={value => {
+                  setSelectedDay(parseInt(value))
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue
+                    placeholder={
+                      resetStrategy === DataLimitResetStrategy.week
+                        ? t('nodeModal.selectDayOfWeek', { defaultValue: 'Select day of week' })
+                        : resetStrategy === DataLimitResetStrategy.month
+                          ? t('nodeModal.selectDayOfMonth', { defaultValue: 'Select day of month' })
+                          : t('nodeModal.selectDayOfYear', { defaultValue: 'Select day of year' })
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {dayOptions.map(option => (
+                    <SelectItem key={option.value} value={option.value.toString()}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <Input
+              type="time"
+              value={selectedTime ? `${String(selectedTime.getHours()).padStart(2, '0')}:${String(selectedTime.getMinutes()).padStart(2, '0')}` : ''}
+              onChange={e => {
+                const [hours, minutes] = e.target.value.split(':')
+                if (hours && minutes) {
+                  const newTime = new Date()
+                  newTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
+                  setSelectedTime(newTime)
+                } else {
+                  setSelectedTime(null)
+                }
+              }}
+              placeholder={t('nodeModal.resetTimePlaceholder', { defaultValue: 'Select time' })}
+              dir="ltr"
+            />
+          </div>
+        )}
+
+        {useIntervalBased && (
+          <p className="text-muted-foreground text-xs">
+            {t('nodeModal.intervalBasedDescription', {
+              defaultValue: 'Reset will occur every period from the last reset time',
+            })}
+          </p>
+        )}
+      </div>
+      <FormMessage />
+    </FormItem>
+  )
 }
 
 export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNode, editingNodeId, initialNodeData, coresData, onSuccess }: NodeModalProps) {
@@ -281,9 +612,10 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
       } else {
         setErrorDetails(t('nodeModal.statusMessages.checkUnavailableForNew'))
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Node status check failed:', error)
-      setErrorDetails(error?.message || 'Failed to connect to node. Please check your connection settings.')
+      const message = typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string' ? error.message : ''
+      setErrorDetails(message || 'Failed to connect to node. Please check your connection settings.')
     } finally {
       setStatusChecking(false)
     }
@@ -356,7 +688,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
       onSuccess?.()
       onOpenChange(false)
       form.reset()
-    } catch (error: any) {
+    } catch (error: unknown) {
       const fields = ['name', 'address', 'port', 'core_config_id', 'api_key', 'keep_alive_unit', 'keep_alive', 'server_ca', 'connection_type', 'proxy_url', '']
       handleError({ error, fields, form, contextKey: 'nodes' })
     }
@@ -644,79 +976,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
                             )}
                           />
 
-                          <FormField
-                            control={form.control}
-                            name="keep_alive"
-                            render={({ field }) => {
-                              const [displayValue, setDisplayValue] = useState<string>(field.value?.toString() || '')
-                              const [unit, setUnit] = useState<'seconds' | 'minutes' | 'hours'>('seconds')
-
-                              const convertToSeconds = (value: number, fromUnit: 'seconds' | 'minutes' | 'hours') => {
-                                switch (fromUnit) {
-                                  case 'minutes':
-                                    return value * 60
-                                  case 'hours':
-                                    return value * 3600
-                                  default:
-                                    return value
-                                }
-                              }
-
-                              const convertFromSeconds = (seconds: number, toUnit: 'seconds' | 'minutes' | 'hours') => {
-                                switch (toUnit) {
-                                  case 'minutes':
-                                    return Math.floor(seconds / 60)
-                                  case 'hours':
-                                    return Math.floor(seconds / 3600)
-                                  default:
-                                    return seconds
-                                }
-                              }
-
-                              return (
-                                <FormItem>
-                                  <FormLabel>{t('nodeModal.keepAlive')}</FormLabel>
-                                  <div className="flex flex-col gap-1.5">
-                                    <p className="text-muted-foreground text-xs">{t('nodeModal.keepAliveDescription')}</p>
-                                    <div className="flex flex-col gap-2 sm:flex-row">
-                                      <FormControl>
-                                        <Input
-                                          isError={!!form.formState.errors.keep_alive}
-                                          type="number"
-                                          value={displayValue ?? ''}
-                                          onChange={e => {
-                                            const value = e.target.value
-                                            setDisplayValue(value)
-                                            const numValue = parseInt(value) || 0
-                                            field.onChange(convertToSeconds(numValue, unit))
-                                          }}
-                                        />
-                                      </FormControl>
-                                      <Select
-                                        value={unit}
-                                        onValueChange={(value: 'seconds' | 'minutes' | 'hours') => {
-                                          setUnit(value)
-                                          const currentSeconds = field.value || 0
-                                          const newDisplayValue = convertFromSeconds(currentSeconds, value)
-                                          setDisplayValue(newDisplayValue.toString())
-                                        }}
-                                      >
-                                        <SelectTrigger className="flex-1">
-                                          <SelectValue />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                          <SelectItem value="seconds">{t('nodeModal.seconds')}</SelectItem>
-                                          <SelectItem value="minutes">{t('nodeModal.minutes')}</SelectItem>
-                                          <SelectItem value="hours">{t('nodeModal.hours')}</SelectItem>
-                                        </SelectContent>
-                                      </Select>
-                                    </div>
-                                  </div>
-                                  <FormMessage />
-                                </FormItem>
-                              )
-                            }}
-                          />
+                          <FormField control={form.control} name="keep_alive" render={({ field }) => <KeepAliveField field={field} form={form} />} />
 
                           <div className="flex flex-col gap-4">
                             <FormField
@@ -783,274 +1043,7 @@ export default function NodeModal({ isDialogOpen, onOpenChange, form, editingNod
                               />
                             )}
 
-                            <FormField
-                              control={form.control}
-                              name="reset_time"
-                              render={({ field }) => {
-                                const resetStrategy = form.watch('data_limit_reset_strategy')
-
-                                const decodeResetTime = (value: number | null | undefined, strategy: string | null | undefined): { day?: number; time: Date | null } => {
-                                  if (value === null || value === undefined || value === -1 || !strategy || strategy === DataLimitResetStrategy.no_reset) {
-                                    return { time: null }
-                                  }
-
-                                  const SECONDS_PER_DAY = 86400
-                                  let day: number | undefined
-                                  let seconds: number
-
-                                  switch (strategy) {
-                                    case DataLimitResetStrategy.day:
-                                      seconds = value
-                                      break
-                                    case DataLimitResetStrategy.week:
-                                      day = Math.floor(value / SECONDS_PER_DAY)
-                                      seconds = value % SECONDS_PER_DAY
-                                      break
-                                    case DataLimitResetStrategy.month:
-                                      day = Math.floor(value / SECONDS_PER_DAY)
-                                      seconds = value % SECONDS_PER_DAY
-                                      break
-                                    case DataLimitResetStrategy.year:
-                                      day = Math.floor(value / SECONDS_PER_DAY)
-                                      seconds = value % SECONDS_PER_DAY
-                                      break
-                                    default:
-                                      seconds = value
-                                  }
-
-                                  const hours = Math.floor(seconds / 3600)
-                                  const minutes = Math.floor((seconds % 3600) / 60)
-                                  const date = new Date()
-                                  date.setHours(hours, minutes, 0, 0)
-
-                                  return { day, time: date }
-                                }
-
-                                const encodeResetTime = (day: number | undefined, time: Date | null, strategy: string | null | undefined): number | null => {
-                                  if (!time || !strategy || strategy === DataLimitResetStrategy.no_reset) return -1
-
-                                  const SECONDS_PER_DAY = 86400
-                                  const hours = time.getHours()
-                                  const minutes = time.getMinutes()
-                                  const seconds = hours * 3600 + minutes * 60
-
-                                  switch (strategy) {
-                                    case DataLimitResetStrategy.day:
-                                      return seconds
-                                    case DataLimitResetStrategy.week:
-                                      return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
-                                    case DataLimitResetStrategy.month:
-                                      return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
-                                    case DataLimitResetStrategy.year:
-                                      return day !== undefined ? day * SECONDS_PER_DAY + seconds : seconds
-                                    default:
-                                      return seconds
-                                  }
-                                }
-
-                                const decoded = decodeResetTime(field.value, resetStrategy)
-                                const [useIntervalBased, setUseIntervalBased] = useState(field.value === -1 || field.value === null || field.value === undefined)
-                                const [selectedDay, setSelectedDay] = useState<number | undefined>(decoded.day)
-                                const [selectedTime, setSelectedTime] = useState<Date | null>(decoded.time)
-                                const prevFieldValueRef = React.useRef<number | null | undefined>(field.value)
-                                const isUpdatingFromFieldRef = React.useRef(false)
-                                const prevStateRef = React.useRef<{ useIntervalBased: boolean; selectedDay?: number; selectedTime?: number; resetStrategy?: string | null }>({
-                                  useIntervalBased,
-                                  selectedDay,
-                                  selectedTime: selectedTime?.getTime(),
-                                  resetStrategy: resetStrategy ?? undefined,
-                                })
-
-                                useEffect(() => {
-                                  if (isUpdatingFromFieldRef.current) {
-                                    isUpdatingFromFieldRef.current = false
-                                    prevFieldValueRef.current = field.value
-                                    return
-                                  }
-
-                                  if (prevFieldValueRef.current === field.value && prevStateRef.current.resetStrategy === resetStrategy) {
-                                    return
-                                  }
-
-                                  prevFieldValueRef.current = field.value
-                                  const newDecoded = decodeResetTime(field.value, resetStrategy)
-                                  const newUseIntervalBased = field.value === -1 || field.value === null || field.value === undefined
-
-                                  setUseIntervalBased(newUseIntervalBased)
-                                  setSelectedDay(newDecoded.day)
-                                  setSelectedTime(newDecoded.time)
-                                  prevStateRef.current = {
-                                    useIntervalBased: newUseIntervalBased,
-                                    selectedDay: newDecoded.day,
-                                    selectedTime: newDecoded.time?.getTime(),
-                                    resetStrategy: resetStrategy ?? undefined,
-                                  }
-                                }, [field.value, resetStrategy])
-
-                                useEffect(() => {
-                                  if (!resetStrategy || resetStrategy === DataLimitResetStrategy.no_reset) {
-                                    return
-                                  }
-
-                                  const stateChanged =
-                                    prevStateRef.current.useIntervalBased !== useIntervalBased ||
-                                    prevStateRef.current.selectedDay !== selectedDay ||
-                                    prevStateRef.current.selectedTime !== selectedTime?.getTime() ||
-                                    prevStateRef.current.resetStrategy !== resetStrategy
-
-                                  if (!stateChanged) {
-                                    return
-                                  }
-
-                                  prevStateRef.current = { useIntervalBased, selectedDay, selectedTime: selectedTime?.getTime(), resetStrategy }
-
-                                  let newValue: number | null
-
-                                  if (useIntervalBased) {
-                                    newValue = -1
-                                  } else {
-                                    newValue = encodeResetTime(selectedDay, selectedTime, resetStrategy)
-                                  }
-
-                                  if (newValue !== null && newValue !== field.value) {
-                                    isUpdatingFromFieldRef.current = true
-                                    field.onChange(newValue)
-                                  }
-                                }, [useIntervalBased, selectedDay, selectedTime, resetStrategy, field.value])
-
-                                const getDayOptions = () => {
-                                  switch (resetStrategy) {
-                                    case DataLimitResetStrategy.week:
-                                      return [
-                                        { value: 0, label: t('nodeModal.monday', { defaultValue: 'Monday' }) },
-                                        { value: 1, label: t('nodeModal.tuesday', { defaultValue: 'Tuesday' }) },
-                                        { value: 2, label: t('nodeModal.wednesday', { defaultValue: 'Wednesday' }) },
-                                        { value: 3, label: t('nodeModal.thursday', { defaultValue: 'Thursday' }) },
-                                        { value: 4, label: t('nodeModal.friday', { defaultValue: 'Friday' }) },
-                                        { value: 5, label: t('nodeModal.saturday', { defaultValue: 'Saturday' }) },
-                                        { value: 6, label: t('nodeModal.sunday', { defaultValue: 'Sunday' }) },
-                                      ]
-                                    case DataLimitResetStrategy.month:
-                                      return Array.from({ length: 28 }, (_, i) => ({
-                                        value: i + 1,
-                                        label: String(i + 1),
-                                      }))
-                                    case DataLimitResetStrategy.year:
-                                      return Array.from({ length: 365 }, (_, i) => ({
-                                        value: i + 1,
-                                        label: `${i + 1}`,
-                                      }))
-                                    default:
-                                      return []
-                                  }
-                                }
-
-                                const dayOptions = getDayOptions()
-                                const dataLimit = form.watch('data_limit')
-
-                                if (!dataLimit || dataLimit === null || dataLimit === undefined || Number(dataLimit) <= 0 || !resetStrategy || resetStrategy === DataLimitResetStrategy.no_reset) {
-                                  return <></>
-                                }
-
-                                return (
-                                  <FormItem>
-                                    <div className="space-y-3">
-                                      <div className="flex items-center justify-between">
-                                        <FormLabel>{t('nodeModal.resetTime')}</FormLabel>
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-muted-foreground text-xs">
-                                            {useIntervalBased ? t('nodeModal.intervalBased', { defaultValue: 'Interval-based' }) : t('nodeModal.absoluteTime', { defaultValue: 'Absolute time' })}
-                                          </span>
-                                          <Switch
-                                            checked={!useIntervalBased}
-                                            onCheckedChange={checked => {
-                                              const newUseIntervalBased = !checked
-                                              setUseIntervalBased(newUseIntervalBased)
-
-                                              if (newUseIntervalBased) {
-                                                isUpdatingFromFieldRef.current = true
-                                                field.onChange(-1)
-                                              } else {
-                                                const defaultDay =
-                                                  resetStrategy === DataLimitResetStrategy.week
-                                                    ? 0
-                                                    : resetStrategy === DataLimitResetStrategy.month
-                                                      ? 1
-                                                      : resetStrategy === DataLimitResetStrategy.year
-                                                        ? 1
-                                                        : undefined
-                                                const defaultTime = new Date()
-                                                defaultTime.setHours(0, 0, 0, 0)
-                                                setSelectedDay(defaultDay)
-                                                setSelectedTime(defaultTime)
-                                              }
-                                            }}
-                                          />
-                                        </div>
-                                      </div>
-
-                                      {!useIntervalBased && (
-                                        <div className="space-y-3">
-                                          {dayOptions.length > 0 && (
-                                            <Select
-                                              value={selectedDay?.toString() || ''}
-                                              onValueChange={value => {
-                                                setSelectedDay(parseInt(value))
-                                              }}
-                                            >
-                                              <SelectTrigger>
-                                                <SelectValue
-                                                  placeholder={
-                                                    resetStrategy === DataLimitResetStrategy.week
-                                                      ? t('nodeModal.selectDayOfWeek', { defaultValue: 'Select day of week' })
-                                                      : resetStrategy === DataLimitResetStrategy.month
-                                                        ? t('nodeModal.selectDayOfMonth', { defaultValue: 'Select day of month' })
-                                                        : t('nodeModal.selectDayOfYear', { defaultValue: 'Select day of year' })
-                                                  }
-                                                />
-                                              </SelectTrigger>
-                                              <SelectContent>
-                                                {dayOptions.map(option => (
-                                                  <SelectItem key={option.value} value={option.value.toString()}>
-                                                    {option.label}
-                                                  </SelectItem>
-                                                ))}
-                                              </SelectContent>
-                                            </Select>
-                                          )}
-
-                                          <Input
-                                            type="time"
-                                            value={selectedTime ? `${String(selectedTime.getHours()).padStart(2, '0')}:${String(selectedTime.getMinutes()).padStart(2, '0')}` : ''}
-                                            onChange={e => {
-                                              const [hours, minutes] = e.target.value.split(':')
-                                              if (hours && minutes) {
-                                                const newTime = new Date()
-                                                newTime.setHours(parseInt(hours), parseInt(minutes), 0, 0)
-                                                setSelectedTime(newTime)
-                                              } else {
-                                                setSelectedTime(null)
-                                              }
-                                            }}
-                                            placeholder={t('nodeModal.resetTimePlaceholder', { defaultValue: 'Select time' })}
-                                            dir="ltr"
-                                          />
-                                        </div>
-                                      )}
-
-                                      {useIntervalBased && (
-                                        <p className="text-muted-foreground text-xs">
-                                          {t('nodeModal.intervalBasedDescription', {
-                                            defaultValue: 'Reset will occur every period from the last reset time',
-                                          })}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <FormMessage />
-                                  </FormItem>
-                                )
-                              }}
-                            />
+                            <FormField control={form.control} name="reset_time" render={({ field }) => <ResetTimeField field={field} form={form} />} />
                             <div className="flex flex-col gap-2 sm:flex-row">
                               <FormField
                                 control={form.control}

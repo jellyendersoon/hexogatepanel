@@ -8,7 +8,13 @@ import { SubscriptionManualFormatsSection } from '@/features/subscriptions/compo
 import { SubscriptionResponseHeadersSection } from '@/features/subscriptions/components/subscription-response-headers-section'
 import { SubscriptionRulesSection } from '@/features/subscriptions/components/subscription-rules-section'
 import { SubscriptionSettingsSkeleton } from '@/features/subscriptions/components/subscription-settings-skeleton'
-import { subscriptionSchema, type SubscriptionApplicationFormData, type SubscriptionFormData, defaultSubscriptionRules, normalizeCustomVariablesForPayload } from '@/features/subscriptions/components/subscription-settings-schema'
+import {
+  subscriptionSchema,
+  type SubscriptionApplicationFormData,
+  type SubscriptionFormData,
+  defaultSubscriptionRules,
+  normalizeCustomVariablesForPayload,
+} from '@/features/subscriptions/components/subscription-settings-schema'
 import { Form } from '@/components/ui/form'
 import { Separator } from '@/components/ui/separator'
 import { type SubRule as ApiSubRule } from '@/service/api'

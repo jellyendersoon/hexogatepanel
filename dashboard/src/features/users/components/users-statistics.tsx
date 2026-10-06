@@ -34,7 +34,7 @@ const UsersStatistics = () => {
     <div className={cn('grid w-full gap-3 sm:gap-4', 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3', 'auto-rows-fr', dir === 'rtl' && 'lg:grid-flow-col-reverse')}>
       {/* Online Users */}
       <div className="w-full">
-        <Card dir={dir} className="group relative w-full overflow-hidden px-4 py-6 transition-colors hover:bg-accent/40">
+        <Card dir={dir} className="group hover:bg-accent/40 relative w-full overflow-hidden px-4 py-6 transition-colors">
           <CardTitle className="flex min-w-0 items-center justify-between gap-x-4 overflow-hidden">
             <div className="flex min-h-8 min-w-0 flex-1 items-center gap-x-4 overflow-hidden">
               <div className="min-h-[10px] min-w-[10px] shrink-0 rounded-full bg-green-500 shadow-sm" />
@@ -49,7 +49,7 @@ const UsersStatistics = () => {
 
       {/* Active Users */}
       <div className="w-full">
-        <Card dir={dir} className="group relative w-full overflow-hidden px-4 py-6 transition-colors hover:bg-accent/40">
+        <Card dir={dir} className="group hover:bg-accent/40 relative w-full overflow-hidden px-4 py-6 transition-colors">
           <CardTitle className="flex min-w-0 items-center justify-between gap-x-4 overflow-hidden">
             <div className="flex min-h-8 min-w-0 flex-1 items-center gap-x-4 overflow-hidden">
               <UserCheck className="h-5 w-5 shrink-0" />
@@ -64,7 +64,7 @@ const UsersStatistics = () => {
 
       {/* Total Users */}
       <div className="w-full sm:col-span-2 lg:col-span-1">
-        <Card dir={dir} className="group relative w-full overflow-hidden px-4 py-6 transition-colors hover:bg-accent/40">
+        <Card dir={dir} className="group hover:bg-accent/40 relative w-full overflow-hidden px-4 py-6 transition-colors">
           <CardTitle className="flex min-w-0 items-center justify-between gap-x-4 overflow-hidden">
             <div className="flex min-h-8 min-w-0 flex-1 items-center gap-x-4 overflow-hidden">
               <Users className="h-5 w-5 shrink-0" />

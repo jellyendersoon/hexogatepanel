@@ -46,6 +46,15 @@ import { BulkActionAlertDialog } from '@/features/users/components/bulk-action-a
 import { Card, CardContent } from '@/components/ui/card'
 import { removeUsersFromUsersCache } from '@/utils/usersCache'
 import { hasPermission, hasScopeAll } from '@/utils/rbac'
+import { formatErrorDetail } from '@/utils/error-utils'
+
+const isUserStatus = (value: string): value is UserStatus => Object.values(UserStatus).includes(value as UserStatus)
+
+const getApiErrorDescription = (error: unknown): string | undefined => {
+  if (typeof error !== 'object' || error === null) return undefined
+  const maybeError = error as { data?: { detail?: unknown }; message?: unknown }
+  return formatErrorDetail(maybeError.data?.detail) || (typeof maybeError.message === 'string' && maybeError.message ? maybeError.message : undefined)
+}
 
 // Helper function to get URL search params from hash
 const getSearchParams = (): URLSearchParams => {
@@ -228,7 +237,7 @@ const UsersTable = memo(() => {
     sort: string
     load_sub: boolean
     offset: number
-    ids?: number[]
+    ids?: number[] | null
     search?: string
     proxy_id?: string
     is_protocol: boolean
@@ -376,7 +385,7 @@ const UsersTable = memo(() => {
 
   const advanceSearchForm = useForm<AdvanceSearchFormValue>({
     defaultValues: getInitialAdvanceSearchValues(),
-  }) as any
+  })
 
   const userForm = useForm<UseEditFormValues>({
     defaultValues: {
@@ -449,7 +458,7 @@ const UsersTable = memo(() => {
       advanceSearchForm.setValue('no_group', Boolean(filters.no_group))
       advanceSearchForm.setValue('is_id', Boolean(filters.ids?.length || filters.is_id))
       advanceSearchForm.setValue('is_protocol', Boolean(filters.proxy_id || filters.is_protocol))
-      advanceSearchForm.setValue('is_username', !Boolean(filters.proxy_id || filters.is_protocol || filters.ids?.length || filters.is_id))
+      advanceSearchForm.setValue('is_username', !(filters.proxy_id || filters.is_protocol || filters.ids?.length || filters.is_id))
       advanceSearchForm.setValue('show_created_by', showCreatedBy)
       advanceSearchForm.setValue('show_selection_checkbox', showSelectionCheckbox)
       advanceSearchForm.setValue('no_data_limit', Boolean(filters.no_data_limit))
@@ -661,10 +670,11 @@ const UsersTable = memo(() => {
   )
 
   const handleStatusFilter = useCallback(
-    (value: any) => {
-      advanceSearchForm.setValue('status', value || '0')
+    (value: string | UserStatus) => {
+      const nextStatus = isUserStatus(value) ? value : undefined
+      advanceSearchForm.setValue('status', nextStatus || '0')
 
-      if (value === '0' || value === '') {
+      if (!nextStatus) {
         setFilters(prev => ({
           ...prev,
           status: undefined,
@@ -673,7 +683,7 @@ const UsersTable = memo(() => {
       } else {
         setFilters(prev => ({
           ...prev,
-          status: value,
+          status: nextStatus,
           offset: 0,
         }))
       }
@@ -685,7 +695,7 @@ const UsersTable = memo(() => {
 
   const handleFilterChange = useCallback((newFilters: Partial<typeof filters>) => {
     setFilters(prev => {
-      let updated = { ...prev, ...newFilters }
+      const updated = { ...prev, ...newFilters }
       if ('search' in newFilters) {
         const nextSearch = newFilters.search?.trim() || undefined
         const currentSearch = prev.proxy_id || prev.search || formatIdsInput(prev.ids)
@@ -769,9 +779,9 @@ const UsersTable = memo(() => {
       clearSelection()
       toast.success(t('bulkUserActions.deleteSuccess', { count: response.count }))
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(t('bulkUserActions.deleteError'), {
-        description: error?.data?.detail || error?.message || '',
+        description: getApiErrorDescription(error) || '',
       })
     },
   })
@@ -783,9 +793,9 @@ const UsersTable = memo(() => {
       clearSelection()
       toast.success(t('bulkUserActions.resetSuccess', { count: response.count }))
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(t('bulkUserActions.resetError'), {
-        description: error?.data?.detail || error?.message || '',
+        description: getApiErrorDescription(error) || '',
       })
     },
   })
@@ -797,9 +807,9 @@ const UsersTable = memo(() => {
       clearSelection()
       toast.success(t('bulkUserActions.revokeSuccess', { count: response.count }))
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(t('bulkUserActions.revokeError'), {
-        description: error?.data?.detail || error?.message || '',
+        description: getApiErrorDescription(error) || '',
       })
     },
   })
@@ -811,9 +821,9 @@ const UsersTable = memo(() => {
       clearSelection()
       toast.success(t('bulkUserActions.disableSuccess', { count: response.count, defaultValue: '{{count}} users disabled successfully.' }))
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(t('bulkUserActions.disableError', { defaultValue: 'Failed to disable selected users.' }), {
-        description: error?.data?.detail || error?.message || '',
+        description: getApiErrorDescription(error) || '',
       })
     },
   })
@@ -825,9 +835,9 @@ const UsersTable = memo(() => {
       clearSelection()
       toast.success(t('bulkUserActions.enableSuccess', { count: response.count, defaultValue: '{{count}} users enabled successfully.' }))
     },
-    onError: (error: any) => {
+    onError: (error: unknown) => {
       toast.error(t('bulkUserActions.enableError', { defaultValue: 'Failed to enable selected users.' }), {
-        description: error?.data?.detail || error?.message || '',
+        description: getApiErrorDescription(error) || '',
       })
     },
   })
@@ -974,7 +984,7 @@ const UsersTable = memo(() => {
     setEditModalOpen(true)
   }
 
-  const handleEditSuccess = (_updatedUser: UserResponse) => {
+  const handleEditSuccess = () => {
     handleEditModalClose(false)
   }
 

@@ -79,13 +79,13 @@ export default function TimeSelector({ selectedTime, setSelectedTime, shortcuts 
   const isDesktopOverflowSelected = desktopOverflowShortcuts.some(shortcut => shortcut.value === selectedTime)
 
   return (
-    <div dir="ltr" className={cn('border-border/60 bg-muted/20 flex h-9 w-full min-w-0 max-w-full items-center overflow-hidden rounded-md border p-0.5 sm:max-w-fit', className)}>
+    <div dir="ltr" className={cn('border-border/60 bg-muted/20 flex h-9 w-full max-w-full min-w-0 items-center overflow-hidden rounded-md border p-0.5 sm:max-w-fit', className)}>
       <div className="flex h-full w-full min-w-0 items-center gap-1 lg:hidden">
         <ToggleGroup
           type="single"
           value={selectedTime}
           onValueChange={value => value && setSelectedTime(value)}
-          className="h-full min-w-0 flex-nowrap gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="h-full min-w-0 [scrollbar-width:none] flex-nowrap gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden"
           aria-label="Traffic range shortcuts"
         >
           {mobileQuickShortcuts.map(shortcut => (
@@ -136,7 +136,7 @@ export default function TimeSelector({ selectedTime, setSelectedTime, shortcuts 
           type="single"
           value={selectedTime}
           onValueChange={value => value && setSelectedTime(value)}
-          className="h-full min-w-0 flex-nowrap gap-1 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+          className="h-full min-w-0 [scrollbar-width:none] flex-nowrap gap-1 overflow-x-auto [&::-webkit-scrollbar]:hidden"
           aria-label="Traffic range shortcuts"
         >
           {quickShortcuts.map(shortcut => (

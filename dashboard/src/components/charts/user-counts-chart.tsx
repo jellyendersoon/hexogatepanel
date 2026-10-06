@@ -432,10 +432,7 @@ export function UserCountsChart({ nodeId, isSudo, nodesData = [] }: UserCountsCh
     [activePeriod, chartData.length, customRange, selectedTime, showCustomRange, windowWidth, periodOverride],
   )
 
-  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(
-    () => getChartRenderFlags(chartData.length, series.length),
-    [chartData.length, series.length],
-  )
+  const { isAnimationActive, usePerBarRadius, useAccessibilityLayer, areaCurveType } = useMemo(() => getChartRenderFlags(chartData.length, series.length), [chartData.length, series.length])
   const brushWindow = useMemo(() => getChartBrushWindow(chartData.length, series.length), [chartData.length, series.length])
 
   useEffect(() => {
