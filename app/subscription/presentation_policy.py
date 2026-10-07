@@ -292,29 +292,28 @@ def _class_key(entry: Any) -> tuple[int, int]:
     """Method rank, then (for the two Fastly classes only) the measured-speed location order."""
     remark = str(getattr(_host_data(entry), "remark", "") or "")
     rank = _class_rank(entry)
-    if rank in (2, 3):
+    if rank in (3, 4):
         hits = [index for index, name in enumerate(FASTLY_SPEED_ORDER) if name in remark]
         return rank, (min(hits) if hits else len(FASTLY_SPEED_ORDER))
     return rank, 0
 
 
 def method_rank(remark: str) -> int:
-    """2026-10-06 owner order: VIP, Fastly TLS, Fastly HTTP, direct (Reality / HTTP / ML-KEM; DE and NL lead
-    by country order), Reality IPv6, Cloudflare IPv6, Cloudflare ECH, other Cloudflare, then everything else."""
+    """2026-10-07 owner order: VIP, Reality (country order, so DE and NL lead), Fastly TLS, Fastly HTTP,
+    HTTP TLS, HTTP (HTTP 2091 / HTTP ML-KEM), Cloudflare, then everything else."""
     if "VIP" in remark:
         return 1
+    if "Reality" in remark:
+        return 2
     if "Fastly" in remark:
-        return 3 if "HTTP" in remark else 2
-    ipv6 = re.search(r"\bIPv6\b", remark) is not None
+        return 4 if "HTTP" in remark else 3
     if "Cloudflare" in remark:
-        if ipv6:
-            return 6
-        return 7 if "ECH" in remark else 8
-    if ipv6:
+        return 7
+    if "HTTP TLS" in remark:
         return 5
-    if "Reality" in remark or "HTTP" in remark or "ML-KEM" in remark:
-        return 4
-    return 9
+    if "HTTP" in remark or "ML-KEM" in remark:
+        return 6
+    return 8
 
 
 def _dedupe_info_rows(hosts: list[Any]) -> list[Any]:

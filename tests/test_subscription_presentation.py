@@ -370,13 +370,13 @@ async def test_process_inbounds_applies_policy_then_group_subset_ordering(hosts_
         "🇩🇪 Germany ▸ Reality",
         "🇳🇱 Netherlands ▸ Reality",
     ]
-    # Economy only: method first (VIP, Fastly, Reality), country inside the method.
+    # Economy only: method first (VIP, Reality, Fastly), country inside the method.
     assert await _remarks_for(_user(1, [7])) == [
         "👤 Account",
         "🇹🇷 Turkey ▸ VIP 👑",
-        "🇩🇪 Germany ▸ Fastly",
         "🇩🇪 Germany ▸ Reality",
         "🇳🇱 Netherlands ▸ Reality",
+        "🇩🇪 Germany ▸ Fastly",
     ]
     # VIP only: scope projection (selected row renamed, unselected German rows dropped), then method order.
     assert await _remarks_for(_user(1, [8])) == [
@@ -420,9 +420,9 @@ async def test_process_inbounds_without_policy_file_keeps_stock_rendering(hosts_
     assert await _remarks_for(_user(1, [8])) == [
         "👤 Account",
         "🇹🇷 Turkey ▸ VIP 👑",
-        "🇩🇪 Germany ▸ Fastly",
         "🇩🇪 Germany ▸ Reality",
         "🇳🇱 Netherlands ▸ Reality",
+        "🇩🇪 Germany ▸ Fastly",
     ]
     assert await _remarks_for(_user(1, [1])) == [
         "👤 Account",

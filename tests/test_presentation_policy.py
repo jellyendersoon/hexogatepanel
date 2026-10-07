@@ -410,17 +410,19 @@ def test_policy_path_setting_accepts_both_env_names(monkeypatch):
     ("remark", "rank"),
     [
         ("🇩🇪 Germany ▸ VIP 👑", 1),
-        ("🇩🇪 Germany ▸ Fastly", 2),
-        ("🇩🇪 Germany ▸ Fastly HTTP", 3),
-        ("🇩🇪 Germany ▸ Reality", 4),
-        ("🇩🇪 Germany ▸ HTTP TLS", 4),
-        ("🇩🇪 Germany ▸ HTTP ML-KEM · A", 4),
-        ("🇩🇪 Germany ▸ Reality IPv6 · A", 5),
-        ("🇩🇪 Germany ▸ Cloudflare IPv6 · A", 6),
+        ("🇩🇪 Germany ▸ Reality", 2),
+        ("🇩🇪 Germany ▸ Reality IPv6 · A", 2),
+        ("🇩🇪 Germany ▸ Fastly", 3),
+        ("🇩🇪 Germany ▸ Fastly HTTP", 4),
+        ("🇩🇪 Germany ▸ HTTP TLS", 5),
+        ("🇩🇪 Germany ▸ HTTP TLS · IP 1", 5),
+        ("🇩🇪 Germany ▸ HTTP 2091", 6),
+        ("🇩🇪 Germany ▸ HTTP ML-KEM · A", 6),
         ("🇩🇪 Germany ▸ Cloudflare ECH · A", 7),
-        ("🇩🇪 Germany ▸ Cloudflare · B", 8),
-        ("🇩🇪 Germany ▸ mKCP", 9),
-        ("🇩🇪 Germany ▸ IPv6only", 9),  # word boundary: "IPv6only" is not the IPv6 method
+        ("🇩🇪 Germany ▸ Cloudflare IPv6 · A", 7),
+        ("🇩🇪 Germany ▸ Cloudflare · B", 7),
+        ("🇩🇪 Germany ▸ mKCP", 8),
+        ("🇩🇪 Germany ▸ IPv6only", 8),  # not a method keyword
     ],
 )
 def test_method_rank(remark, rank):
@@ -439,12 +441,12 @@ def test_fastly_rows_follow_measured_speed_order():
     )
     ordered = [host.remark for host in policy.order_hosts_for_user(User([8], []), rows)]
     assert ordered == [
+        "🇩🇪 Germany ▸ Reality",
         "🇩🇪 Germany 2 ▸ Fastly",
         "🇩🇪 Germany ▸ Fastly",
         "🇬🇧 UK New ▸ Fastly",
         "🇫🇮 Finland ▸ Fastly HTTP",
         "🇸🇪 Sweden 2 ▸ Fastly HTTP",
-        "🇩🇪 Germany ▸ Reality",
     ]
     # Paid / mixed-group users keep the plain country order.
     assert [host.remark for host in policy.order_hosts_for_user(User([1], []), rows)] == [
@@ -497,9 +499,9 @@ METHOD_ORDER = [
     "no flag at all",
     "🇩🇪 Germany ▸ VIP 👑",
     "🇹🇷 Turkey ▸ VIP 👑",
-    "🇩🇪 Germany ▸ Fastly",
     "🇩🇪 Germany ▸ Reality",
     "🇳🇱 Netherlands ▸ Reality",
+    "🇩🇪 Germany ▸ Fastly",
 ]
 
 
