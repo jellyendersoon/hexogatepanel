@@ -19,6 +19,7 @@ from app.models.group import BulkGroup
 from app.models.user import BulkUser, BulkUserFilter, BulkUsersProxy
 
 from .general import get_datetime_add_expression
+from .usage_totals import prune_empty_node_user_usage_totals, subtract_node_user_usage_totals
 from .user import _build_user_select_stmt
 
 
@@ -71,7 +72,9 @@ async def reset_all_users_data_usage(
 
     await db.execute(delete(UserUsageResetLogs).where(UserUsageResetLogs.user_id.in_(user_ids)))
     if clean_chart_data:
+        span = await subtract_node_user_usage_totals(db, NodeUserUsage.user_id.in_(user_ids))
         await db.execute(delete(NodeUserUsage).where(NodeUserUsage.user_id.in_(user_ids)))
+        await prune_empty_node_user_usage_totals(db, span)
     await db.execute(delete(NextPlan).where(NextPlan.user_id.in_(user_ids)))
 
     await db.commit()

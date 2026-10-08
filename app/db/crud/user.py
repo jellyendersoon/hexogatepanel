@@ -17,6 +17,7 @@ from app.db.models import (
     Group,
     NextPlan,
     NodeUserUsage,
+    NodeUserUsageTotal,
     NotificationReminder,
     ReminderType,
     User,
@@ -59,6 +60,7 @@ from .general import (
     to_utc_for_filter,
 )
 from .group import get_groups_by_ids
+from .usage_totals import prune_empty_node_user_usage_totals, subtract_node_user_usage_totals
 from .wireguard import (
     release_allocations_by_user_ids,
     release_users_allocations,
@@ -608,7 +610,7 @@ async def remove_expired_users(
         chunk = user_ids[start : start + 1000]
         await release_allocations_by_user_ids(db, chunk)
         await _delete_user_dependencies(db, chunk)
-        await db.execute(delete(User).where(User.id.in_(chunk)))
+        await _delete_users_by_ids(db, chunk)
     await db.commit()
 
     return usernames
@@ -1012,6 +1014,18 @@ async def create_users_bulk(
     return db_users
 
 
+async def _delete_users_by_ids(db: AsyncSession, user_ids: list[int]) -> None:
+    """
+    Delete users by ID, keeping ``node_user_usage_totals`` in sync.
+
+    Their ``node_user_usages`` rows go with them (FK ``ON DELETE CASCADE``; on SQLite they are left
+    orphaned and no longer joined by the chart), so their contribution is subtracted from the totals first.
+    """
+    span = await subtract_node_user_usage_totals(db, NodeUserUsage.user_id.in_(user_ids))
+    await db.execute(delete(User).where(User.id.in_(user_ids)))
+    await prune_empty_node_user_usage_totals(db, span)
+
+
 async def _delete_user_dependencies(db: AsyncSession, user_ids: list[int]):
     """Remove all rows that reference the given user IDs."""
     if not user_ids:
@@ -1033,7 +1047,7 @@ async def remove_user(db: AsyncSession, db_user: User) -> User:
     """
     await release_users_allocations(db, [db_user])
     await _delete_user_dependencies(db, [db_user.id])
-    await db.execute(delete(User).where(User.id == db_user.id))
+    await _delete_users_by_ids(db, [db_user.id])
     await db.commit()
     return db_user
 
@@ -1053,7 +1067,7 @@ async def remove_users(db: AsyncSession, db_users: list[User]):
 
     await release_users_allocations(db, db_users)
     await _delete_user_dependencies(db, user_ids)
-    await db.execute(delete(User).where(User.id.in_(user_ids)))
+    await _delete_users_by_ids(db, user_ids)
     await db.commit()
 
 
@@ -1185,10 +1199,13 @@ async def _reset_user_traffic_and_log(db: AsyncSession, db_user: User):
 
 
 async def clear_user_node_usages(db: AsyncSession, user_id: int, *, before: datetime | None = None) -> None:
-    stmt = delete(NodeUserUsage).where(NodeUserUsage.user_id == user_id)
+    conditions = [NodeUserUsage.user_id == user_id]
     if before is not None:
-        stmt = stmt.where(NodeUserUsage.created_at <= before)
-    await db.execute(stmt)
+        conditions.append(NodeUserUsage.created_at <= before)
+
+    span = await subtract_node_user_usage_totals(db, *conditions)
+    await db.execute(delete(NodeUserUsage).where(*conditions))
+    await prune_empty_node_user_usage_totals(db, span)
 
 
 async def reset_user_data_usage(
@@ -1560,6 +1577,11 @@ async def get_all_users_usages(
     grouped by the specified time period.
     Groups data by periods in the timezone of the start/end parameters.
 
+    Without an admins filter the data comes from ``node_user_usage_totals``, the per (bucket, node)
+    rollup of ``node_user_usages`` maintained on write, which yields the same sums without scanning
+    the per-user rows. With an admins filter the per-user rows are read, since attribution follows
+    each user's current admin.
+
     Args:
         db (AsyncSession): Database session for querying.
         admins (Sequence[str] | None): Admin usernames to filter users by. If None/empty, include all admins.
@@ -1573,44 +1595,50 @@ async def get_all_users_usages(
     """
     admins_filter = admins or None
 
+    if admins_filter:
+        usage_table = NodeUserUsage
+        from_clause = NodeUserUsage.__table__.join(User, User.id == NodeUserUsage.user_id).join(
+            Admin, Admin.id == User.admin_id
+        )
+    else:
+        usage_table = NodeUserUsageTotal
+        from_clause = NodeUserUsageTotal.__table__
+
     # Build the appropriate truncation expression
-    trunc_expr = _build_trunc_expression(db, period, NodeUserUsage.created_at, start)
+    trunc_expr = _build_trunc_expression(db, period, usage_table.created_at, start)
 
     # Filter using UTC timestamps (DB stores naive UTC) from first complete bucket
     start_utc = get_complete_period_start_for_filter(start, period)
     end_utc = to_utc_for_filter(end)
     conditions = [
-        NodeUserUsage.created_at >= start_utc,
-        NodeUserUsage.created_at < end_utc,
+        usage_table.created_at >= start_utc,
+        usage_table.created_at < end_utc,
     ]
     if admins_filter:
         conditions.append(Admin.username.in_(admins_filter))
 
     if node_id is not None:
-        conditions.append(NodeUserUsage.node_id == node_id)
+        conditions.append(usage_table.node_id == node_id)
     else:
         node_id = -1
 
     dialect = db.bind.dialect.name
-    from_clause = NodeUserUsage.__table__.join(User, User.id == NodeUserUsage.user_id)
-    if admins_filter:
-        from_clause = from_clause.join(Admin, Admin.id == User.admin_id)
 
     if group_by_node:
         stmt = (
             select(
                 trunc_expr.label("period_start"),
-                func.coalesce(NodeUserUsage.node_id, 0).label("node_id"),
-                func.sum(NodeUserUsage.used_traffic).label("total_traffic"),
+                func.coalesce(usage_table.node_id, 0).label("node_id"),
+                func.sum(usage_table.used_traffic).label("total_traffic"),
             )
             .select_from(from_clause)
             .where(and_(*conditions))
-            .group_by(trunc_expr, NodeUserUsage.node_id)
+            .group_by(trunc_expr, usage_table.node_id)
             .order_by(trunc_expr)
         )
     else:
         stmt = (
-            select(trunc_expr.label("period_start"), func.sum(NodeUserUsage.used_traffic).label("total_traffic"))
+            select(trunc_expr.label("period_start"), func.sum(usage_table.used_traffic).label("total_traffic"))
             .select_from(from_clause)
             .where(and_(*conditions))
             .group_by(trunc_expr)

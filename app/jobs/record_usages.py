@@ -17,6 +17,7 @@ from sqlalchemy.sql.expression import Insert
 from app import scheduler
 from app.db import GetDB
 from app.db.base import engine
+from app.db.crud.usage_totals import build_node_user_usage_totals_add
 from app.db.models import Admin, Node, NodeUsage, NodeUserUsage, System, User
 from app.node import node_manager
 from app.operation.admin_sync import enforce_admin_limits_now
@@ -67,16 +68,12 @@ async def get_dialect() -> str:
 _dialect_cache: list[str] = []
 
 
-def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
+def _node_user_usage_source(dialect: str, upsert_params: list[dict]):
     """
-    Build UPSERT statement for NodeUserUsage based on database dialect.
+    Build the derived table of raw usage rows (uid, node_id, created_at, value) and its bound parameters.
 
-    Args:
-        dialect: Database dialect name ('postgresql', 'mysql', or 'sqlite')
-        upsert_params: List of parameter dicts with keys: uid, node_id, created_at, value
-
-    Returns:
-        list: One SQL statement and its bound parameters.
+    The NodeUserUsage upsert and the NodeUserUsageTotal upsert both read from this source, so for one batch
+    they bind exactly the same parameters and can be executed with one parameter set.
     """
     if dialect == "postgresql":
         source = (
@@ -89,37 +86,13 @@ def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
             .table_valued("uid", "node_id", "created_at", "value")
             .render_derived(name="source")
         )
-
-        select_stmt = (
-            select(
-                source.c.created_at,
-                source.c.uid,
-                source.c.node_id,
-                func.sum(source.c.value).label("used_traffic"),
-            )
-            .select_from(source.join(User, User.id == source.c.uid))
-            .group_by(source.c.created_at, source.c.uid, source.c.node_id)
-        )
-
-        stmt = pg_insert(NodeUserUsage).from_select(
-            ["created_at", "user_id", "node_id", "used_traffic"],
-            select_stmt,
-        )
-        stmt = stmt.on_conflict_do_update(
-            index_elements=["created_at", "user_id", "node_id"],
-            set_={"used_traffic": NodeUserUsage.used_traffic + stmt.excluded.used_traffic},
-        )
-        return [
-            (
-                stmt,
-                {
-                    "uids": [param["uid"] for param in upsert_params],
-                    "node_ids": [param["node_id"] for param in upsert_params],
-                    "created_ats": [param["created_at"] for param in upsert_params],
-                    "traffic_values": [param["value"] for param in upsert_params],
-                },
-            )
-        ]
+        stmt_params = {
+            "uids": [param["uid"] for param in upsert_params],
+            "node_ids": [param["node_id"] for param in upsert_params],
+            "created_ats": [param["created_at"] for param in upsert_params],
+            "traffic_values": [param["value"] for param in upsert_params],
+        }
+        return source, stmt_params
 
     select_parts = []
     stmt_params = {}
@@ -141,7 +114,21 @@ def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
         stmt_params[created_at_key] = param["created_at"]
         stmt_params[value_key] = param["value"]
 
-    source = union_all(*select_parts).subquery("source")
+    return union_all(*select_parts).subquery("source"), stmt_params
+
+
+def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
+    """
+    Build UPSERT statement for NodeUserUsage based on database dialect.
+
+    Args:
+        dialect: Database dialect name ('postgresql', 'mysql', or 'sqlite')
+        upsert_params: List of parameter dicts with keys: uid, node_id, created_at, value
+
+    Returns:
+        list: One SQL statement and its bound parameters.
+    """
+    source, stmt_params = _node_user_usage_source(dialect, upsert_params)
     select_stmt = (
         select(
             source.c.created_at,
@@ -152,6 +139,17 @@ def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
         .select_from(source.join(User, User.id == source.c.uid))
         .group_by(source.c.created_at, source.c.uid, source.c.node_id)
     )
+
+    if dialect == "postgresql":
+        stmt = pg_insert(NodeUserUsage).from_select(
+            ["created_at", "user_id", "node_id", "used_traffic"],
+            select_stmt,
+        )
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["created_at", "user_id", "node_id"],
+            set_={"used_traffic": NodeUserUsage.used_traffic + stmt.excluded.used_traffic},
+        )
+        return [(stmt, stmt_params)]
 
     if dialect == "mysql":
         insert_source = select_stmt.subquery("insert_source")
@@ -177,6 +175,34 @@ def build_node_user_usage_upsert(dialect: str, upsert_params: list[dict]):
         set_={"used_traffic": NodeUserUsage.used_traffic + stmt.excluded.used_traffic},
     )
     return [(stmt, stmt_params)]
+
+
+def build_node_user_usage_total_upsert(dialect: str, upsert_params: list[dict]):
+    """
+    Build the UPSERT that adds a batch to NodeUserUsageTotal (the global chart rollup).
+
+    It reads the same source rows as ``build_node_user_usage_upsert`` with the same ``User`` join, so rows
+    of users that no longer exist are dropped from both, and it binds the same parameters. The rows are
+    summed per (created_at, node_id) and added to the existing totals row.
+
+    Args:
+        dialect: Database dialect name ('postgresql', 'mysql', or 'sqlite')
+        upsert_params: List of parameter dicts with keys: uid, node_id, created_at, value
+
+    Returns:
+        list: One SQL statement and its bound parameters.
+    """
+    source, stmt_params = _node_user_usage_source(dialect, upsert_params)
+    select_stmt = (
+        select(
+            source.c.created_at.label("created_at"),
+            source.c.node_id.label("node_id"),
+            func.sum(source.c.value).label("used_traffic"),
+        )
+        .select_from(source.join(User, User.id == source.c.uid))
+        .group_by(source.c.created_at, source.c.node_id)
+    )
+    return [(build_node_user_usage_totals_add(dialect, select_stmt), stmt_params)]
 
 
 def build_node_usage_upsert(dialect: str, upsert_param: dict):
@@ -277,27 +303,30 @@ def _is_retriable_db_error(err) -> bool:
     return "deadlock" in message or "lock wait timeout" in message or "database is locked" in message
 
 
+def _with_mysql_ignore(stmt):
+    if isinstance(stmt, Insert) and (not hasattr(stmt, "_post_values_clause") or stmt._post_values_clause is None):
+        # MySQL-specific IGNORE prefix - but skip if using ON DUPLICATE KEY UPDATE
+        return stmt.prefix_with("IGNORE")
+    return stmt
+
+
 async def safe_execute(stmt, params=None, max_retries: int = DEADLOCK_MAX_RETRIES):
     """
     Safely execute database operations with deadlock and connection handling.
     Creates a fresh DB session for each retry attempt to release locks.
 
     Args:
-        stmt: SQLAlchemy statement to execute
+        stmt: SQLAlchemy statement to execute, or a list/tuple of statements that share ``params``;
+            these run in order inside one transaction (all commit or none do).
         params (list[dict], optional): Parameters for the statement
         max_retries (int, optional): Maximum number of attempts including the first
     """
-    statement = stmt
+    statements = list(stmt) if isinstance(stmt, (list, tuple)) else [stmt]
 
     # Get dialect once before retry loop to avoid repeated DB calls
     dialect = await get_dialect()
-    if (
-        dialect == "mysql"
-        and isinstance(stmt, Insert)
-        and (not hasattr(stmt, "_post_values_clause") or stmt._post_values_clause is None)
-    ):
-        # MySQL-specific IGNORE prefix - but skip if using ON DUPLICATE KEY UPDATE
-        statement = stmt.prefix_with("IGNORE")
+    if dialect == "mysql":
+        statements = [_with_mysql_ignore(statement) for statement in statements]
 
     connectable = engine
     if dialect == "mysql" and hasattr(engine, "execution_options"):
@@ -309,10 +338,11 @@ async def safe_execute(stmt, params=None, max_retries: int = DEADLOCK_MAX_RETRIE
         try:
             # engine.begin() ensures commit/rollback + connection return on exit
             async with connectable.begin() as conn:
-                if params is None:
-                    await conn.execute(statement)
-                else:
-                    await conn.execute(statement, params)
+                for statement in statements:
+                    if params is None:
+                        await conn.execute(statement)
+                    else:
+                        await conn.execute(statement, params)
                 return
 
         except (OperationalError, DatabaseError) as err:
@@ -408,12 +438,16 @@ async def record_user_stats_batched(all_node_params: dict, usage_coefficients: d
             dialect,
         )
 
-    # Execute batched UPSERTs with concurrency control
+    # Execute batched UPSERTs with concurrency control. Each batch writes its per-user rows and the
+    # global rollup in one transaction (per-user rows first: same lock order as the delete paths).
     async with JOB_SEM:
         for batch in batches:
-            queries = build_node_user_usage_upsert(dialect, batch)
-            for stmt, stmt_params in queries:
-                await safe_execute(stmt, stmt_params)
+            usage_queries = build_node_user_usage_upsert(dialect, batch)
+            total_queries = build_node_user_usage_total_upsert(dialect, batch)
+            # Both builders read the same source and bind the same parameter set, so one
+            # parameter dict serves both statements.
+            for (usage_stmt, stmt_params), (total_stmt, _) in zip(usage_queries, total_queries, strict=True):
+                await safe_execute((usage_stmt, total_stmt), stmt_params)
 
 
 async def record_node_stats_batched(all_node_params: dict):
