@@ -35,6 +35,7 @@ from .general import (
     attach_timezone_to_period_start,
     to_utc_for_filter,
 )
+from .usage_totals import delete_node_user_usage_totals
 
 
 def _build_node_simple_sort_clause(sort_option: NodeSimpleSortOption):
@@ -443,6 +444,7 @@ async def remove_node(db: AsyncSession, db_node: Node) -> None:
 
     # Remove dependent rows explicitly to avoid ORM cascading overhead on large tables.
     await db.execute(delete(NodeUserUsage).where(NodeUserUsage.node_id == node_id))
+    await delete_node_user_usage_totals(db, node_ids=[node_id])
     await db.execute(delete(NodeUsage).where(NodeUsage.node_id == node_id))
     await db.execute(delete(NodeUsageResetLogs).where(NodeUsageResetLogs.node_id == node_id))
     await db.execute(delete(NodeStat).where(NodeStat.node_id == node_id))
@@ -600,6 +602,13 @@ async def clear_usage_data(
         stmt = stmt.where(and_(*filters))
 
     await db.execute(stmt)
+    if table == UsageTable.node_user_usages:
+        # Every per-user row of the range is gone, so the rollup rows of the same range go too.
+        await delete_node_user_usage_totals(
+            db,
+            start=start.replace(tzinfo=UTC) if start else None,
+            end=end.replace(tzinfo=UTC) if end else None,
+        )
     await db.commit()
 
 
@@ -848,6 +857,7 @@ async def remove_nodes(db: AsyncSession, node_ids: list[int]) -> None:
         return
 
     await db.execute(delete(NodeUserUsage).where(NodeUserUsage.node_id.in_(node_ids)))
+    await delete_node_user_usage_totals(db, node_ids=node_ids)
     await db.execute(delete(NodeUsage).where(NodeUsage.node_id.in_(node_ids)))
     await db.execute(delete(NodeUsageResetLogs).where(NodeUsageResetLogs.node_id.in_(node_ids)))
     await db.execute(delete(NodeStat).where(NodeStat.node_id.in_(node_ids)))

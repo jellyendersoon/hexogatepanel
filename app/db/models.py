@@ -749,6 +749,26 @@ class NodeUserUsage(Base, IdMixin):
     used_traffic: Mapped[int] = mapped_column(BigInteger, default=0)
 
 
+class NodeUserUsageTotal(Base, IdMixin):
+    """
+    Global rollup of ``node_user_usages``: one row per (time bucket, node).
+
+    ``used_traffic`` always equals ``SUM(node_user_usages.used_traffic)`` over the rows of
+    that bucket and node whose user still exists. It backs the unfiltered users-usage chart.
+    Every write or delete of ``node_user_usages`` must keep it in sync in the same transaction
+    (see ``app.jobs.record_usages`` and ``app.db.crud.usage_totals``).
+    """
+
+    __tablename__ = "node_user_usage_totals"
+    __table_args__ = (
+        UniqueConstraint("created_at", "node_id"),
+        Index("ix_node_user_usage_totals_created_at", "created_at"),
+    )
+    created_at: Mapped[dt] = mapped_column(DateTime(timezone=True), unique=False)  # same buckets as NodeUserUsage
+    node_id: Mapped[int | None] = fk_id_column("nodes.id", ondelete="CASCADE")
+    used_traffic: Mapped[int] = mapped_column(BigInteger, default=0)
+
+
 class NodeUsage(Base, IdMixin):
     __tablename__ = "node_usages"
     __table_args__ = (
