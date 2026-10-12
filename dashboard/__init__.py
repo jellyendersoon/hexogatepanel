@@ -1,12 +1,17 @@
 import atexit
+import json
 import os
 import re
 import subprocess
+from html import escape
 from pathlib import Path
 
 from fastapi.staticfiles import StaticFiles
+from starlette.datastructures import Headers
+from starlette.responses import FileResponse, HTMLResponse
 
 from app import on_startup
+from app.utils.brand import Brand, brand_for_headers
 from config import dashboard_settings, runtime_settings, server_settings
 
 base_dir = Path(__file__).parent
@@ -16,10 +21,41 @@ NO_CACHE_FILENAMES = {"index.html", "404.html", "sw.js", "manifest.webmanifest"}
 HASHED_ASSET_RE = re.compile(r".+-[A-Za-z0-9_-]{6,}\.[A-Za-z0-9]+$")
 
 
+BRANDED_FILENAMES = {"index.html", "404.html"}
+
+
+def apply_brand(html: str, brand: Brand) -> str:
+    """Give the dashboard shell a tenant's title and icon, and hand the brand to the app."""
+    public = brand.public()
+    html = re.sub(
+        r"<title>.*?</title>", lambda _: f"<title>{escape(brand.name)}</title>", html, count=1, flags=re.DOTALL
+    )
+    # The web manifest and touch icon are Hexogate's; a branded host gets neither.
+    html = re.sub(r"<link\b[^>]*\brel=\"(?:manifest|apple-touch-icon)\"[^>]*>\s*", "", html)
+    icon_url = public["favicon"] or public["logo"]
+    if icon_url:
+        icon = f'<link rel="icon" href="{escape(icon_url)}" />'
+        html = re.sub(r"<link\b[^>]*\brel=\"icon\"[^>]*>", lambda _: icon, html, count=1)
+    payload = json.dumps(public).replace("<", "\\u003c")
+    return html.replace("</head>", f"<script>window.__HEXO_BRAND__={payload}</script></head>", 1)
+
+
 class DashboardStaticFiles(StaticFiles):
+    async def get_response(self, path, scope):
+        response = await super().get_response(path, scope)
+        # Starlette serves 404.html itself, bypassing file_response; brand that shell too.
+        is_404_shell = response.status_code == 404 and isinstance(response, FileResponse)
+        if is_404_shell and brand_for_headers(Headers(scope=scope)):
+            return self.file_response(response.path, None, scope, 404)
+        return response
+
     def file_response(self, full_path, stat_result, scope, status_code=200):
-        response = super().file_response(full_path, stat_result, scope, status_code)
         file_name = Path(full_path).name
+        brand = brand_for_headers(Headers(scope=scope)) if file_name in BRANDED_FILENAMES else None
+        if brand:
+            response = HTMLResponse(apply_brand(Path(full_path).read_text(encoding="utf-8"), brand), status_code)
+        else:
+            response = super().file_response(full_path, stat_result, scope, status_code)
 
         if file_name in NO_CACHE_FILENAMES:
             response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"

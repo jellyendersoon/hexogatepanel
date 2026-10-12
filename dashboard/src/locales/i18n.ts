@@ -3,6 +3,13 @@ import LanguageDetector from 'i18next-browser-languagedetector'
 import HttpApi from 'i18next-http-backend'
 import { initReactI18next } from 'react-i18next'
 import { joinURL } from 'ufo'
+import { brand } from '@/lib/brand'
+
+// On a tenant's own domain the product name in every translation becomes the tenant's.
+if (brand) {
+  const { name } = brand
+  i18n.use({ type: 'postProcessor', name: 'brand', process: (value: string) => value.split('Hexogate').join(name) })
+}
 
 i18n
   .use(LanguageDetector)
@@ -13,6 +20,7 @@ i18n
       debug: import.meta.env.NODE_ENV === 'development',
       returnNull: false,
       fallbackLng: 'en',
+      postProcess: brand ? ['brand'] : [],
       interpolation: {
         escapeValue: false,
       },

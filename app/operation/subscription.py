@@ -29,6 +29,7 @@ from app.subscription.share import (
     setup_format_variables,
 )
 from app.templates import render_template
+from app.utils.brand import brand_for_subscription
 from app.utils.hwid import resolve_effective_hwid_settings
 from config import template_settings
 
@@ -471,9 +472,12 @@ class SubscriptionOperation(BaseOperation):
             return HTMLResponse(
                 render_template(
                     template,
-                    self._build_subscription_body_payload(
-                        user, links, formatted_announce, sub_settings, format_variables, is_hwid_enabled
-                    ),
+                    {
+                        **self._build_subscription_body_payload(
+                            user, links, formatted_announce, sub_settings, format_variables, is_hwid_enabled
+                        ),
+                        "brand": self._brand_context(db_user, request_url),
+                    },
                 )
             )
         else:
@@ -595,6 +599,12 @@ class SubscriptionOperation(BaseOperation):
 
         # Create response headers
         return Response(content=conf, media_type=media_type, headers=response_headers)
+
+    @staticmethod
+    def _brand_context(db_user, request_url: str) -> dict[str, Any] | None:
+        """White-label brand of the subscription page (None = default presentation)."""
+        brand = brand_for_subscription(db_user.admin.username if db_user.admin else None, request_url)
+        return brand.template_context() if brand else None
 
     def _build_subscription_body_payload(
         self,

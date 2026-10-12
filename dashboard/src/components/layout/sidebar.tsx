@@ -11,6 +11,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useAdmin } from '@/hooks/use-admin'
 import useDirDetection from '@/hooks/use-dir-detection'
 import { useSystemVersion } from '@/hooks/use-system-version'
+import { brandLogo, brandName } from '@/lib/brand'
 import { cn } from '@/lib/utils'
 import { canReadResourcePage, hasPermission, hasScopeAll, isOwner } from '@/utils/rbac'
 import {
@@ -382,12 +383,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <div className="border-sidebar-border bg-sidebar/80 supports-[backdrop-filter]:bg-sidebar/65 flex items-center justify-between border-b px-4 py-3 backdrop-blur-md">
           <Link to="/" className="flex items-center gap-2">
             <img
-              src={resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png'}
-              alt="Hexogate Logo"
+              src={brandLogo(resolvedTheme === 'dark', resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png')}
+              alt={`${brandName('Hexogate')} Logo`}
               className="h-8 w-8 object-contain"
             />
             <span dir={isRTL ? 'rtl' : 'ltr'} className="text-sm font-bold">
-              {t('hexogate')}
+              {brandName(t('hexogate'))}
             </span>
           </Link>
           <SidebarTrigger />
@@ -409,8 +410,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   >
                     <Link to="/">
                       <img
-                        src={resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png'}
-                        alt="Hexogate Logo"
+                        src={brandLogo(
+                          resolvedTheme === 'dark',
+                          resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png',
+                        )}
+                        alt={`${brandName('Hexogate')} Logo`}
                         className="h-6 w-6 flex-shrink-0 object-contain"
                       />
                     </Link>
@@ -442,12 +446,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                   <SidebarMenuButton size="lg" className={cn('w-full !gap-2')}>
                     <Link to="/" className="flex min-w-0 flex-1 items-center gap-2">
                       <img
-                        src={resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png'}
-                        alt="Hexogate Logo"
+                        src={brandLogo(
+                          resolvedTheme === 'dark',
+                          resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png',
+                        )}
+                        alt={`${brandName('Hexogate')} Logo`}
                         className="h-8 w-8 flex-shrink-0 object-contain"
                       />
                       <div className="flex min-w-0 flex-1 flex-col items-start overflow-hidden">
-                        <span className={cn(isRTL ? 'text-right' : 'text-left', 'truncate text-sm leading-tight font-semibold')}>{t('hexogate')}</span>
+                        <span className={cn(isRTL ? 'text-right' : 'text-left', 'truncate text-sm leading-tight font-semibold')}>{brandName(t('hexogate'))}</span>
                         {canReadSystem && <span className="max-w-full truncate text-xs leading-none opacity-45">{displayVersion}</span>}
                       </div>
                     </Link>
@@ -482,12 +489,15 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                 <SidebarMenuButton size="lg" asChild className="!gap-2">
                   <Link to="/">
                     <img
-                      src={resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png'}
-                      alt="Hexogate Logo"
+                      src={brandLogo(
+                        resolvedTheme === 'dark',
+                        resolvedTheme === 'dark' ? window.location.pathname + 'statics/favicon/logo.png' : window.location.pathname + 'statics/favicon/logo-dark.png',
+                      )}
+                      alt={`${brandName('Hexogate')} Logo`}
                       className="h-8 w-8 flex-shrink-0 object-contain"
                     />
                     <div className="flex min-w-0 flex-col overflow-hidden">
-                      <span className={cn(isRTL ? 'text-right' : 'text-left', 'truncate text-sm leading-tight font-semibold')}>{t('hexogate')}</span>
+                      <span className={cn(isRTL ? 'text-right' : 'text-left', 'truncate text-sm leading-tight font-semibold')}>{brandName(t('hexogate'))}</span>
                       {canReadSystem && <span className="max-w-full truncate text-xs leading-none opacity-45">{displayVersion}</span>}
                     </div>
                   </Link>

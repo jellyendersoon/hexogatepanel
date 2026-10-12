@@ -1,3 +1,4 @@
+import { brand, brandLogo, brandName } from '@/lib/brand'
 import { Footer } from '@/components/layout/footer'
 import { Language } from '@/components/common/language'
 import { useTheme } from '@/app/providers/theme-context'
@@ -406,11 +407,15 @@ export const Login: FC = () => {
       <aside className="relative hidden overflow-hidden bg-[#031d44] text-[#dfeafa] lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-10 xl:p-14">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_60%,rgba(86,198,234,0.22),transparent_70%)]" />
         <div className="relative flex items-center gap-3">
-          <img src="/statics/favicon/logo.png" alt="" className="h-10 w-10 object-contain" />
-          <span className="text-lg font-semibold tracking-wide">Hexogate</span>
+          <img src={brandLogo(true, '/statics/favicon/logo.png')} alt="" className="h-10 w-10 object-contain" />
+          <span className="text-lg font-semibold tracking-wide">{brandName('Hexogate')}</span>
         </div>
         <div className="relative flex flex-1 items-center justify-center py-8">
-          <img src="/statics/favicon/hero.svg" alt="" className="w-full max-w-2xl object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+          {brand ? (
+            brand.logo && <img src={brand.logo} alt="" className="w-full max-w-xs object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+          ) : (
+            <img src="/statics/favicon/hero.svg" alt="" className="w-full max-w-2xl object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+          )}
         </div>
         <div className="relative space-y-2">
           <h2 className="text-2xl font-semibold text-white">{t('login.brandHeadline', { defaultValue: 'Your gateway, under your control.' })}</h2>
@@ -426,7 +431,11 @@ export const Login: FC = () => {
           <div className="w-full max-w-[400px]">
             <div className="bg-card border-border/60 rounded-2xl border p-6 shadow-sm sm:p-8">
               <div className="flex flex-col items-center gap-2">
-                <img src={resolvedTheme === 'dark' ? '/statics/favicon/logo.png' : '/statics/favicon/logo-dark.png'} alt="Hexogate Logo" className="h-16 w-16 object-contain" />
+                <img
+                  src={brandLogo(resolvedTheme === 'dark', resolvedTheme === 'dark' ? '/statics/favicon/logo.png' : '/statics/favicon/logo-dark.png')}
+                  alt={`${brandName('Hexogate')} Logo`}
+                  className="h-16 w-16 object-contain"
+                />
                 <span className="text-2xl font-semibold">{view === 'login' ? t('login.loginYourAccount') : t('setup.ownerAccess', { defaultValue: 'Owner access' })}</span>
                 <span className="text-muted-foreground text-center text-sm">
                   {view === 'login'

@@ -4,6 +4,7 @@ from . import (
     admin,
     admin_role,
     api_key,
+    brand,
     client_template,
     core,
     group,
@@ -23,6 +24,7 @@ api_router = APIRouter()
 
 routers = [
     home.router,
+    brand.router,
     admin.router,
     api_key.router,
     admin_role.router,

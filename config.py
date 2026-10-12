@@ -144,6 +144,15 @@ class SubscriptionEnvSettings(EnvSettings):
         return (self.xray_path or self.fallback_path).strip("/")
 
 
+class BrandSettings(EnvSettings):
+    # Optional JSON list of white-label tenant brands (name, hosts, admins, logo
+    # files). Runtime data, never part of the source tree; see app/utils/brand.py.
+    path: str = Field(
+        default="/var/lib/hexogate/brands.json",
+        validation_alias=AliasChoices("BRANDS_PATH", "PASARGUARD_BRANDS_PATH"),
+    )
+
+
 class JwtSettings(EnvSettings):
     access_token_expire_minutes: int = Field(default=1440, validation_alias="JWT_ACCESS_TOKEN_EXPIRE_MINUTES")
 
@@ -246,6 +255,7 @@ dashboard_settings = DashboardSettings()
 nats_settings = NatsSettings()
 cors_settings = CorsSettings()
 subscription_env_settings = SubscriptionEnvSettings()
+brand_settings = BrandSettings()
 jwt_settings = JwtSettings()
 template_settings = TemplateSettings()
 user_cleanup_settings = UserCleanupSettings()
