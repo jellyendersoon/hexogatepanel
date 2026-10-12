@@ -73,3 +73,25 @@ def test_server_limit(tmp_path, monkeypatch):
     for index in range(250):
         store.ingest(f"s{index}", _sample(), now=1000.0)
     assert len(store.servers) == 200
+
+
+def test_live_users_ranks_by_speed_and_keeps_ten_minutes():
+    users = fleet_live.LiveUsers()
+    users.record({1: [{"uid": 10, "value": 3_000_000}, {"uid": 11, "value": 30_000_000}]}, now=1000.0)
+    users.record(
+        {1: [{"uid": 10, "value": 6_000_000}], 2: [{"uid": 10, "value": 1_500_000}, {"uid": 12, "value": 0}]},
+        now=1030.0,
+    )
+
+    now = users.top(limit=10, span="now", now=1035.0)
+    assert now["active"] == 1 and now["seconds"] == 30
+    assert [user["uid"] for user in now["users"]] == [10]
+    assert now["users"][0]["bps"] == 7_500_000 * 8 // 30
+    assert now["users"][0]["nodes"] == [(1, 6_000_000), (2, 1_500_000)]
+    assert now["users"][0]["kept_bytes"] == 10_500_000
+    assert len(now["users"][0]["spark"]) == 2
+
+    ten = users.top(limit=1, span="10m", now=1035.0)
+    assert [user["uid"] for user in ten["users"]] == [11] and ten["seconds"] == 60
+
+    assert users.top(now=1030.0 + fleet_live.USER_STALE_SECONDS + 1)["users"] == []

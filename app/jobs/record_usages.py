@@ -21,6 +21,7 @@ from app.db.crud.usage_totals import build_node_user_usage_totals_add
 from app.db.models import Admin, Node, NodeUsage, NodeUserUsage, System, User
 from app.node import node_manager
 from app.operation.admin_sync import enforce_admin_limits_now
+from app.utils.fleet_live import live_users
 from app.utils.logger import get_logger
 from config import job_settings, runtime_settings, usage_settings
 
@@ -700,6 +701,11 @@ async def _record_user_usages_impl():
             _, coeff, stats = result
             usage_coefficient[node_id] = coeff
             api_params[node_id] = stats
+
+        try:
+            live_users.record(api_params)  # feeds the dashboard's live top-users view; never blocks recording
+        except Exception:
+            logger.exception("Failed to update live user traffic")
 
         users_usage = await calculate_users_usage(api_params, usage_coefficient)
         if not users_usage:

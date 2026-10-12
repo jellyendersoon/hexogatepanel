@@ -170,4 +170,66 @@ class FleetLiveStore:
                     state.minutes.append(tuple(point))
 
 
+USER_WINDOWS = 20  # about ten minutes at the default 30 s usage interval
+USER_STALE_SECONDS = 150
+
+
+class LiveUsers:
+    """Per-user traffic from the usage recording job: the bytes each user moved on each node in every interval."""
+
+    def __init__(self) -> None:
+        self.windows: deque = deque(maxlen=USER_WINDOWS)  # (ts, seconds, {uid: {node_id: bytes}})
+        self._last_ts = 0.0
+
+    def record(self, api_params: dict, now: float | None = None) -> None:
+        now = now or time.time()
+        seconds = min(300.0, max(5.0, now - self._last_ts)) if self._last_ts else 30.0
+        self._last_ts = now
+        window: dict[int, dict[int, int]] = {}
+        for node_id, params in (api_params or {}).items():
+            for param in params or ():
+                value = int(param["value"])
+                if value > 0:
+                    window.setdefault(int(param["uid"]), {})[int(node_id)] = value
+        self.windows.append((now, seconds, window))
+
+    def top(self, limit: int = 10, span: str = "now", now: float | None = None) -> dict[str, Any]:
+        """Busiest users over the newest interval (span="now") or over everything kept (span="10m")."""
+        now = now or time.time()
+        if not self.windows or now - self.windows[-1][0] > USER_STALE_SECONDS:
+            return {"age": None, "seconds": 0, "active": 0, "total_bps": 0, "users": []}
+        chosen = [self.windows[-1]] if span == "now" else list(self.windows)
+        seconds = sum(window[1] for window in chosen)
+        totals: dict[int, int] = {}
+        per_node: dict[int, dict[int, int]] = {}
+        for _ts, _seconds, window in chosen:
+            for uid, nodes in window.items():
+                totals[uid] = totals.get(uid, 0) + sum(nodes.values())
+                bucket = per_node.setdefault(uid, {})
+                for node_id, value in nodes.items():
+                    bucket[node_id] = bucket.get(node_id, 0) + value
+        ranked = sorted(totals, key=totals.__getitem__, reverse=True)[:limit]
+        users = []
+        for uid in ranked:
+            kept = sum(sum(window.get(uid, {}).values()) for _ts, _seconds, window in self.windows)
+            users.append(
+                {
+                    "uid": uid,
+                    "bytes": totals[uid],
+                    "bps": round(totals[uid] * 8 / seconds),
+                    "kept_bytes": kept,
+                    "nodes": sorted(per_node[uid].items(), key=lambda item: item[1], reverse=True),
+                    "spark": [round(sum(w.get(uid, {}).values()) * 8 / s) for _ts, s, w in self.windows],
+                }
+            )
+        return {
+            "age": round(now - self.windows[-1][0], 1),
+            "seconds": round(seconds),
+            "active": len(self.windows[-1][2]),
+            "total_bps": round(sum(totals.values()) * 8 / seconds),
+            "users": users,
+        }
+
+
 store = FleetLiveStore()
+live_users = LiveUsers()

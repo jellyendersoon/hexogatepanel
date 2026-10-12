@@ -4,6 +4,7 @@ POST /api/fleet/live/ingest  one sample from a server's hexogate-livestats repor
 GET  /api/fleet/live         every server right now: speed, TCP/UDP counts, CPU, memory, a 30-minute sparkline and the
                              established connections per inbound
 GET  /api/fleet/live/history one-minute series for the last hours, for one server or the whole fleet
+GET  /api/fleet/live/users   the busiest users right now (from the usage recording job), with the servers they are on
 """
 
 import hmac
@@ -15,13 +16,13 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, s
 from sqlalchemy import select
 
 from app.db import GetDB
-from app.db.models import CoreConfig, Node
+from app.db.models import Admin, CoreConfig, Node, User
 from app.models.admin import AdminDetails
 from app.operation import OperatorType
 from app.operation.node import NodeOperation
-from app.utils.fleet_live import OFFLINE_SECONDS, store
+from app.utils.fleet_live import OFFLINE_SECONDS, live_users, store
 
-from .authentication import require_permission
+from .authentication import require_permission, require_scope_all
 
 router = APIRouter(tags=["Fleet"], prefix="/api/fleet/live")
 node_operator = NodeOperation(operator_type=OperatorType.API)
@@ -226,3 +227,64 @@ async def fleet_live_history(
 ):
     """One-minute averages: [timestamp, download bit/s, upload bit/s, TCP connections, UDP flows]."""
     return {"server": server, "minutes": minutes, "points": store.history(server or None, minutes)}
+
+
+async def _load_users(uids: list[int]) -> dict[int, dict[str, Any]]:
+    if not uids:
+        return {}
+    async with GetDB() as db:
+        rows = (
+            await db.execute(
+                select(User.id, User.username, User.status, User.used_traffic, User.data_limit, Admin.username)
+                .outerjoin(Admin, Admin.id == User.admin_id)
+                .where(User.id.in_(uids))
+            )
+        ).all()
+    return {
+        row[0]: {
+            "username": row[1],
+            "status": getattr(row[2], "value", str(row[2])),
+            "used_traffic": row[3],
+            "data_limit": row[4],
+            "admin": row[5],
+        }
+        for row in rows
+    }
+
+
+@router.get("/users", response_model=dict)
+async def fleet_live_users(
+    limit: int = Query(default=10, ge=1, le=50),
+    span: str = Query(default="now", pattern="^(now|10m)$"),
+    _: AdminDetails = Depends(require_scope_all("users", "read")),
+):
+    """The busiest users: average speed (download + upload) over the last usage interval or the last ten minutes."""
+    result = live_users.top(limit=limit, span=span)
+    topology = await _load_topology()
+    node_names = {
+        node["id"]: _server_name(server["nodes"], address) for address, server in topology.items() for node in server["nodes"]
+    }  # fmt: skip
+    details = await _load_users([user["uid"] for user in result["users"]])
+    users = []
+    for user in result["users"]:
+        servers: dict[str, int] = {}
+        for node_id, value in user["nodes"]:
+            name = node_names.get(node_id, f"node {node_id}")
+            servers[name] = servers.get(name, 0) + value
+        detail = details.get(user["uid"], {})
+        users.append(
+            {
+                "id": user["uid"],
+                "username": detail.get("username") or f"#{user['uid']}",
+                "admin": detail.get("admin"),
+                "status": detail.get("status"),
+                "used_traffic": detail.get("used_traffic"),
+                "data_limit": detail.get("data_limit"),
+                "bps": user["bps"],
+                "bytes": user["bytes"],
+                "kept_bytes": user["kept_bytes"],
+                "servers": [{"name": name, "bytes": value} for name, value in servers.items()],
+                "spark": user["spark"],
+            }
+        )
+    return {**result, "span": span, "users": users}

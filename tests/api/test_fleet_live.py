@@ -90,3 +90,30 @@ def test_fleet_live_needs_an_admin_and_reports_servers(access_token, monkeypatch
     history = client.get("/api/fleet/live/history?minutes=30", headers=auth_headers(access_token))
     assert history.status_code == status.HTTP_200_OK and history.json()["points"] == []
     assert client.get("/api/fleet/live/history?minutes=5", headers=auth_headers(access_token)).status_code == 422
+
+
+def test_fleet_live_users_lists_the_busiest_users(access_token, monkeypatch: MonkeyPatch, tmp_path):
+    _fresh_store(monkeypatch, tmp_path)
+    live = fleet_store.LiveUsers()
+    monkeypatch.setattr(fleet_router, "live_users", live)
+
+    async def topology():
+        return {"203.0.113.9": {"nodes": [{"id": 7, "name": "🇩🇪 DE-01 ▸ Full", "status": "connected"}], "ports": {}}}
+
+    async def users(uids):
+        return {41: {"username": "alice", "status": "active", "used_traffic": 5, "data_limit": None, "admin": "boss"}}
+
+    monkeypatch.setattr(fleet_router, "_load_topology", topology)
+    monkeypatch.setattr(fleet_router, "_load_users", users)
+    assert client.get("/api/fleet/live/users").status_code == status.HTTP_401_UNAUTHORIZED
+    empty = client.get("/api/fleet/live/users", headers=auth_headers(access_token))
+    assert empty.status_code == status.HTTP_200_OK and empty.json()["users"] == []
+
+    live.record({7: [{"uid": 41, "value": 3_750_000}], 9: [{"uid": 42, "value": 1_000}]})
+    body = client.get("/api/fleet/live/users?limit=5", headers=auth_headers(access_token)).json()
+    assert body["active"] == 2 and body["span"] == "now"
+    first, second = body["users"]
+    assert (first["username"], first["admin"], first["bps"]) == ("alice", "boss", 1_000_000)
+    assert first["servers"] == [{"name": "🇩🇪 DE-01", "bytes": 3_750_000}]
+    assert second["username"] == "#42" and second["servers"][0]["name"] == "node 9"
+    assert client.get("/api/fleet/live/users?span=1h", headers=auth_headers(access_token)).status_code == 422

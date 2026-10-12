@@ -83,7 +83,7 @@ const statusDot: Record<FleetServer['status'], string> = {
 /** A server needs attention when its CPU is nearly exhausted or the hypervisor is taking a large share of it. */
 const isStrained = (server: FleetServer) => (server.cpu ?? 0) >= 90 || (server.steal ?? 0) >= 35
 
-const Sparkline = ({ values, className }: { values: number[]; className?: string }) => {
+export const Sparkline = ({ values, className }: { values: number[]; className?: string }) => {
   const path = useMemo(() => {
     const max = Math.max(1, ...values)
     const step = values.length > 1 ? 100 / (values.length - 1) : 100
