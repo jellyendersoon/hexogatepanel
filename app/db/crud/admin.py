@@ -1,9 +1,9 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import and_, case, delete, func, not_, select, update
+from sqlalchemy import and_, case, delete, func, not_, or_, select, update
 from sqlalchemy.exc import InvalidRequestError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import joinedload, selectinload
+from sqlalchemy.orm import aliased, joinedload, selectinload
 from sqlalchemy.orm.exc import DetachedInstanceError
 
 from app.db.crud.general import (
@@ -88,6 +88,7 @@ def build_admin_details(
         status=db_admin.status,
         telegram_id=db_admin.telegram_id,
         discord_webhook=db_admin.discord_webhook,
+        parent_id=db_admin.parent_id,
         sub_domain=db_admin.sub_domain,
         profile_title=db_admin.profile_title,
         support_url=db_admin.support_url,
@@ -210,6 +211,8 @@ async def update_admin(db: AsyncSession, db_admin: Admin, modified_admin: AdminM
         db_admin.role_id = modified_admin.role_id
     if modified_admin.permission_overrides is not None:
         db_admin.permission_overrides = modified_admin.permission_overrides.model_dump()
+    if modified_admin.parent_id is not None:
+        db_admin.parent_id = modified_admin.parent_id or None
     if modified_admin.telegram_id is not None:
         db_admin.telegram_id = modified_admin.telegram_id
     if modified_admin.discord_webhook is not None:
@@ -303,6 +306,56 @@ async def find_admins_by_telegram_id(
     return (await db.execute(stmt)).scalars().all()
 
 
+def _masters_subquery():
+    """Ids of the admins that are a master (some admin belongs to them)."""
+    children = aliased(Admin)
+    return select(children.parent_id).where(children.parent_id.is_not(None)).distinct().scalar_subquery()
+
+
+def _parent_clause(parent_id: int, include_master: bool = True):
+    """Admins of one master, by default together with the master account itself.
+
+    0 selects the admins that have no master and are not a master themselves, so every admin
+    falls in exactly one bucket.
+    """
+    if parent_id == 0:
+        return and_(Admin.parent_id.is_(None), Admin.id.not_in(_masters_subquery()))
+    if include_master:
+        return or_(Admin.parent_id == parent_id, Admin.id == parent_id)
+    return Admin.parent_id == parent_id
+
+
+async def get_admin_masters(db: AsyncSession, include_owner: bool = True) -> list[tuple[int, str, int]]:
+    """(master id, master username, number of admins incl. the master itself) per master.
+
+    A last row with id 0 counts the admins that neither have nor are a master. The buckets are the
+    ones `_parent_clause` selects, so their counts add up to the number of admins.
+    """
+    stmt = select(Admin.id, Admin.username, Admin.parent_id)
+    if not include_owner:
+        stmt = stmt.where(Admin.role.has(AdminRole.is_owner.is_(False)))
+    rows = (await db.execute(stmt)).all()
+    children: dict[int, int] = {}
+    for _, _, parent_id in rows:
+        if parent_id is not None:
+            children[parent_id] = children.get(parent_id, 0) + 1
+    names = {admin_id: username for admin_id, username, _ in rows}
+    missing = [master_id for master_id in children if master_id not in names]
+    if missing:  # a master hidden from this viewer (the owner account) still labels its tab
+        hidden = await db.execute(select(Admin.id, Admin.username).where(Admin.id.in_(missing)))
+        names.update({admin_id: username for admin_id, username in hidden.all()})
+    visible = {admin_id for admin_id, _, _ in rows}
+    masters = [
+        (master_id, names.get(master_id, str(master_id)), count + (1 if master_id in visible else 0))
+        for master_id, count in children.items()
+    ]
+    masters.sort(key=lambda row: (-row[2], row[1].casefold()))
+    loose = sum(1 for admin_id, _, parent_id in rows if parent_id is None and admin_id not in children)
+    if loose:
+        masters.append((0, "", loose))
+    return masters
+
+
 async def get_admins(
     db: AsyncSession,
     query: AdminListQuery,
@@ -341,6 +394,8 @@ async def get_admins(
             counts_stmt = counts_stmt.where(Admin.username.in_(params.usernames))
         if params.username:
             counts_stmt = counts_stmt.where(Admin.username.ilike(f"%{params.username}%"))
+        if params.parent_id is not None:
+            counts_stmt = counts_stmt.where(_parent_clause(params.parent_id, params.include_master))
         if not include_owner:
             counts_stmt = counts_stmt.where(Admin.role.has(AdminRole.is_owner.is_(False)))
 
@@ -393,6 +448,8 @@ async def get_admins(
         stmt = stmt.where(Admin.username.in_(params.usernames))
     if params.username:
         stmt = stmt.where(Admin.username.ilike(f"%{params.username}%"))
+    if params.parent_id is not None:
+        stmt = stmt.where(_parent_clause(params.parent_id, params.include_master))
     if not include_owner:
         stmt = stmt.where(Admin.role.has(AdminRole.is_owner.is_(False)))
 
@@ -443,6 +500,8 @@ async def get_admins_simple(
         stmt = stmt.where(Admin.username.in_(query.usernames))
     if query.search:
         stmt = stmt.where(Admin.username.ilike(f"%{query.search}%"))
+    if query.parent_id is not None:
+        stmt = stmt.where(_parent_clause(query.parent_id, query.include_master))
     if not include_owner:
         stmt = stmt.where(Admin.role.has(AdminRole.is_owner.is_(False)))
 

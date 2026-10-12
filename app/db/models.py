@@ -109,6 +109,8 @@ class Admin(Base, CreatedAtUTCMixin):
     role_id: Mapped[int] = fk_id_column("admin_roles.id", default=0)
     role: Mapped[AdminRole | None] = relationship(back_populates="admins", init=False, lazy="select")
     permission_overrides: Mapped[dict | None] = mapped_column(PostgresJSONB, default=None)
+    # The master (reseller) this admin belongs to; a master-reseller role manages only its own admins.
+    parent_id: Mapped[int | None] = fk_id_column("admins.id", ondelete="SET NULL", default=None, index=True)
 
     @hybrid_property
     def is_disabled(self) -> bool:

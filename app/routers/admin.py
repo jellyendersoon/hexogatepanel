@@ -10,6 +10,7 @@ from app.models.admin import (
     AdminCreate,
     AdminDetails,
     AdminListQuery,
+    AdminMastersResponse,
     AdminModify,
     AdminSimpleListQuery,
     AdminsResponse,
@@ -194,6 +195,15 @@ async def get_admins(
 ):
     """Fetch a list of admins with optional filters for pagination and username."""
     return await admin_operator.get_admins(db, query=query, admin=admin)
+
+
+@router.get("s/masters", response_model=AdminMastersResponse)
+async def get_admin_masters(
+    db: AsyncSession = Depends(get_db),
+    admin: AdminDetails = Depends(require_permission("admins", "read")),
+):
+    """Masters (resellers) and how many admins belong to each; id 0 = admins with no master."""
+    return await admin_operator.get_admin_masters(db, admin=admin)
 
 
 @router.get(

@@ -134,6 +134,7 @@ class AdminDetails(AdminContactInfo):
     note: str | None = None
     role: AdminRoleData | None = None
     permission_overrides: RoleLimits | None = None
+    parent_id: int | None = None
 
     @property
     def is_owner(self) -> bool:
@@ -171,6 +172,8 @@ class AdminModify(BaseModel):
     notification_enable: UserNotificationEnable | None = None
     role_id: int | None = None
     permission_overrides: RoleLimits | None = None
+    # Master (reseller) the admin belongs to. 0 clears it. Only an unrestricted admin manager may set it.
+    parent_id: int | None = None
 
     @field_validator("discord_webhook")
     @classmethod
@@ -233,6 +236,19 @@ class AdminsResponse(BaseModel):
     active: int
     disabled: int
     limited: int
+
+
+class AdminMaster(BaseModel):
+    """A master (reseller) and how many admins belong to it; id 0 = admins with no master."""
+
+    id: int
+    username: str
+    admins: int
+
+
+class AdminMastersResponse(BaseModel):
+    masters: list[AdminMaster]
+    total: int
 
 
 class AdminSimple(BaseModel):
@@ -302,6 +318,9 @@ class AdminListQuery(BaseModel):
     ids: list[int] | None = None
     usernames: list[str] | None = None
     username: str | None = None
+    # Only the admins of this master (with the master itself); 0 = admins that neither have nor are a master.
+    parent_id: int | None = None
+    include_master: bool = True
     offset: int | None = None
     limit: int | None = None
     sort: list[AdminSortOption] = Field(default_factory=list)
@@ -316,6 +335,8 @@ class AdminSimpleListQuery(BaseModel):
     ids: list[int] | None = None
     usernames: list[str] | None = None
     search: str | None = None
+    parent_id: int | None = None
+    include_master: bool = True
     offset: int | None = None
     limit: int | None = None
     sort: list[AdminSimpleSortOption] = Field(default_factory=list)

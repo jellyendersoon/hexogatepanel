@@ -1,6 +1,6 @@
 from datetime import datetime as dt
 from enum import Enum, IntEnum, StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -123,6 +123,9 @@ class RoleAccess(BaseModel):
     require_template: bool = False
     allowed_template_ids: list[int] | None = None
     allowed_group_ids: list[int] | None = None
+    # "own" makes the role a master reseller: its "admins" permissions reach only the admins
+    # whose parent is the acting admin, and it can never change their role, limits or parent.
+    admins_scope: Literal["all", "own"] = "all"
 
     model_config = ConfigDict(from_attributes=True)
 

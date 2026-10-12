@@ -10,6 +10,8 @@ from app.db.crud.admin import (
     build_admin_details,
     create_admin,
     find_admins_by_telegram_id,
+    get_admin_by_id,
+    get_admin_masters,
     get_admin_usages,
     get_admins,
     get_admins_count,
@@ -27,6 +29,8 @@ from app.models.admin import (
     AdminCreate,
     AdminDetails,
     AdminListQuery,
+    AdminMaster,
+    AdminMastersResponse,
     AdminModify,
     AdminSimple,
     AdminSimpleListQuery,
@@ -55,9 +59,45 @@ class AdminOperation(BaseOperation):
     def _is_owner_admin(db_admin: Admin) -> bool:
         return db_admin.role_id == 1
 
+    @staticmethod
+    def _set_limits(overrides: dict | None) -> dict:
+        """Only the limits that are actually set, so "no overrides" and "all empty" compare equal."""
+        return {key: value for key, value in (overrides or {}).items() if value is not None}
+
+    @staticmethod
+    def _is_master_reseller(admin: AdminDetails) -> bool:
+        """True when the acting admin's role limits its admin management to its own admins."""
+        return not admin.is_owner and admin.role is not None and admin.role.access.admins_scope == "own"
+
     async def _ensure_owner_target_access(self, db_admin: Admin, current_admin: AdminDetails) -> None:
         if not current_admin.is_owner and self._is_owner_admin(db_admin):
             await self.raise_error(message="Owner account is not accessible.", code=403)
+        # A master reseller reaches its own admins and itself, nothing else. Answer 404 so that
+        # other admins' names are not confirmed to it.
+        if (
+            self._is_master_reseller(current_admin)
+            and db_admin.id != current_admin.id
+            and db_admin.parent_id != current_admin.id
+        ):
+            await self.raise_error(message="Admin not found", code=404)
+
+    async def _ensure_parent_change_allowed(
+        self, db: AsyncSession, parent_id: int | None, current_admin: AdminDetails, target_id: int | None = None
+    ) -> None:
+        """Only an unrestricted admin manager assigns masters; the master must exist and not be the admin itself."""
+        if parent_id is None:
+            return
+        if self._is_master_reseller(current_admin):
+            await self.raise_error(message="You're not allowed to change an admin's master.", code=403)
+        if parent_id == 0:
+            return
+        if target_id is not None and parent_id == target_id:
+            await self.raise_error(message="An admin cannot be its own master.", code=400)
+        master = await get_admin_by_id(db, parent_id, load_users=False, load_usage_logs=False)
+        if master is None:
+            await self.raise_error(message="Master admin not found", code=404)
+        if master.parent_id is not None:
+            await self.raise_error(message="A master cannot itself belong to another master.", code=400)
 
     async def _ensure_role_within_admin_permissions(
         self, db: AsyncSession, role_id: int, current_admin: AdminDetails
@@ -81,6 +121,19 @@ class AdminOperation(BaseOperation):
             )
 
         await self._ensure_role_within_admin_permissions(db, new_admin.role_id, admin)
+
+        if self._is_master_reseller(admin):
+            # Its new admins always belong to it, and it hands out no limits of its own choosing.
+            if new_admin.permission_overrides is not None or new_admin.data_limit is not None:
+                await self.raise_error(message="You're not allowed to set limits for an admin.", code=403)
+            new_admin.parent_id = admin.id
+        else:
+            await self._ensure_parent_change_allowed(db, new_admin.parent_id, admin)
+            if new_admin.parent_id is None:
+                # By default a new admin belongs to whoever created it.
+                new_admin.parent_id = admin.id
+            elif new_admin.parent_id == 0:
+                new_admin.parent_id = None
 
         if new_admin.telegram_id is not None:
             existing_admins = await find_admins_by_telegram_id(db, new_admin.telegram_id, limit=1)
@@ -145,6 +198,26 @@ class AdminOperation(BaseOperation):
             and modified_admin.status == AdminStatus.disabled
         ):
             await self.raise_error(message="You're not allowed to disable your own account.", code=403)
+
+        if self._is_master_reseller(current_admin):
+            # A master reseller edits contact and status fields of its admins; what an admin may do and
+            # how much it may use (role, limits, data limit) and whom it belongs to stay with the owner.
+            locked = {
+                "role_id": modified_admin.role_id is not None and modified_admin.role_id != db_admin.role_id,
+                "permission_overrides": modified_admin.permission_overrides is not None
+                and self._set_limits(modified_admin.permission_overrides.model_dump())
+                != self._set_limits(db_admin.permission_overrides),
+                "data_limit": modified_admin.data_limit is not None
+                and (modified_admin.data_limit or None) != db_admin.data_limit,
+                "parent_id": modified_admin.parent_id is not None,
+            }
+            changed = sorted(name for name, is_changed in locked.items() if is_changed)
+            if changed:
+                await self.raise_error(message=f"You're not allowed to change: {', '.join(changed)}", code=403)
+        elif modified_admin.parent_id is not None:
+            if is_owner_target:
+                await self.raise_error(message="The owner cannot belong to a master.", code=400)
+            await self._ensure_parent_change_allowed(db, modified_admin.parent_id, current_admin, db_admin.id)
 
         if not current_admin.is_owner and not is_self:
             # A non-owner may not promote another admin above their own permissions,
@@ -211,6 +284,8 @@ class AdminOperation(BaseOperation):
 
     async def get_admins(self, db: AsyncSession, query: AdminListQuery, admin: AdminDetails) -> AdminsResponse:
         """Retrieve a list of admins with optional filters and pagination."""
+        if self._is_master_reseller(admin):
+            query = query.model_copy(update={"parent_id": admin.id, "include_master": False})
         admins, total, active, disabled, limited = await get_admins(
             db,
             query,
@@ -220,10 +295,20 @@ class AdminOperation(BaseOperation):
         )
         return AdminsResponse(admins=admins, total=total, active=active, disabled=disabled, limited=limited)
 
+    async def get_admin_masters(self, db: AsyncSession, admin: AdminDetails) -> AdminMastersResponse:
+        """Masters and how many admins each has, for the tabs of the admins page."""
+        if self._is_master_reseller(admin):
+            return AdminMastersResponse(masters=[], total=0)
+        rows = await get_admin_masters(db, include_owner=admin.is_owner)
+        masters = [AdminMaster(id=master_id, username=username, admins=count) for master_id, username, count in rows]
+        return AdminMastersResponse(masters=masters, total=sum(master.admins for master in masters))
+
     async def get_admins_simple(
         self, db: AsyncSession, query: AdminSimpleListQuery, admin: AdminDetails
     ) -> AdminsSimpleResponse:
         """Get lightweight admin list with only id and username."""
+        if self._is_master_reseller(admin):
+            query = query.model_copy(update={"parent_id": admin.id, "include_master": False})
         rows, total = await get_admins_simple(db=db, query=query, include_owner=admin.is_owner)
         admins = [AdminSimple(id=row[0], username=row[1]) for row in rows]
         return AdminsSimpleResponse(admins=admins, total=total)

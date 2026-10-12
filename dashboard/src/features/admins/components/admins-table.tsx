@@ -51,6 +51,8 @@ interface AdminsTableProps {
   onToggleStatus: (admin: AdminDetails) => void
   onResetUsage: (admin: AdminDetails) => void
   onTotalAdminsChange?: (counts: { total: number; active: number; disabled: number; limited: number } | null) => void
+  /** Only admins of this master (0 = admins with no master); undefined = all. */
+  parentId?: number
 }
 
 type BulkUsersActionType = 'disable' | 'activate'
@@ -206,7 +208,7 @@ const BulkUsersStatusConfirmationDialog = ({
   )
 }
 
-export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetUsage, onTotalAdminsChange }: AdminsTableProps) {
+export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetUsage, onTotalAdminsChange, parentId }: AdminsTableProps) {
   const { t } = useTranslation()
   const queryClient = useQueryClient()
   const { admin: currentAdmin } = useAdmin()
@@ -251,13 +253,21 @@ export default function AdminsTable({ onEdit, onDelete, onToggleStatus, onResetU
     isLoading,
     isFetching,
     refetch,
-  } = useGetAdmins(filters, {
+  } = useGetAdmins(parentId === undefined ? filters : { ...filters, parent_id: parentId }, {
     query: {
       staleTime: 0,
       gcTime: 0,
       retry: 1,
     },
   })
+
+  // Another master's tab starts on its first page with nothing selected.
+  useEffect(() => {
+    setCurrentPage(0)
+    setFilters(prev => (prev.offset ? { ...prev, offset: 0 } : prev))
+    setSelectedAdminUsernames([])
+    setResetSelectionKey(prev => prev + 1)
+  }, [parentId])
 
   const adminsData = useMemo(() => adminsResponse?.admins || [], [adminsResponse?.admins])
   const selectedAdmins = adminsData.filter(admin => selectedAdminUsernames.includes(admin.username))

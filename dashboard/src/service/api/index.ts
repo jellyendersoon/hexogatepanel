@@ -392,6 +392,7 @@ export interface RoleAccess {
   require_template?: boolean;
   allowed_template_ids?: number[] | null;
   allowed_group_ids?: number[] | null;
+  admins_scope?: 'all' | 'own';
 }
 
 export type HWIDMode = typeof HWIDMode[keyof typeof HWIDMode];
@@ -452,6 +453,7 @@ export interface AdminDetails {
   note?: string | null;
   role?: AdminRoleData | null;
   permission_overrides?: RoleLimits | null;
+  parent_id?: number | null;
   readonly is_disabled: boolean;
   readonly is_limited: boolean;
 }
@@ -2557,6 +2559,7 @@ export type GetAdminsParams = {
 ids?: number[] | null;
 usernames?: string[] | null;
 username?: string | null;
+parent_id?: number | null;
 offset?: number | null;
 limit?: number | null;
 sort?: string | null;

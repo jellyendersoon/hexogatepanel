@@ -11,6 +11,7 @@ import { adminFormDefaultValues, adminFormSchema, adminPermissionOverridesDefaul
 import { useModifyAdminById, useRemoveAdminById, useResetAdminUsageById } from '@/service/api'
 import type { AdminDetails } from '@/service/api'
 import AdminsStatistics from '@/features/admins/components/admin-statistics'
+import AdminMasterTabs from '@/features/admins/components/admin-master-tabs'
 import { zodResolver } from '@hookform/resolvers/zod'
 import useDynamicErrorHandler from '@/hooks/use-dynamic-errors'
 import { removeAdminFromAdminsCache, upsertAdminInAdminsCache } from '@/utils/adminsCache'
@@ -30,6 +31,7 @@ export default function AdminsPage() {
   const [editingAdmin, setEditingAdmin] = useState<Partial<AdminDetails> | null>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [adminCounts, setAdminCounts] = useState<{ total: number; active: number; disabled: number; limited: number } | null>(null)
+  const [masterId, setMasterId] = useState<number | undefined>(undefined)
   const form = useForm<AdminFormValuesInput>({
     resolver: zodResolver(adminFormSchema),
     defaultValues: adminFormDefaultValues,
@@ -233,12 +235,14 @@ export default function AdminsPage() {
       </div>
 
       <div className="w-full px-4 pt-2">
+        <AdminMasterTabs value={masterId} onChange={setMasterId} refreshKey={adminCounts?.total} />
+
         <div className="transform-gpu">
           <AdminsStatistics counts={adminCounts} />
         </div>
 
         <div className="transform-gpu">
-          <AdminsTable onEdit={handleEdit} onDelete={handleDelete} onToggleStatus={handleToggleStatus} onResetUsage={resetUsage} onTotalAdminsChange={setAdminCounts} />
+          <AdminsTable onEdit={handleEdit} onDelete={handleDelete} onToggleStatus={handleToggleStatus} onResetUsage={resetUsage} onTotalAdminsChange={setAdminCounts} parentId={masterId} />
         </div>
 
         {(canCreateAdmins || canUpdateAdmins) && (
