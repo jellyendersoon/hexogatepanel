@@ -130,3 +130,42 @@ def test_dashboard_shell_gets_the_brand(brands_file):
     assert "Hexogate" not in out and "manifest" not in out and "apple-touch-icon" not in out
     assert 'rel="icon" href="/api/brand/asset/logo.png?v=' in out
     assert 'window.__HEXO_BRAND__={"key": "acme", "name": "Acme"' in out
+
+
+def test_theme_is_validated_and_published(tmp_path):
+    theme = {"default_mode": "dark", "theme_color": "#0a0a0a", "dark": {"--primary": "355 86% 47%"}, "light": {}}
+    brand = validate_brands({"version": 1, "brands": {"a": {"name": "A", "theme": theme}}}, tmp_path)["a"]
+    assert brand.public()["theme"] == {
+        "defaultMode": "dark",
+        "themeColor": "#0a0a0a",
+        "dark": {"--primary": "355 86% 47%"},
+        "light": {},
+    }
+    assert validate_brands({"version": 1, "brands": {"a": {"name": "A"}}}, tmp_path)["a"].public()["theme"] is None
+
+
+@pytest.mark.parametrize(
+    "theme",
+    [
+        {"default_mode": "sepia"},
+        {"theme_color": "red"},
+        {"dark": {"primary": "355 86% 47%"}},
+        {"dark": {"--primary": "red;} body{display:none"}},
+        {"dark": {"--primary": "url(javascript:alert(1))<"}},
+        {"surprise": 1},
+    ],
+)
+def test_theme_validation_rejects(tmp_path, theme):
+    with pytest.raises(BrandError):
+        validate_brands({"version": 1, "brands": {"a": {"name": "A", "theme": theme}}}, tmp_path)
+
+
+def test_dashboard_shell_gets_the_theme_color(tmp_path):
+    from dashboard import apply_brand
+
+    theme = {"theme_color": "#0a0a0a", "dark": {"--background": "0 0% 4%"}}
+    brand = validate_brands({"version": 1, "brands": {"a": {"name": "A", "theme": theme}}}, tmp_path)["a"]
+    html = '<html><head><meta name="theme-color" content="#031d44" /><title>Hexogate</title></head></html>'
+    out = apply_brand(html, brand)
+    assert '<meta name="theme-color" content="#0a0a0a" />' in out and "#031d44" not in out
+    assert '"--background": "0 0% 4%"' in out

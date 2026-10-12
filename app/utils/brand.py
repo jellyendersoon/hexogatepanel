@@ -28,6 +28,18 @@ default (Hexogate) presentation is used.
 ``logo`` is the mark for dark surfaces, ``logo_on_light`` the one for light
 surfaces (defaults to ``logo``). ``admins`` entries are usernames or fnmatch
 patterns.
+
+An optional ``theme`` recolours the dashboard on the brand's hosts::
+
+    "theme": {
+      "default_mode": "dark",
+      "theme_color": "#0a0a0a",
+      "dark":  {"--primary": "355 86% 47%", "--background": "0 0% 4%"},
+      "light": {"--primary": "155 57% 16%"}
+    }
+
+``dark`` / ``light`` are CSS custom properties laid over the default palette
+(same ``H S% L%`` values the dashboard themes use).
 """
 
 from __future__ import annotations
@@ -50,6 +62,9 @@ LOGGER = logging.getLogger("hexogate.brand")
 _KEY_RE = re.compile(r"^[a-z0-9][a-z0-9_-]{0,31}$")
 _FILE_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$")
 _ASSET_FIELDS = ("logo", "logo_on_light", "favicon")
+_CSS_VAR_RE = re.compile(r"^--[a-z0-9-]{1,40}$")
+_CSS_VALUE_RE = re.compile(r"^[0-9a-zA-Z.%, ()#-]{1,60}$")
+_HEX_COLOR_RE = re.compile(r"^#[0-9a-fA-F]{6}$")
 _MAX_ASSET_BYTES = 1024 * 1024
 
 
@@ -67,6 +82,7 @@ class Brand:
     logo: str | None = None
     logo_on_light: str | None = None
     favicon: str | None = None
+    theme: dict[str, Any] | None = field(default=None, compare=False)
     _data_uris: dict[str, str] = field(default_factory=dict, compare=False, repr=False)
 
     @property
@@ -112,6 +128,7 @@ class Brand:
             "logo": logo,
             "logoOnLight": self.asset_url(self.logo_on_light) or logo,
             "favicon": self.asset_url(self.favicon),
+            "theme": self.theme,
         }
 
     def template_context(self) -> dict[str, Any]:
@@ -132,6 +149,31 @@ def normalize_host(value: str | None) -> str:
     if host.startswith("["):
         return host.partition("]")[0] + "]" if "]" in host else host
     return host.rpartition(":")[0] if ":" in host else host
+
+
+def _validate_theme(key: str, raw: Any) -> dict[str, Any] | None:
+    if raw is None:
+        return None
+    if not isinstance(raw, dict) or set(raw) - {"default_mode", "theme_color", "dark", "light"}:
+        raise BrandError(f"brand {key}: theme accepts default_mode, theme_color, dark, light")
+    default_mode = raw.get("default_mode")
+    if default_mode not in (None, "dark", "light"):
+        raise BrandError(f"brand {key}: theme.default_mode must be dark or light")
+    theme_color = raw.get("theme_color")
+    if theme_color is not None and not (isinstance(theme_color, str) and _HEX_COLOR_RE.match(theme_color)):
+        raise BrandError(f"brand {key}: theme.theme_color must look like #rrggbb")
+    theme: dict[str, Any] = {"defaultMode": default_mode, "themeColor": theme_color}
+    for mode in ("dark", "light"):
+        variables = raw.get(mode, {})
+        if not isinstance(variables, dict):
+            raise BrandError(f"brand {key}: theme.{mode} must be an object")
+        for name, value in variables.items():
+            if not (isinstance(name, str) and _CSS_VAR_RE.match(name)):
+                raise BrandError(f"brand {key}: theme.{mode} has a bad variable name {name!r}")
+            if not (isinstance(value, str) and _CSS_VALUE_RE.match(value)):
+                raise BrandError(f"brand {key}: theme.{mode} {name} has a bad value")
+        theme[mode] = dict(variables)
+    return theme
 
 
 def validate_brands(data: Any, base_dir: Path) -> dict[str, Brand]:
@@ -176,6 +218,7 @@ def validate_brands(data: Any, base_dir: Path) -> dict[str, Brand]:
             directory=base_dir / "brands" / key,
             hosts=normalized_hosts,
             admins=tuple(admin.strip() for admin in admins),
+            theme=_validate_theme(key, raw.get("theme")),
             **assets,
         )
     return brands

@@ -1,4 +1,4 @@
-import { brand, brandLogo, brandName } from '@/lib/brand'
+import { brand, brandColor, brandLogo, brandName } from '@/lib/brand'
 import { Footer } from '@/components/layout/footer'
 import { Language } from '@/components/common/language'
 import { useTheme } from '@/app/providers/theme-context'
@@ -404,22 +404,30 @@ export const Login: FC = () => {
 
   return (
     <div className="bg-background flex min-h-screen w-full flex-col lg:flex-row">
-      <aside className="relative hidden overflow-hidden bg-[#031d44] text-[#dfeafa] lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-10 xl:p-14">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_60%,rgba(86,198,234,0.22),transparent_70%)]" />
+      <aside
+        className="relative hidden overflow-hidden bg-[#031d44] text-[#dfeafa] lg:flex lg:w-1/2 lg:flex-col lg:justify-between lg:p-10 xl:p-14"
+        style={{ backgroundColor: brandColor('--sidebar-background'), color: brandColor('--foreground') }}
+      >
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_50%_at_50%_60%,rgba(86,198,234,0.22),transparent_70%)]"
+          style={brand?.theme ? { backgroundImage: `radial-gradient(60% 50% at 50% 60%, ${brandColor('--primary', 0.22)}, transparent 70%)` } : undefined}
+        />
         <div className="relative flex items-center gap-3">
           <img src={brandLogo(true, '/statics/favicon/logo.png')} alt="" className="h-10 w-10 object-contain" />
           <span className="text-lg font-semibold tracking-wide">{brandName('Hexogate')}</span>
         </div>
         <div className="relative flex flex-1 items-center justify-center py-8">
           {brand ? (
-            brand.logo && <img src={brand.logo} alt="" className="w-full max-w-xs object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
+            brand.logo && <img src={brand.logo} alt="" className="w-full max-w-xs object-contain" />
           ) : (
             <img src="/statics/favicon/hero.svg" alt="" className="w-full max-w-2xl object-contain drop-shadow-[0_0_40px_rgba(86,198,234,0.35)]" />
           )}
         </div>
         <div className="relative space-y-2">
           <h2 className="text-2xl font-semibold text-white">{t('login.brandHeadline', { defaultValue: 'Your gateway, under your control.' })}</h2>
-          <p className="max-w-md text-sm text-[#9fb8d8]">{t('login.brandTagline', { defaultValue: 'Manage users, nodes and subscriptions from one place.' })}</p>
+          <p className="max-w-md text-sm text-[#9fb8d8]" style={{ color: brandColor('--muted-foreground') }}>
+            {t('login.brandTagline', { defaultValue: 'Manage users, nodes and subscriptions from one place.' })}
+          </p>
         </div>
       </aside>
       <div className="flex min-h-screen flex-1 flex-col justify-between p-6 lg:min-h-0">

@@ -36,6 +36,10 @@ def apply_brand(html: str, brand: Brand) -> str:
     if icon_url:
         icon = f'<link rel="icon" href="{escape(icon_url)}" />'
         html = re.sub(r"<link\b[^>]*\brel=\"icon\"[^>]*>", lambda _: icon, html, count=1)
+    theme_color = (public.get("theme") or {}).get("themeColor")
+    if theme_color:
+        meta = f'<meta name="theme-color" content="{escape(theme_color)}" />'
+        html = re.sub(r"<meta\b[^>]*\bname=\"theme-color\"[^>]*>", lambda _: meta, html, count=1)
     payload = json.dumps(public).replace("<", "\\u003c")
     return html.replace("</head>", f"<script>window.__HEXO_BRAND__={payload}</script></head>", 1)
 

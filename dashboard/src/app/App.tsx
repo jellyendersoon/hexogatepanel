@@ -1,3 +1,4 @@
+import { brand } from '@/lib/brand'
 import { ThemeProvider } from '@/app/providers/theme-provider'
 import { router } from '@/app/router'
 import { ErrorBoundary } from '@/components/layout/error-boundary'
@@ -10,7 +11,7 @@ import { queryClient } from '@/utils/query-client'
 
 export default function App() {
   return (
-    <ThemeProvider defaultTheme="system" storageKey="theme">
+    <ThemeProvider defaultTheme={brand?.theme?.defaultMode ?? 'system'} storageKey="theme">
       <QueryClientProvider client={queryClient}>
         <SidebarProvider className="contents">
           <main>

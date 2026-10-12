@@ -1,3 +1,5 @@
+import { brand } from '@/lib/brand'
+
 export type BaseColor = 'default' | 'zinc' | 'slate' | 'stone' | 'gray' | 'mauve' | 'olive' | 'mist'
 export type ColorTheme = 'default' | 'inverse' | 'red' | 'rose' | 'pink' | 'orange' | 'amber' | 'yellow' | 'green' | 'teal' | 'cyan' | 'blue' | 'indigo' | 'violet'
 export type ThemeStyle = 'vega' | 'nova' | 'maia' | 'lyra'
@@ -190,8 +192,17 @@ const hexogatePalette: ColorThemeConfig = {
   },
 }
 
+// On a tenant's own domain the default palette is the tenant's (see app/utils/brand.py).
+const defaultPalette: ColorThemeConfig = brand?.theme
+  ? {
+      name: brand.name,
+      light: { ...hexogatePalette.light, ...brand.theme.light },
+      dark: { ...hexogatePalette.dark, ...brand.theme.dark },
+    }
+  : hexogatePalette
+
 export const baseColors: Record<BaseColor, ColorThemeConfig> = {
-  default: hexogatePalette,
+  default: defaultPalette,
   zinc: basePalette('Zinc', 240, 6, 3, '240 6% 10%', '0 0% 98%', '0 0% 98%', '240 6% 10%'),
   slate: basePalette('Slate', 215, 14, 8, '222 47% 11%', '210 40% 98%', '210 40% 98%', '222 47% 11%'),
   stone: basePalette('Stone', 30, 6, 4, '24 10% 10%', '60 9% 98%', '24 6% 83%', '24 10% 10%'),
