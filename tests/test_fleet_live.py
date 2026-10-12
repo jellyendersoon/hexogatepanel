@@ -77,6 +77,8 @@ def test_server_limit(tmp_path, monkeypatch):
 
 def test_live_users_ranks_by_speed_and_keeps_ten_minutes():
     users = fleet_live.LiveUsers()
+    users.record({1: [{"uid": 99, "value": 9_000_000_000}]}, now=970.0)  # first report after a start: ignored
+    assert users.top(now=971.0)["users"] == []
     users.record({1: [{"uid": 10, "value": 3_000_000}, {"uid": 11, "value": 30_000_000}]}, now=1000.0)
     users.record(
         {1: [{"uid": 10, "value": 6_000_000}], 2: [{"uid": 10, "value": 1_500_000}, {"uid": 12, "value": 0}]},

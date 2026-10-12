@@ -183,8 +183,10 @@ class LiveUsers:
 
     def record(self, api_params: dict, now: float | None = None) -> None:
         now = now or time.time()
-        seconds = min(300.0, max(5.0, now - self._last_ts)) if self._last_ts else 30.0
-        self._last_ts = now
+        previous, self._last_ts = self._last_ts, now
+        if not previous:
+            return  # the first report after a start covers an unknown stretch of time, so it cannot give a speed
+        seconds = min(300.0, max(5.0, now - previous))
         window: dict[int, dict[int, int]] = {}
         for node_id, params in (api_params or {}).items():
             for param in params or ():

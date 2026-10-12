@@ -1,3 +1,5 @@
+import time
+
 from fastapi import status
 from pytest import MonkeyPatch
 
@@ -109,11 +111,12 @@ def test_fleet_live_users_lists_the_busiest_users(access_token, monkeypatch: Mon
     empty = client.get("/api/fleet/live/users", headers=auth_headers(access_token))
     assert empty.status_code == status.HTTP_200_OK and empty.json()["users"] == []
 
+    live.record({}, now=time.time() - 30)
     live.record({7: [{"uid": 41, "value": 3_750_000}], 9: [{"uid": 42, "value": 1_000}]})
     body = client.get("/api/fleet/live/users?limit=5", headers=auth_headers(access_token)).json()
     assert body["active"] == 2 and body["span"] == "now"
     first, second = body["users"]
-    assert (first["username"], first["admin"], first["bps"]) == ("alice", "boss", 1_000_000)
+    assert (first["username"], first["admin"]) == ("alice", "boss") and abs(first["bps"] - 1_000_000) < 5_000
     assert first["servers"] == [{"name": "🇩🇪 DE-01", "bytes": 3_750_000}]
     assert second["username"] == "#42" and second["servers"][0]["name"] == "node 9"
     assert client.get("/api/fleet/live/users?span=1h", headers=auth_headers(access_token)).status_code == 422
