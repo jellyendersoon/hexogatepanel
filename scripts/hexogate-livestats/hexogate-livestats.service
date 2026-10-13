@@ -1,0 +1,19 @@
+[Unit]
+Description=Hexogate live traffic reporter (speed, TCP/UDP counts) for the panel's Live fleet view
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/usr/bin/python3 /usr/local/sbin/hexogate-livestats /etc/hexogate/livestats.conf
+Restart=always
+RestartSec=10
+Nice=10
+CPUQuota=25%
+MemoryMax=96M
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes
+
+[Install]
+WantedBy=multi-user.target

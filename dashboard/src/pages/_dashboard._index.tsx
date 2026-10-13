@@ -1,6 +1,8 @@
 import AdminStatisticsCard from '@/features/dashboard/components/admin-statistics-card'
 import DashboardStatistics from '@/features/dashboard/components/dashboard-statistics'
 import WorkersHealthCard from '@/features/dashboard/components/workers-health-card'
+import LiveFleetCard from '@/features/dashboard/components/live-fleet-card'
+import LiveUsersCard from '@/features/dashboard/components/live-users-card'
 import AdminFilterCombobox from '@/components/common/admin-filter-combobox'
 import { useCommandPaletteStore } from '@/hooks/use-command-palette-store'
 import UserModal from '@/features/users/dialogs/user-modal'
@@ -108,6 +110,8 @@ const Dashboard = () => {
       <div className="w-full px-3 pt-2 sm:px-4">
         <div className="flex flex-col gap-4 sm:gap-6">
           <DashboardStatistics resourceData={systemResourceStatsData} usersData={systemUsersStatsData} />
+          {canReadNodeStats && <LiveFleetCard />}
+          {canReadNodeStats && canReadAllUsers && <LiveUsersCard />}
           {canReadNodeStats && <WorkersHealthCard />}
           <Separator className="my-4" />
           {canReadAllUsers ? (
