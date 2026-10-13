@@ -217,6 +217,9 @@ def test_master_assignment_is_validated(access_token):
             client.put(url, headers=headers, json={"parent_id": second["id"]}).status_code
             == status.HTTP_400_BAD_REQUEST
         )
+        # ...and an admin that is a master cannot be put under another one.
+        blocked = client.put(f"/api/admin/{master['username']}", headers=headers, json={"parent_id": first["id"]})
+        assert blocked.status_code == status.HTTP_400_BAD_REQUEST
     finally:
         for admin in (first, second, master):
             delete_admin(access_token, admin["username"])

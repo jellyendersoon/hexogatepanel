@@ -52,6 +52,8 @@ export const adminFormSchema = z
     password: z.string().optional(),
     passwordConfirm: z.string().optional(),
     role_id: z.number().min(1, 'Role is required'),
+    // Master (reseller) the admin belongs to; 0 = none, undefined on create = whoever creates it.
+    parent_id: z.number().optional(),
     status: adminStatusEditEnum.optional(),
     data_limit: z.union([z.literal('').transform(() => null), z.null(), z.coerce.number().min(0)]).optional(),
     is_disabled: z.boolean().optional(),

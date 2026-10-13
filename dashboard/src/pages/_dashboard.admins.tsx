@@ -146,6 +146,7 @@ export default function AdminsPage() {
     form.reset({
       username: admin.username,
       role_id: roleId,
+      parent_id: admin.parent_id ?? 0,
       status: (admin.status || (admin.is_disabled ? 'disabled' : 'active')) === 'disabled' ? 'disabled' : 'active',
       data_limit: admin.data_limit ?? null,
       is_disabled: admin.status === 'disabled' || admin.is_disabled || undefined,

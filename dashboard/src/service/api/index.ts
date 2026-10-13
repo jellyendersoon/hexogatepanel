@@ -356,6 +356,7 @@ export interface RoleLimits {
  * Model for creating new admin accounts requiring username and password.
  */
 export interface AdminCreate {
+  parent_id?: number | null;
   password: string;
   telegram_id?: number | null;
   discord_webhook?: string | null;
@@ -467,6 +468,7 @@ export const AdminModifyStatus = {
 } as const;
 
 export interface AdminModify {
+  parent_id?: number | null;
   password?: string | null;
   telegram_id?: number | null;
   discord_webhook?: string | null;

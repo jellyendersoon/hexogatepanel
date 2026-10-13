@@ -15,7 +15,8 @@ import { CustomVariablesPopover, VariablesPopover } from '@/components/ui/variab
 import { normalizeCustomVariableKey } from '@/components/ui/custom-variables'
 import { useAdmin } from '@/hooks/use-admin'
 import useDynamicErrorHandler from '@/hooks/use-dynamic-errors.ts'
-import { useCreateAdmin, useGetRolesSimple, useModifyAdminById } from '@/service/api'
+import { ADMIN_MASTERS_QUERY_KEY } from '@/features/admins/hooks/use-admin-masters'
+import { getGetAdminsQueryKey, useCreateAdmin, useGetAdmins, useGetRolesSimple, useModifyAdminById } from '@/service/api'
 import type { RoleLimits } from '@/service/api'
 import { builtInVariableKeys, normalizeCustomVariablesForPayload } from '@/features/subscriptions/components/subscription-settings-schema'
 import { upsertAdminInAdminsCache } from '@/utils/adminsCache'
@@ -98,6 +99,17 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
   const modifyAdminMutation = useModifyAdminById()
   const rolesQuery = useGetRolesSimple()
   const selectedRoleId = form.watch('role_id')
+  // Only an unrestricted admin manager assigns masters; a master reseller's admins always stay its own.
+  const canAssignMaster = currentAdmin?.role?.access?.admins_scope !== 'own'
+  const masterCandidatesQuery = useGetAdmins({ limit: 1000 }, { query: { enabled: isDialogOpen && canAssignMaster, staleTime: 30_000 } })
+  const masterCandidates = useMemo(() => {
+    const all = masterCandidatesQuery.data?.admins ?? []
+    const hasAdmins = new Set(all.map(a => a.parent_id).filter((id): id is number => id != null))
+    return all
+      .filter(a => a.id != null && a.id !== editingAdminId && a.parent_id == null)
+      .filter(a => a.role?.is_owner || a.role?.access?.admins_scope === 'own' || hasAdmins.has(a.id as number))
+      .sort((a, b) => a.username.localeCompare(b.username))
+  }, [masterCandidatesQuery.data, editingAdminId])
   const customVariables = form.watch('custom_variables') || []
   const typedCustomVariables = customVariables.filter((v): v is { key: string; value: string } => v.key !== undefined)
   const builtInKeys = new Set<string>(builtInVariableKeys)
@@ -193,6 +205,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
         notification_enable: values.notification_enable || null,
         role_id: values.role_id,
         permission_overrides: normalizePermissionOverrides(values.permission_overrides),
+        ...(canAssignMaster && form.formState.dirtyFields.parent_id && values.parent_id !== undefined ? { parent_id: values.parent_id } : {}),
       }
       if (editingAdmin && editingAdminId != null) {
         const updatedAdmin = await modifyAdminMutation.mutateAsync({
@@ -236,6 +249,7 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
           notification_enable: values.notification_enable || null,
           role_id: values.role_id,
           permission_overrides: normalizePermissionOverrides(values.permission_overrides),
+          ...(canAssignMaster && values.parent_id !== undefined ? { parent_id: values.parent_id } : {}),
         }
         const createdAdmin = await addAdminMutation.mutateAsync({
           data: createData,
@@ -248,6 +262,9 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
           }),
         )
       }
+      // The master may have changed: refresh the tabs and the list behind the dialog.
+      queryClient.invalidateQueries({ queryKey: ADMIN_MASTERS_QUERY_KEY })
+      queryClient.invalidateQueries({ queryKey: [getGetAdminsQueryKey()[0]] })
       onOpenChange(false)
       form.reset()
     } catch (error) {
@@ -350,6 +367,38 @@ export default function AdminModal({ isDialogOpen, onOpenChange, editingAdminId,
                     )
                   }}
                 />
+                {canAssignMaster && !(editingAdmin && selectedRoleId === 1) && (
+                  <FormField
+                    control={form.control}
+                    name="parent_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('admins.masters.label', { defaultValue: 'Master reseller' })}</FormLabel>
+                        <Select value={field.value === undefined ? '' : String(field.value)} onValueChange={value => field.onChange(Number(value))}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder={t('admins.masters.defaultMine', { defaultValue: 'Your account (default)' })} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="0">{t('admins.masters.none', { defaultValue: 'No master' })}</SelectItem>
+                            {field.value != null && field.value > 0 && !masterCandidates.some(a => a.id === field.value) && (
+                              <SelectItem value={String(field.value)} disabled>
+                                #{field.value}
+                              </SelectItem>
+                            )}
+                            {masterCandidates.map(candidate => (
+                              <SelectItem key={candidate.id} value={String(candidate.id)}>
+                                <span dir="ltr">{candidate.username}</span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
                 <FormField
                   control={form.control}
                   name="password"

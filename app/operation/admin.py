@@ -93,6 +93,12 @@ class AdminOperation(BaseOperation):
             return
         if target_id is not None and parent_id == target_id:
             await self.raise_error(message="An admin cannot be its own master.", code=400)
+        if target_id is not None:
+            _, own_admins = await get_admins_simple(
+                db=db, query=AdminSimpleListQuery(parent_id=target_id, include_master=False, limit=1)
+            )
+            if own_admins:
+                await self.raise_error(message="This admin is a master itself; move its admins first.", code=400)
         master = await get_admin_by_id(db, parent_id, load_users=False, load_usage_logs=False)
         if master is None:
             await self.raise_error(message="Master admin not found", code=404)
