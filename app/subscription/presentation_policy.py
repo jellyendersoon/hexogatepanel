@@ -48,6 +48,7 @@ LOCATION_FLAGS = (
     "🇸🇪",
     "🇺🇸",
     "🇨🇦",
+    "🇷🇴",
 )
 
 # Economy (7) and VIP (8) lists are ordered by method first (see method_rank),
